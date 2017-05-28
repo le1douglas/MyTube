@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:descendantFocusability="blocksDescendants">
+
+    <ImageButton
+        android:layout_marginStart="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_search_black_24dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/imageButton5" />
+  <!--  android:background="?attr/selectableItemBackground"-->
+
+    <TextView
+        android:layout_marginLeft="56dp"
+        android:paddingLeft="16dp"
+        android:gravity="center_vertical"
+
+        android:textColor="#999999"
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:text="short"
+        android:textSize="16sp"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/buttonInsertText" />
+
+    <ImageButton
+        android:padding="8dp"
+        android:layout_marginEnd="8dp"
+        android:id="@+id/buttonInsertText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_arrow_back_black_24dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true" />
+
+</RelativeLayout>
