@@ -8,9 +8,14 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.util.Log;
 
+import static le1.mytube.MusicService.afChangeListener;
+import static le1.mytube.MusicService.audioManager;
 import static le1.mytube.MusicService.notification;
+import static le1.mytube.MusicService.pauseSong;
+import static le1.mytube.MusicService.playSong;
 import static le1.mytube.MusicService.player;
 import static le1.mytube.MusicService.remoteView;
 
@@ -26,15 +31,9 @@ public class NotificationClickHandler extends BroadcastReceiver {
         else if (intent.getStringExtra("NOT").equals("0")) {
             Log.i("NOTIFICATION", "0");
             if (player.isPlaying()) {
-                player.pause();
-                remoteView.setTextViewText(R.id.btn1, "paused");
-                mNotificationManager.notify(666, notification);
-
-
-            } else {
-                player.start();
-                remoteView.setTextViewText(R.id.btn1, "playing");
-                mNotificationManager.notify(666, notification);
+                pauseSong(true);
+            }else {
+                playSong(true);
             }
         }
     }

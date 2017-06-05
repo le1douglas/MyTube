@@ -4,14 +4,13 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.session.MediaSession;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.util.SparseArray;
 import android.widget.RemoteViews;
 
@@ -28,8 +27,9 @@ public class MusicService extends Service {
     static NotificationManager mNotificationManager;
     static RemoteViews remoteView;
     static Notification notification;
-    AudioManager.OnAudioFocusChangeListener afChangeListener;
-    AudioManager audioManager;
+    static AudioManager.OnAudioFocusChangeListener afChangeListener;
+    static AudioManager audioManager;
+    ComponentName componentName;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -37,7 +37,9 @@ public class MusicService extends Service {
         player = new MediaPlayer();
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        audioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        componentName = new ComponentName(this, MusicReceiver.class);
+        audioManager.registerMediaButtonEventReceiver(componentName);
+
 
         Intent notificationIntent = new Intent(MusicService.this, SearchActivity.class);
         notificationIntent.putExtra("FROM", "notification");
@@ -72,31 +74,48 @@ public class MusicService extends Service {
         player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                audioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+                remoteView.setBoolean(R.id.btn1, "setEnabled", true);
                 player.start();
                 remoteView.setTextViewText(R.id.btn1, "playing");
                 mNotificationManager.notify(666, notification);
             }
         });
 
+
         afChangeListener =
                 new AudioManager.OnAudioFocusChangeListener() {
                     public void onAudioFocusChange(int focusChange) {
                         if (player != null) {
-                            if (focusChange == AudioManager.AUDIOFOCUS_LOSS && !MainActivity.modalitaPorno) {
-                                player.pause();
-                                remoteView.setTextViewText(R.id.btn1, "paused");
-                                mNotificationManager.notify(666, notification);
+                            switch (focusChange) {
+                                case (AudioManager.AUDIOFOCUS_LOSS):
+                                    pauseSong(true);
+                                    break;
+
+                                case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK):
+                                    // Lower the volume while ducking.
+                                    player.setVolume(0.2f, 0.2f);
+                                    break;
+                                case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT):
+                                  pauseSong(false);
+                                    break;
+                                case (AudioManager.AUDIOFOCUS_GAIN):
+                                    // Return the volume to normal and resume if paused.
+                                    playSong(true);
+                                    break;
+
+
                             }
+
                         }
                     }
                 };
 
 
-
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                stopForeground(false);
+
                 MusicService.this.stopSelf();
             }
         });
@@ -114,6 +133,7 @@ public class MusicService extends Service {
         player.reset();
         remoteView.setTextViewText(R.id.btn1, "loading");
         remoteView.setTextViewText(R.id.title, videoTitle);
+        remoteView.setBoolean(R.id.btn1, "setEnabled", false);
         mNotificationManager.notify(666, notification);
 
         new YouTubeExtractor(context) {
@@ -137,10 +157,34 @@ public class MusicService extends Service {
 
     }
 
+    public static void pauseSong(boolean abandonAudioFocus) {
+        if (player.isPlaying()) {
+            if (abandonAudioFocus) {
+                audioManager.abandonAudioFocus(afChangeListener);
+            }
+            player.pause();
+            remoteView.setTextViewText(R.id.btn1, "paused");
+            mNotificationManager.notify(666, notification);
+
+        }
+    }
+
+    public static void playSong(boolean gainAudioFocus) {
+
+            if (gainAudioFocus) { audioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            }
+            player.start();
+            player.setVolume(1f, 1f);
+            remoteView.setTextViewText(R.id.btn1, "playing");
+            mNotificationManager.notify(666, notification);
+
+    }
+
 
     @Override
     public void onDestroy() {
-        this.audioManager.abandonAudioFocus(afChangeListener);
+        audioManager.unregisterMediaButtonEventReceiver(componentName);
+        audioManager.abandonAudioFocus(afChangeListener);
         player.stop();
         player.reset();
         player.release();

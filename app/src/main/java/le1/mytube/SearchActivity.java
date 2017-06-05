@@ -96,12 +96,14 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         if (getIntent().getStringExtra("FROM").equals("notification")) {
             loadingIcon.setVisibility(View.GONE);
             autocompleteListView.setVisibility(View.GONE);
+            videoResultListView.smoothScrollToPosition(0);
             videoResultListView.setVisibility(View.VISIBLE);
             searchEditText.setText("FROM NOTIFICATION");
+            searchEditText.setSelection(searchEditText.length());
             new SearchTask().execute("FROM NOTIFICATION");
 
         } else if (getIntent().getStringExtra("FROM").equals("MainActivity")) {
-            videoResultListView.setVisibility(View.GONE);
+
             loadingIcon.setVisibility(View.GONE);
             autocompleteListView.setVisibility(View.VISIBLE);
         }
@@ -112,6 +114,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     autocompleteListView.setVisibility(View.GONE);
+                    videoResultListView.smoothScrollToPosition(0);
                     new SearchTask().execute(searchEditText.getText().toString());
                     imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
 
@@ -128,8 +131,9 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
                     loadingIcon.setVisibility(View.GONE);
                     autocompleteListView.setVisibility(View.VISIBLE);
                     videoResultListView.setVisibility(View.GONE);
-                    imm.showSoftInputFromInputMethod(searchEditText.getWindowToken(), 0);
                     searchEditText.setSelection(searchEditText.length());
+                    imm.showSoftInputFromInputMethod(searchEditText.getWindowToken(), 0);
+
                 }
 
                 return SearchActivity.super.onTouchEvent(event);
@@ -165,19 +169,21 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
             searchEditText.setText(clickedSugestionTextView.getText().toString());
             searchEditText.setSelection(searchEditText.length());
             autocompleteListView.setVisibility(View.GONE);
+
             new SearchTask().execute(searchEditText.getText().toString());
             imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
 
         } else if (parent == videoResultListView) {
             TextView idView = (TextView) view.findViewById(R.id.id);
+            TextView videoTitle = (TextView) view.findViewById(R.id.title);
             String videoId = idView.getText().toString();
             if (!isMyServiceRunning(MusicService.class)) {
                 Intent intent = new Intent(SearchActivity.this, MusicService.class);
                 intent.putExtra("videoId", videoId);
-                intent.putExtra("title", "PRIMOQULO");
+                intent.putExtra("title", videoTitle.getText().toString());
                 startService(intent);
             } else {
-                MusicService.startSong(videoId, "Qulo", this);
+                MusicService.startSong(videoId, videoTitle.getText().toString() , this);
             }
         }
     }
@@ -192,7 +198,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         return false;
     }
 
-    class AutocompleteTask extends AsyncTask<String, Void, String> {
+    private class  AutocompleteTask extends AsyncTask<String, Void, String> {
 
         URL url;
 
@@ -251,7 +257,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         }
     }
 
-    class SearchTask extends AsyncTask<String, String, JSONObject> {
+    private class SearchTask extends AsyncTask<String, String, JSONObject> {
 
         final static int maxResults = 20;
 
@@ -323,6 +329,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         @Override
         protected void onPostExecute(JSONObject result) {
             if (result != null) {
+                videoResultListView.smoothScrollToPosition(0);
                 videoResultListView.setVisibility(View.VISIBLE);
                 loadingIcon.setVisibility(View.GONE);
                 //System.out.println("JSON: " + result);
@@ -330,30 +337,31 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
                 try {
                     JSONArray itemArray = result.getJSONArray("items");
+                    videoResultAdapter.clear();
                     if (itemArray.length() > 0) {
 
+                        for (int i = 0; i < itemArray.length(); i++) {
+                            JSONObject videoRoot = itemArray.getJSONObject(i);
+                            JSONObject id = videoRoot.getJSONObject("id");
+                            JSONObject snippet = videoRoot.getJSONObject("snippet");
+                            JSONObject thumbnails = snippet.getJSONObject("thumbnails");
+                            JSONObject thumbnailImage = thumbnails.getJSONObject("medium");
+
+                            String imageString = thumbnailImage.getString("url");
+                            String idString = id.getString("videoId");
+                            String title = snippet.getString("title");
+
+                            idArray.add(idString);
+                            uriArray.add(Uri.parse(imageString));
+                            titleArray.add(title);
+                            System.out.println(String.valueOf(i) + idString + ", " + imageString + ", " + title);
+
+                        }
+                        videoResultAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(SearchActivity.this, "No results found", Toast.LENGTH_SHORT).show();
                     }
-                    videoResultAdapter.clear();
-                    for (int i = 0; i < itemArray.length(); i++) {
-                        JSONObject videoRoot = itemArray.getJSONObject(i);
-                        JSONObject id = videoRoot.getJSONObject("id");
-                        JSONObject snippet = videoRoot.getJSONObject("snippet");
-                        JSONObject thumbnails = snippet.getJSONObject("thumbnails");
-                        JSONObject thumbnailImage = thumbnails.getJSONObject("medium");
 
-                        String imageString = thumbnailImage.getString("url");
-                        String idString = id.getString("videoId");
-                        String title = snippet.getString("title");
-
-                        idArray.add(idString);
-                        uriArray.add(Uri.parse(imageString));
-                        titleArray.add(title);
-                        System.out.println(String.valueOf(i) + idString + ", " + imageString + ", " + title);
-
-                    }
-                    videoResultAdapter.notifyDataSetChanged();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
