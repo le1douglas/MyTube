@@ -20,6 +20,8 @@ import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 
+import static le1.mytube.MainActivity.modalitaPorno;
+
 
 public class MusicService extends Service {
 
@@ -86,7 +88,7 @@ public class MusicService extends Service {
         afChangeListener =
                 new AudioManager.OnAudioFocusChangeListener() {
                     public void onAudioFocusChange(int focusChange) {
-                        if (player != null) {
+                        if (player != null&&!modalitaPorno) {
                             switch (focusChange) {
                                 case (AudioManager.AUDIOFOCUS_LOSS):
                                     pauseSong(true);
@@ -97,7 +99,7 @@ public class MusicService extends Service {
                                     player.setVolume(0.2f, 0.2f);
                                     break;
                                 case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT):
-                                  pauseSong(false);
+                                    pauseSong(false);
                                     break;
                                 case (AudioManager.AUDIOFOCUS_GAIN):
                                     // Return the volume to normal and resume if paused.
@@ -144,6 +146,7 @@ public class MusicService extends Service {
                     String downloadUrl = ytFiles.get(itag).getUrl();
                     System.out.println(downloadUrl);
                     try {
+                        player.reset();
                         player.setDataSource(downloadUrl);
                         player.prepareAsync();
                     } catch (IOException e) {
@@ -158,7 +161,7 @@ public class MusicService extends Service {
     }
 
     public static void pauseSong(boolean abandonAudioFocus) {
-        if (player.isPlaying()) {
+        if (player != null && player.isPlaying()) {
             if (abandonAudioFocus) {
                 audioManager.abandonAudioFocus(afChangeListener);
             }
@@ -170,13 +173,15 @@ public class MusicService extends Service {
     }
 
     public static void playSong(boolean gainAudioFocus) {
-
-            if (gainAudioFocus) { audioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (player != null) {
+            if (gainAudioFocus) {
+                audioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
             }
             player.start();
             player.setVolume(1f, 1f);
             remoteView.setTextViewText(R.id.btn1, "playing");
             mNotificationManager.notify(666, notification);
+        }
 
     }
 

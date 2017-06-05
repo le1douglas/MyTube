@@ -144,6 +144,16 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
     }
 
     @Override
+    public void onBackPressed() {
+        if (autocompleteListView.getVisibility() == View.VISIBLE&&videoResultListView.getCount()>0) {
+            autocompleteListView.setVisibility(View.GONE);
+            videoResultListView.setVisibility(View.VISIBLE);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
     }
@@ -183,7 +193,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
                 intent.putExtra("title", videoTitle.getText().toString());
                 startService(intent);
             } else {
-                MusicService.startSong(videoId, videoTitle.getText().toString() , this);
+                MusicService.startSong(videoId, videoTitle.getText().toString(), this);
             }
         }
     }
@@ -198,7 +208,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         return false;
     }
 
-    private class  AutocompleteTask extends AsyncTask<String, Void, String> {
+    private class AutocompleteTask extends AsyncTask<String, Void, String> {
 
         URL url;
 
