@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,10 +18,11 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     public static boolean modalitaPorno;
-
+    MusicDB db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,10 +42,13 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 modalitaPorno = isChecked;
                 editor.putBoolean("modalitaPorno", modalitaPorno);
-                editor.commit();
+                editor.apply();
 
             }
         });
+        db= new MusicDB(this);
+
+
 
     }
 
@@ -80,5 +86,14 @@ public class MainActivity extends AppCompatActivity {
         stopService(new Intent(this, MusicService.class));
     }
 
+    @Override
+    protected void onDestroy() {
+        //db.close();
+        super.onDestroy();
+    }
+    public void uselessButton(View view){
+        db.open();
+        db.addSong("1", "ulallalid", "ullalalalepath", 1,666);
+    }
 
 }
