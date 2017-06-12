@@ -43,7 +43,7 @@ public class MusicDB {
         dbHelper.close();
     }
 
-    private ContentValues addContentValues(String title, String videoID, String path, int startTime, int endTime ) {
+    private ContentValues generateCV(String title, String videoID, String path, int startTime, int endTime ) {
         ContentValues values = new ContentValues();
         values.put( FLD_TITLE, title );
         values.put( FLD_ID, videoID );
@@ -55,13 +55,13 @@ public class MusicDB {
 
     //create a contact
     public long addSong(String title, String videoID, String path, int startTime,int endTime ) {
-        ContentValues initialValues = addContentValues(title, videoID, path, startTime, endTime);
+        ContentValues initialValues = generateCV(title, videoID, path, startTime, endTime);
         return database.insertOrThrow(TB_NAME, null, initialValues);
     }
 
     //update a contact
     public boolean updateSong(long _id, String title, String videoID, String path, int startTime,int endTime ) {
-        ContentValues updateValues = addContentValues(title, videoID, path, startTime, endTime);
+        ContentValues updateValues = generateCV(title, videoID, path, startTime, endTime);
         return database.update(TB_NAME, updateValues, FLD_INDEX + "=" + _id, null) > 0;
     }
 
