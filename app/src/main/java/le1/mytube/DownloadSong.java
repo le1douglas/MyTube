@@ -5,6 +5,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,21 +20,25 @@ public class DownloadSong extends AsyncTask<String, String, String> {
 
         @Override
         protected void onPreExecute() {
+            File myDirectory = new File(Environment.getExternalStorageDirectory(), "MyTube");
+            if(!myDirectory.exists()) {
+                myDirectory.mkdir();
+            }
             super.onPreExecute();
             //show notif
         }
 
         @Override
-        protected String doInBackground(String... url) {
+        protected String doInBackground(String... info) {
             int count;
             try {
-                URL URL = new URL(url[0]);
-                URLConnection connection = URL.openConnection();
+                URL url = new URL(info[0]);
+                URLConnection connection = url.openConnection();
                 connection.connect();
                 int lenghtOfFile = connection.getContentLength();
                 Log.d("ANDRO_ASYNC", "Lenght of file: " + lenghtOfFile);
-                InputStream input = new BufferedInputStream(URL.openStream());
-                OutputStream output = new FileOutputStream(Environment.getExternalStorageDirectory()+"/song.mp3");
+                InputStream input = new BufferedInputStream(url.openStream());
+                OutputStream output = new FileOutputStream(Environment.getExternalStorageDirectory()+"/MyTube/"+info[1]+".mp3");
                 byte data[] = new byte[1024];
                 long total = 0;
                 while ((count = input.read(data)) != -1) {

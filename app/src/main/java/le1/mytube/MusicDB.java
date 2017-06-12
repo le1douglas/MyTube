@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Environment;
 
 import static le1.mytube.DBHelper.FLD_END;
 import static le1.mytube.DBHelper.FLD_ID;
@@ -14,7 +13,7 @@ import static le1.mytube.DBHelper.FLD_PATH;
 import static le1.mytube.DBHelper.FLD_START;
 import static le1.mytube.DBHelper.FLD_TITLE;
 import static le1.mytube.DBHelper.TB_NAME;
-import static le1.mytube.DBHelper.database;
+
 
 /**
  * Created by Leone on 09/06/17.
@@ -24,7 +23,7 @@ public class MusicDB {
 
     private Context context;
     private DBHelper dbHelper;
-
+    private SQLiteDatabase database;
 
     public MusicDB(Context context) {
         this.context = context;
@@ -33,7 +32,6 @@ public class MusicDB {
     public MusicDB open() throws SQLException {
         dbHelper = new DBHelper(context);
         database = dbHelper.getWritableDatabase();
-        database = SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory() + "/mydatabase.db", null);
         return this;
     }
 

@@ -22,7 +22,6 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String FLD_START = "START";
     public static final String FLD_END = "END";
 
-    public static SQLiteDatabase database;
 
 
     private static final String DB_CREATE = "create table "+ TB_NAME + "(" +
@@ -41,7 +40,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        database.execSQL(DB_CREATE);
+        db.execSQL(DB_CREATE);
     }
 
 
