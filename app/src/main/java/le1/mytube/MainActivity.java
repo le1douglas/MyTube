@@ -90,9 +90,16 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
     public void uselessButton(View view){
+       if (view==findViewById(R.id.add)){
+           db.addSong("1", "ulallalid", "ullalalalepath", 1,666);
 
-        db.addSong("1", "ulallalid", "ullalalalepath", 1,666);
-        Log.d("TAG", db.fetchAllSongs());
+           Log.d("TAG", db.getSongsByFilter("ups", "ulallalid"));
+
+       }else if (view==findViewById(R.id.del)){
+           db.clear();
+       }
+
+
     }
 
 }

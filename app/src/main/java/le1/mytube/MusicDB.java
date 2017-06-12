@@ -74,10 +74,10 @@ public class MusicDB {
     }
 
     //fetch all contacts
-    public String fetchAllSongs() {
+    public String getAllSongs() {
         Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
         StringBuilder sb = new StringBuilder();
-        if (cursor != null) {
+        if (cursor != null&&cursor.getCount()>0) {
             if (cursor.moveToFirst()) {
                 do {
                     String singlerow =
@@ -101,35 +101,33 @@ public class MusicDB {
     }
 
     //fetch contacts filter by a string
-    public Cursor fetchContactsByFilter(int fieldToBeFiltered, String filter) {
-        String fldToFilter;
+    public String getSongsByFilter(String fieldToBeFiltered, String filter){
 
-        switch (fieldToBeFiltered) {
-            case 0:
-                fldToFilter = FLD_INDEX;
-                break;
-            case 1:
-                fldToFilter = FLD_TITLE;
-                break;
-            case 2:
-                fldToFilter = FLD_ID;
-                break;
-            case 3:
-                fldToFilter = FLD_PATH;
-                break;
-            case 4:
-                fldToFilter = FLD_START;
-                break;
-            case 5:
-                fldToFilter = FLD_END;
-                break;
-            default:
-                fldToFilter = FLD_INDEX;
-        }
-        Cursor mCursor = database.query(true, TB_NAME, new String[]{
+        Cursor cursor = database.query(true, TB_NAME, new String[]{
                         FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END},
-                fldToFilter + " like '%" + filter + "%'", null, null, null, null, null);
+                fieldToBeFiltered + " like '%" + filter + "%'", null, null, null, null, null);
 
-        return mCursor;
+        StringBuilder sb = new StringBuilder();
+        if (cursor != null&&cursor.getCount()>0) {
+            if (cursor.moveToFirst()) {
+                do {
+                    String singlerow =
+                            cursor.getString(cursor.getColumnIndex(FLD_INDEX)) + "| " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_TITLE)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_ID)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_PATH)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_START)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_END)) + "."
+                                    + System.getProperty("line.separator");
+
+                    sb.append(singlerow);
+
+                } while (cursor.moveToNext());
+
+            }
+
+        }
+
+        return sb.toString();
     }
 }
