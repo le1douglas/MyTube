@@ -85,10 +85,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        //db.close();
+        db.close();
         super.onDestroy();
     }
     public void uselessButton(View view){
+        db.clear();
         db.addSong("1", "ulallalid", "ullalalalepath", 1,666);
     }
 

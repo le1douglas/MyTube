@@ -32,8 +32,8 @@ public class MusicDB {
 
     public MusicDB open() throws SQLException {
         dbHelper = new DBHelper(context);
-        database= SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory()+"/mydatabase.db", null);
         database = dbHelper.getWritableDatabase();
+        database= SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory()+"/mydatabase.db", null);
 
 
         return this;
@@ -73,6 +73,11 @@ public class MusicDB {
     //fetch all contacts
     public Cursor fetchAllSongs() {
         return database.query(TB_NAME, new String[] { FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
+    }
+
+    public void clear(){
+        database.execSQL("delete from sqlite_sequence where name='"+TB_NAME+"'");
+        database.execSQL("delete from "+ TB_NAME);
     }
 
     //fetch contacts filter by a string
