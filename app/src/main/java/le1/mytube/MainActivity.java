@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -89,8 +90,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
     public void uselessButton(View view){
-        db.clear();
+
         db.addSong("1", "ulallalid", "ullalalalepath", 1,666);
+        Log.d("TAG", db.fetchAllSongs());
     }
 
 }

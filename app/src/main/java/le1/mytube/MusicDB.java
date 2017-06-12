@@ -33,9 +33,7 @@ public class MusicDB {
     public MusicDB open() throws SQLException {
         dbHelper = new DBHelper(context);
         database = dbHelper.getWritableDatabase();
-        database= SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory()+"/mydatabase.db", null);
-
-
+        database = SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory() + "/mydatabase.db", null);
         return this;
     }
 
@@ -43,24 +41,29 @@ public class MusicDB {
         dbHelper.close();
     }
 
-    private ContentValues generateCV(String title, String videoID, String path, int startTime, int endTime ) {
+    public void clear() {
+        database.execSQL("delete from sqlite_sequence where name='" + TB_NAME + "'");
+        database.execSQL("delete from " + TB_NAME);
+    }
+
+    private ContentValues generateCV(String title, String videoID, String path, int startTime, int endTime) {
         ContentValues values = new ContentValues();
-        values.put( FLD_TITLE, title );
-        values.put( FLD_ID, videoID );
-        values.put( FLD_PATH, path );
-        values.put( FLD_START, startTime );
-        values.put( FLD_END, endTime );
+        values.put(FLD_TITLE, title);
+        values.put(FLD_ID, videoID);
+        values.put(FLD_PATH, path);
+        values.put(FLD_START, startTime);
+        values.put(FLD_END, endTime);
         return values;
     }
 
     //create a contact
-    public long addSong(String title, String videoID, String path, int startTime,int endTime ) {
+    public long addSong(String title, String videoID, String path, int startTime, int endTime) {
         ContentValues initialValues = generateCV(title, videoID, path, startTime, endTime);
         return database.insertOrThrow(TB_NAME, null, initialValues);
     }
 
     //update a contact
-    public boolean updateSong(long _id, String title, String videoID, String path, int startTime,int endTime ) {
+    public boolean updateSong(long _id, String title, String videoID, String path, int startTime, int endTime) {
         ContentValues updateValues = generateCV(title, videoID, path, startTime, endTime);
         return database.update(TB_NAME, updateValues, FLD_INDEX + "=" + _id, null) > 0;
     }
@@ -71,37 +74,62 @@ public class MusicDB {
     }
 
     //fetch all contacts
-    public Cursor fetchAllSongs() {
-        return database.query(TB_NAME, new String[] { FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
-    }
+    public String fetchAllSongs() {
+        Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
+        StringBuilder sb = new StringBuilder();
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    String singlerow =
+                            cursor.getString(cursor.getColumnIndex(FLD_INDEX)) + "| " +
+                            cursor.getString(cursor.getColumnIndex(FLD_TITLE)) + ", " +
+                            cursor.getString(cursor.getColumnIndex(FLD_ID)) + ", " +
+                            cursor.getString(cursor.getColumnIndex(FLD_PATH)) + ", " +
+                            cursor.getString(cursor.getColumnIndex(FLD_START)) + ", " +
+                            cursor.getString(cursor.getColumnIndex(FLD_END)) + "."
+                            + System.getProperty("line.separator");
 
-    public void clear(){
-        database.execSQL("delete from sqlite_sequence where name='"+TB_NAME+"'");
-        database.execSQL("delete from "+ TB_NAME);
+                    sb.append(singlerow);
+
+
+                } while (cursor.moveToNext());
+
+            }
+
+        }
+        return sb.toString();
     }
 
     //fetch contacts filter by a string
     public Cursor fetchContactsByFilter(int fieldToBeFiltered, String filter) {
         String fldToFilter;
 
-        switch (fieldToBeFiltered){
-            case 0: fldToFilter= FLD_INDEX;
+        switch (fieldToBeFiltered) {
+            case 0:
+                fldToFilter = FLD_INDEX;
                 break;
-            case 1: fldToFilter=FLD_TITLE;
+            case 1:
+                fldToFilter = FLD_TITLE;
                 break;
-            case 2: fldToFilter=FLD_ID;
+            case 2:
+                fldToFilter = FLD_ID;
                 break;
-            case 3: fldToFilter=FLD_PATH;
+            case 3:
+                fldToFilter = FLD_PATH;
                 break;
-            case 4: fldToFilter=FLD_START;
+            case 4:
+                fldToFilter = FLD_START;
                 break;
-            case 5: fldToFilter=FLD_END;
+            case 5:
+                fldToFilter = FLD_END;
                 break;
-            default:fldToFilter=FLD_INDEX;
+            default:
+                fldToFilter = FLD_INDEX;
         }
-        Cursor mCursor = database.query(true, TB_NAME, new String[] {
-                        FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END },
-                fldToFilter + " like '%"+ filter + "%'", null, null, null, null, null);
+        Cursor mCursor = database.query(true, TB_NAME, new String[]{
+                        FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END},
+                fldToFilter + " like '%" + filter + "%'", null, null, null, null, null);
 
         return mCursor;
-    }}
+    }
+}
