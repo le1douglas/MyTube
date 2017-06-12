@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Leone on 09/06/17.
  */
 
-public class DBHelper extends SQLiteOpenHelper {
+public class MusicDBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "mydatabase.db";
     private static final int DB_VERSION = 1;
@@ -33,7 +33,7 @@ public class DBHelper extends SQLiteOpenHelper {
             FLD_END + " int);";
 
 
-    public DBHelper(Context context) {
+    public MusicDBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
 

@@ -6,13 +6,13 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-import static le1.mytube.DBHelper.FLD_END;
-import static le1.mytube.DBHelper.FLD_ID;
-import static le1.mytube.DBHelper.FLD_INDEX;
-import static le1.mytube.DBHelper.FLD_PATH;
-import static le1.mytube.DBHelper.FLD_START;
-import static le1.mytube.DBHelper.FLD_TITLE;
-import static le1.mytube.DBHelper.TB_NAME;
+import static le1.mytube.MusicDBHelper.FLD_END;
+import static le1.mytube.MusicDBHelper.FLD_ID;
+import static le1.mytube.MusicDBHelper.FLD_INDEX;
+import static le1.mytube.MusicDBHelper.FLD_PATH;
+import static le1.mytube.MusicDBHelper.FLD_START;
+import static le1.mytube.MusicDBHelper.FLD_TITLE;
+import static le1.mytube.MusicDBHelper.TB_NAME;
 
 
 /**
@@ -22,7 +22,7 @@ import static le1.mytube.DBHelper.TB_NAME;
 public class MusicDB {
 
     private Context context;
-    private DBHelper dbHelper;
+    private MusicDBHelper musicDbHelper;
     private SQLiteDatabase database;
 
     public MusicDB(Context context) {
@@ -30,13 +30,13 @@ public class MusicDB {
     }
 
     public MusicDB open() throws SQLException {
-        dbHelper = new DBHelper(context);
-        database = dbHelper.getWritableDatabase();
+        musicDbHelper = new MusicDBHelper(context);
+        database = musicDbHelper.getWritableDatabase();
         return this;
     }
 
     public void close() {
-        dbHelper.close();
+        musicDbHelper.close();
     }
 
     public void clear() {
