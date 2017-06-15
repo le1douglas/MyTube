@@ -1,9 +1,7 @@
 package le1.mytube;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -15,16 +13,15 @@ import java.util.ArrayList;
 
 
 public class AutocompleteAdapter extends ArrayAdapter<String> {
-    private ArrayList<String> res;
     EditText editText;
-
     Context context;
+    private ArrayList<String> res;
 
     public AutocompleteAdapter(Context c, ArrayList<String> r, EditText e) {
         super(c, 0, r);
         res = r;
-        editText=e;
-        context=c;
+        editText = e;
+        context = c;
     }
 
     @Override

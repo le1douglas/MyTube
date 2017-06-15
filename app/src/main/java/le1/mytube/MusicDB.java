@@ -86,11 +86,9 @@ public class MusicDB {
 
     //delete a contact
     public boolean deleteSong(String fieldToBeFiltered, String filter) {
-        return database.delete(TB_NAME, fieldToBeFiltered + "='" + filter+"'", null) > 0;
+        return database.delete(TB_NAME, fieldToBeFiltered + "='" + filter + "'", null) > 0;
     }
-
-
-
+    
     //fetch all contacts
     public String getAllSongs() {
         Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);

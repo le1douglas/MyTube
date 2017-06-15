@@ -23,7 +23,6 @@ public class MusicDBHelper extends SQLiteOpenHelper {
     public static final String FLD_END = "END";
 
 
-
     private static final String DB_CREATE = "create table "+ TB_NAME + "(" +
             FLD_INDEX + " integer primary key autoincrement, " +
             FLD_TITLE + " text, " +
@@ -37,12 +36,10 @@ public class MusicDBHelper extends SQLiteOpenHelper {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
-
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(DB_CREATE);
     }
-
 
     @Override
     public void onUpgrade( SQLiteDatabase database, int oldVersion, int newVersion ) {

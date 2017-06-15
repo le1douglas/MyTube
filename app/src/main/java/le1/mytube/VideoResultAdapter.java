@@ -40,12 +40,12 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
         titleArray = vTitle;
     }
 
-  @Override
-    public void clear(){
-      videoIdArray.clear();
-      imageUriArray.clear();
-      titleArray.clear();
-      this.notifyDataSetChanged();
+    @Override
+    public void clear() {
+        videoIdArray.clear();
+        imageUriArray.clear();
+        titleArray.clear();
+        this.notifyDataSetChanged();
     }
 
     @Override

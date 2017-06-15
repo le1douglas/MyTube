@@ -36,50 +36,13 @@ public class MusicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        createNotification();
+
         player = new MediaPlayer();
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         componentName = new ComponentName(this, MusicReceiver.class);
         audioManager.registerMediaButtonEventReceiver(componentName);
-
-
-        Intent notificationIntent = new Intent(MusicService.this, MainActivity.class);
-       PendingIntent notificationPendingIntent = PendingIntent.getActivity(MusicService.this, 0, notificationIntent, 0);
-
-        remoteView = new RemoteViews(MusicService.this.getPackageName(), R.layout.notificationview);
-
-
-        //play button
-        final Intent play = new Intent(MusicService.this, NotificationClickHandler.class);
-        play.putExtra("NOT", "play");
-        PendingIntent playPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, play, PendingIntent.FLAG_UPDATE_CURRENT);
-        remoteView.setOnClickPendingIntent(R.id.btn1, playPendingIntent);
-        remoteView.setTextViewText(R.id.btn1, "test");
-
-        //stop button
-        final Intent stop = new Intent(MusicService.this, NotificationClickHandler.class);
-        stop.putExtra("NOT", "stop");
-        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(MusicService.this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT);
-        remoteView.setOnClickPendingIntent(R.id.btn2, stopPendingIntent);
-        remoteView.setTextViewText(R.id.btn2, "Stop");
-
-        if (Build.VERSION.SDK_INT >= 24) {
-            notification = new Notification.Builder(getApplicationContext())
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setCustomContentView(remoteView)
-                    .setStyle(new Notification.DecoratedMediaCustomViewStyle())
-                    .setColor(12121212)
-                    .setContentIntent(notificationPendingIntent)
-                    .build();
-        } else {
-            notification = new Notification.Builder(getApplicationContext())
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContent(remoteView)
-                    .setContentIntent(notificationPendingIntent)
-                    .build();
-        }
-
-        startForeground(666, notification);
 
         player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -96,7 +59,7 @@ public class MusicService extends Service {
         afChangeListener =
                 new AudioManager.OnAudioFocusChangeListener() {
                     public void onAudioFocusChange(int focusChange) {
-                        if (player != null&&!modalitaPorno) {
+                        if (player != null && !modalitaPorno) {
                             switch (focusChange) {
                                 case (AudioManager.AUDIOFOCUS_LOSS):
                                     pauseSong(true);
@@ -129,8 +92,7 @@ public class MusicService extends Service {
                 MusicService.this.stopSelf();
             }
         });
-        mNotificationManager =
-                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+
         MusicService.startSong(intent.getStringExtra("videoId"), intent.getStringExtra("title"), this);
 
         return super.onStartCommand(intent, flags, startId);
@@ -168,18 +130,6 @@ public class MusicService extends Service {
 
     }
 
-    public static void pauseSong(boolean abandonAudioFocus) {
-        if (player != null && player.isPlaying()) {
-            if (abandonAudioFocus) {
-                audioManager.abandonAudioFocus(afChangeListener);
-            }
-            player.pause();
-            remoteView.setTextViewText(R.id.btn1, "paused");
-            mNotificationManager.notify(666, notification);
-
-        }
-    }
-
     public static void playSong(boolean gainAudioFocus) {
         if (player != null) {
             if (gainAudioFocus) {
@@ -193,6 +143,60 @@ public class MusicService extends Service {
 
     }
 
+    public static void pauseSong(boolean abandonAudioFocus) {
+        if (player != null && player.isPlaying()) {
+            if (abandonAudioFocus) {
+                audioManager.abandonAudioFocus(afChangeListener);
+            }
+            player.pause();
+            remoteView.setTextViewText(R.id.btn1, "paused");
+            mNotificationManager.notify(666, notification);
+
+        }
+    }
+
+    public void createNotification() {
+        Intent notificationIntent = new Intent(MusicService.this, MainActivity.class);
+        PendingIntent notificationPendingIntent = PendingIntent.getActivity(MusicService.this, 0, notificationIntent, 0);
+
+        remoteView = new RemoteViews(MusicService.this.getPackageName(), R.layout.notification_view);
+
+
+        //play button
+        final Intent play = new Intent(MusicService.this, NotificationClickHandler.class);
+        play.putExtra("NOT", "play");
+        PendingIntent playPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, play, PendingIntent.FLAG_UPDATE_CURRENT);
+        remoteView.setOnClickPendingIntent(R.id.btn1, playPendingIntent);
+        remoteView.setTextViewText(R.id.btn1, "test");
+
+        //stop button
+        final Intent stop = new Intent(MusicService.this, NotificationClickHandler.class);
+        stop.putExtra("NOT", "stop");
+        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(MusicService.this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT);
+        remoteView.setOnClickPendingIntent(R.id.btn2, stopPendingIntent);
+        remoteView.setTextViewText(R.id.btn2, "Stop");
+
+        if (Build.VERSION.SDK_INT >= 24) {
+            notification = new Notification.Builder(getApplicationContext())
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setCustomContentView(remoteView)
+                    .setStyle(new Notification.DecoratedMediaCustomViewStyle())
+                    .setColor(12121212)
+                    .setContentIntent(notificationPendingIntent)
+                    .build();
+        } else {
+            notification = new Notification.Builder(getApplicationContext())
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContent(remoteView)
+                    .setContentIntent(notificationPendingIntent)
+                    .build();
+        }
+
+        mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        startForeground(666, notification);
+
+    }
 
     @Override
     public void onDestroy() {

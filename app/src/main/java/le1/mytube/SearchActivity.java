@@ -71,10 +71,11 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
 
         searchEditText = (EditText) findViewById(R.id.SearchEditText);
-        searchEditText.requestFocus();
         autocompleteListView = (ListView) findViewById(R.id.AutocompleteList);
         videoResultListView = (ListView) findViewById(R.id.videoResult);
         loadingIcon = (ProgressBar) findViewById(R.id.loadingIcon);
+
+        searchEditText.requestFocus();
 
         arrayOfResults = new ArrayList<>();
         idArray = new ArrayList<>();
@@ -83,8 +84,6 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
         videoResultAdapter = new VideoResultAdapter(this, idArray, uriArray, titleArray);
         autocompleteAdapter = new AutocompleteAdapter(this, arrayOfResults, searchEditText);
-
-
         videoResultListView.setAdapter(videoResultAdapter);
         autocompleteListView.setAdapter(autocompleteAdapter);
 
@@ -92,6 +91,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         autocompleteListView.setOnItemClickListener(this);
         searchEditText.addTextChangedListener(this);
 
+        //on first lauch hide loading icon and show autocomplete suggestions
         loadingIcon.setVisibility(View.GONE);
         autocompleteListView.setVisibility(View.VISIBLE);
 
