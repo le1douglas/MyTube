@@ -92,21 +92,8 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         autocompleteListView.setOnItemClickListener(this);
         searchEditText.addTextChangedListener(this);
 
-        //if activity started from notification
-        if (getIntent().getStringExtra("FROM").equals("notification")) {
-            loadingIcon.setVisibility(View.GONE);
-            autocompleteListView.setVisibility(View.GONE);
-            videoResultListView.smoothScrollToPosition(0);
-            videoResultListView.setVisibility(View.VISIBLE);
-            searchEditText.setText("FROM NOTIFICATION");
-            searchEditText.setSelection(searchEditText.length());
-            new SearchTask().execute("FROM NOTIFICATION");
-
-        } else if (getIntent().getStringExtra("FROM").equals("MainActivity")) {
-
-            loadingIcon.setVisibility(View.GONE);
-            autocompleteListView.setVisibility(View.VISIBLE);
-        }
+        loadingIcon.setVisibility(View.GONE);
+        autocompleteListView.setVisibility(View.VISIBLE);
 
 
         searchEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -145,7 +132,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
     @Override
     public void onBackPressed() {
-        if (autocompleteListView.getVisibility() == View.VISIBLE&&videoResultListView.getCount()>0) {
+        if (autocompleteListView.getVisibility() == View.VISIBLE && videoResultListView.getCount() > 0) {
             autocompleteListView.setVisibility(View.GONE);
             videoResultListView.setVisibility(View.VISIBLE);
         } else {

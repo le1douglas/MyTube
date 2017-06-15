@@ -21,7 +21,8 @@ import android.widget.Switch;
 
 public class MainActivity extends AppCompatActivity {
     public static boolean modalitaPorno;
-    MusicDB db;
+    public static MusicDB db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        db= new MusicDB(this);
+        db = new MusicDB(this);
         db.open();
 
 
@@ -62,9 +63,13 @@ public class MainActivity extends AppCompatActivity {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_search:
-                Intent searchIntent = new Intent(this, SearchActivity.class);
-                searchIntent.putExtra("FROM", "MainActivity");
-                startActivity(searchIntent);
+                startActivity(new Intent(this, SearchActivity.class));
+                return true;
+            case R.id.printDB:
+                Log.d("TAG", db.getAllSongs());
+                return true;
+            case R.id.clearDB:
+                db.clear();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -89,18 +94,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         db.close();
         super.onDestroy();
-    }
-    public void uselessButton(View view){
-       if (view==findViewById(R.id.add)){
-          db.addSong("1", "ulallalid", "ullalalalepath", 1,666);
-           Log.d("TAG", db.getAllSongs());
-
-       }else if (view==findViewById(R.id.del)){
-           //db.clear();
-           new DownloadSong().execute("https://r2---sn-hpa7znle.googlevideo.com/videoplayback?keepalive=yes&id=o-AJ6IyTkXFFsXgu5l-2SKd0ENEu8l0EYeHkYl2-vRzHty&mm=31&mn=sn-hpa7znle&ei=sr8-WenVE5epcuzwr6gJ&ms=au&mt=1497284440&mv=m&pl=22&ip=93.47.229.27&initcwndbps=583750&ipbits=0&beids=%5B9466592%5D&clen=3619571&sparams=clen%2Cdur%2Cei%2Cgir%2Cid%2Cinitcwndbps%2Cip%2Cipbits%2Citag%2Ckeepalive%2Clmt%2Cmime%2Cmm%2Cmn%2Cms%2Cmv%2Cpl%2Crequiressl%2Csource%2Cexpire&gir=yes&key=yt6&lmt=1478770967149059&source=youtube&dur=227.857&requiressl=yes&mime=audio%2Fmp4&itag=140&expire=1497306130&signature=AF734D9E79BB0BAA41047A52DF9EED60DA91410D.7853E70261764E9B8A8697A2A1E34CF8437930A7", "TitleOfThesong");
-       }
-
-
     }
 
 }

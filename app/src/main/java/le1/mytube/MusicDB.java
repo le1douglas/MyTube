@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.MediaMetadataRetriever;
+import android.util.Log;
 
 import static le1.mytube.MusicDBHelper.FLD_END;
 import static le1.mytube.MusicDBHelper.FLD_ID;
@@ -54,10 +56,26 @@ public class MusicDB {
         return values;
     }
 
-    //create a contact
-    public long addSong(String title, String videoID, String path, int startTime, int endTime) {
-        ContentValues initialValues = generateCV(title, videoID, path, startTime, endTime);
-        return database.insertOrThrow(TB_NAME, null, initialValues);
+    //integer because it may be null
+    public boolean addSong(String title, String videoID, String path, Integer startTime, Integer endTime) {
+        if (startTime == null) {
+            startTime = 0;
+        }
+        if (endTime == null) {
+            MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
+            metaRetriever.setDataSource(path);
+            endTime = Integer.parseInt(metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+        }
+
+        if (startTime < endTime) {
+
+            ContentValues initialValues = generateCV(title, videoID, path, startTime, endTime);
+            database.insertOrThrow(TB_NAME, null, initialValues);
+            return true;
+        } else {
+            Log.e("MusicDB.addSong", "end time must be greater than start time");
+            return false;
+        }
     }
 
     //update a contact
@@ -67,25 +85,27 @@ public class MusicDB {
     }
 
     //delete a contact
-    public boolean deleteSong(long _id) {
-        return database.delete(TB_NAME, FLD_ID + "=" + _id, null) > 0;
+    public boolean deleteSong(String fieldToBeFiltered, String filter) {
+        return database.delete(TB_NAME, fieldToBeFiltered + "='" + filter+"'", null) > 0;
     }
+
+
 
     //fetch all contacts
     public String getAllSongs() {
         Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
         StringBuilder sb = new StringBuilder();
-        if (cursor != null&&cursor.getCount()>0) {
+        if (cursor != null && cursor.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 do {
                     String singlerow =
                             cursor.getString(cursor.getColumnIndex(FLD_INDEX)) + "| " +
-                            cursor.getString(cursor.getColumnIndex(FLD_TITLE)) + ", " +
-                            cursor.getString(cursor.getColumnIndex(FLD_ID)) + ", " +
-                            cursor.getString(cursor.getColumnIndex(FLD_PATH)) + ", " +
-                            cursor.getString(cursor.getColumnIndex(FLD_START)) + ", " +
-                            cursor.getString(cursor.getColumnIndex(FLD_END)) + "."
-                            + System.getProperty("line.separator");
+                                    cursor.getString(cursor.getColumnIndex(FLD_TITLE)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_ID)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_PATH)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_START)) + ", " +
+                                    cursor.getString(cursor.getColumnIndex(FLD_END)) + "."
+                                    + System.getProperty("line.separator");
 
                     sb.append(singlerow);
 
@@ -99,14 +119,14 @@ public class MusicDB {
     }
 
     //fetch contacts filter by a string
-    public String getSongsByFilter(String fieldToBeFiltered, String filter){
+    public String getSongsByFilter(String fieldToBeFiltered, String filter) {
 
         Cursor cursor = database.query(true, TB_NAME, new String[]{
                         FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END},
                 fieldToBeFiltered + " like '%" + filter + "%'", null, null, null, null, null);
 
         StringBuilder sb = new StringBuilder();
-        if (cursor != null&&cursor.getCount()>0) {
+        if (cursor != null && cursor.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 do {
                     String singlerow =

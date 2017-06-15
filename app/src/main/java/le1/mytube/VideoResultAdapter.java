@@ -74,7 +74,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
                         if (ytFiles != null) {
                             int itag = 140;
                             String downloadUrl = ytFiles.get(itag).getUrl();
-                            new DownloadSong().execute(downloadUrl, title);
+                            new DownloadSong().execute(downloadUrl, title, id);
                         }
                     }
                 }.extract("http://youtube.com/watch?v=" + id, false, false);

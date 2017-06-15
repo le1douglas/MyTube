@@ -3,8 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_search"
-        android:orderInCategory="200"
         android:title="Search"
         android:icon="@drawable/ic_search_white_24dp"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/printDB"
+        android:title="Print Db"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/clearDB"
+        android:title="Clear Db"
+        app:showAsAction="never"/>
+
+
 </menu>

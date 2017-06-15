@@ -43,17 +43,25 @@ public class MusicService extends Service {
         audioManager.registerMediaButtonEventReceiver(componentName);
 
 
-        Intent notificationIntent = new Intent(MusicService.this, SearchActivity.class);
-        notificationIntent.putExtra("FROM", "notification");
-        PendingIntent notificationPendingIntent = PendingIntent.getActivity(MusicService.this, 0, notificationIntent, 0);
+        Intent notificationIntent = new Intent(MusicService.this, MainActivity.class);
+       PendingIntent notificationPendingIntent = PendingIntent.getActivity(MusicService.this, 0, notificationIntent, 0);
 
         remoteView = new RemoteViews(MusicService.this.getPackageName(), R.layout.notificationview);
 
+
+        //play button
         final Intent play = new Intent(MusicService.this, NotificationClickHandler.class);
-        play.putExtra("NOT", "0");
+        play.putExtra("NOT", "play");
         PendingIntent playPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, play, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteView.setOnClickPendingIntent(R.id.btn1, playPendingIntent);
         remoteView.setTextViewText(R.id.btn1, "test");
+
+        //stop button
+        final Intent stop = new Intent(MusicService.this, NotificationClickHandler.class);
+        stop.putExtra("NOT", "stop");
+        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(MusicService.this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT);
+        remoteView.setOnClickPendingIntent(R.id.btn2, stopPendingIntent);
+        remoteView.setTextViewText(R.id.btn2, "Stop");
 
         if (Build.VERSION.SDK_INT >= 24) {
             notification = new Notification.Builder(getApplicationContext())

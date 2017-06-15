@@ -29,5 +29,6 @@ dependencies {
     compile 'com.github.HaarigerHarald:android-youtubeExtractor:v1.6.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'net.sf.javamusictag:jid3lib:0.5.4'
     testCompile 'junit:junit:4.12'
 }
