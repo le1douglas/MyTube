@@ -13,17 +13,25 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
-import android.widget.Toast;
+import android.widget.ListView;
+
+import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     public static boolean modalitaPorno;
     public static MusicDB db;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
+    ListView listView;
+    ArrayList<String> list;
+    ArrayAdapter<String> adapter;
 
     public static void changeStatusBarColor(String color, Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -47,6 +55,16 @@ public class MainActivity extends AppCompatActivity {
         tb.setTitleTextColor(Color.WHITE);
         setSupportActionBar(tb);
 
+        listView= (ListView) findViewById(R.id.playlistList);
+        list = new ArrayList<String>();
+        list.add("qulo");
+        list.add("qulo2");
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
+
+
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(this);
+
         db = new MusicDB(this);
         db.open();
 
@@ -58,14 +76,13 @@ public class MainActivity extends AppCompatActivity {
         MenuItem item = menu.findItem(R.id.modalitaPorno);
 
         final CompoundButton modalitaPornoSwitch = (CompoundButton) MenuItemCompat.getActionView(item);
-        modalitaPornoSwitch.setChecked(modalitaPorno);
+        modalitaPornoSwitch.setChecked(sharedPref.getBoolean("modalitaPorno", false));
         modalitaPornoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Toast.makeText(MainActivity.this, "CLICKED", Toast.LENGTH_SHORT).show();
                 modalitaPorno = isChecked;
                 editor.putBoolean("modalitaPorno", modalitaPorno);
-                editor.apply();
+                editor.commit();
 
             }
         });
@@ -81,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
             case R.id.printDB:
-                Log.d("TAG", db.getAllSongs());
+                Log.d("TAG", db.getAllSongsInPlaylist("QULO"));
                 return true;
             case R.id.clearDB:
                 db.clear();
@@ -99,4 +116,28 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    public void Add(View view) {
+        list.add("add");
+        adapter.notifyDataSetChanged();
+        db.addTable("QULO");
+        db.addSongToPlaylist("QULO", "thisismyid");
+    }
+
+    public void Remove(View view) {
+        if (list.size() > 0) {
+            list.remove(list.size()-1);
+        }
+        db.deleteTable("QULO");
+        adapter.notifyDataSetChanged();
+    }
+
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Intent playlistIntent = new Intent(this, PlaylistActivity.class);
+        playlistIntent.putExtra("TITLE", parent.getItemAtPosition(position).toString());
+        startActivity(playlistIntent);
+
+
+    }
 }

@@ -243,7 +243,6 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
                     for (int i = 0; i < suggestionArray.length(); i++) {
                         String suggestion = suggestionArray.getString(i);
                         autocompleteAdapter.add(suggestion);
-                        System.out.println(suggestion);
                     }
                     autocompleteAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
@@ -351,7 +350,6 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
                             idArray.add(idString);
                             uriArray.add(Uri.parse(imageString));
                             titleArray.add(title);
-                            System.out.println(String.valueOf(i) + idString + ", " + imageString + ", " + title);
 
                         }
                         videoResultAdapter.notifyDataSetChanged();
