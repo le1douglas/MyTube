@@ -38,7 +38,7 @@ public class MusicDB {
     public MusicDB open() throws SQLException {
         musicDbHelper = new MusicDBHelper(context);
         database = musicDbHelper.getWritableDatabase();
-        // database = SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory() + "/mydatabase.db", null);
+        //database = SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory() + "/mydatabase.db", null);
 
         return this;
     }
@@ -56,7 +56,7 @@ public class MusicDB {
                 database.execSQL("delete from " + TB_NAME);
             } else {
                 Log.d("DBoperation", "deleting " + i);
-                database.execSQL("drop table " + i);
+                database.execSQL("drop table `" + i+ "`");
             }
         }
         database.execSQL("update sqlite_sequence set seq=0 where name='" + TB_NAME + "'");
@@ -114,7 +114,7 @@ public class MusicDB {
 
 
     public void addTable(String tableName) {
-        String query = "create table if not exists " + tableName + "(" +
+        String query = "create table if not exists `" + tableName + "`(" +
                 FLD_INDEX + " integer primary key autoincrement, " +
                 FLD_ID + " text);";
         Log.d("TABLE", query);
@@ -122,12 +122,13 @@ public class MusicDB {
     }
 
     public void deleteTable(String tableName) {
-        String query = "drop table if exists " + tableName;
+        String query = "drop table if exists `" + tableName+"`";
         database.execSQL(query);
     }
 
-    public boolean addSongToPlaylist(String tableName, String videoID) {
-        return database.insertOrThrow(tableName, null, generatePlaylistCV(videoID)) > -1;
+    public void addSongToPlaylist(String tableName, String videoID) {
+        database.execSQL("insert into `" + tableName+ "` (id) values ('"+videoID+"')");
+        //return database.insertOrThrow(tableName, null, generatePlaylistCV(videoID)) > -1;
     }
 
 
@@ -196,7 +197,6 @@ public class MusicDB {
                                         + System.getProperty("line.separator");
 
                         sb.append(singlerow);
-
 
                     } while (cursor.moveToNext());
 

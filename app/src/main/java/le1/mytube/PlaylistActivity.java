@@ -12,13 +12,15 @@ public class PlaylistActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playlist);
-
+        String title = getIntent().getStringExtra("TITLE");
         Toolbar tb = (Toolbar) findViewById(R.id.toolbarPlaylist);
-        tb.setTitle(getIntent().getStringExtra("TITLE"));
+        tb.setTitle(title);
         tb.setTitleTextColor(Color.WHITE);
         setSupportActionBar(tb);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+
+
 
     }
 }

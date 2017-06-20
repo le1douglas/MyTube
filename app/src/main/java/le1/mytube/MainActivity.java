@@ -26,7 +26,6 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -107,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                 for (int i = 0; i < db.getAllTableNames().size(); i++) {
                     Log.d("DBoperation", db.getAllTableNames().get(i).toString());
                 }
-                Log.d("DBoperation", "_______________");
+                Log.d("DBoperation", "-----Offline----");
                 Log.d("DBoperation", db.getAllSongs());
                 return true;
             case R.id.clearDB:
@@ -131,18 +130,14 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
         alertDialogBuilder.setTitle("New Playlist");
 
-        //TODO actually create an xml
         View layout = getLayoutInflater().inflate(R.layout.dialog_view, null);
         final EditText input = (EditText) layout.findViewById(R.id.dialogEditText);
         alertDialogBuilder.setView(layout);
-
 
         alertDialogBuilder.setPositiveButton("Create Playlist",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         String playlistName = input.getText().toString();
-                        Toast.makeText(MainActivity.this, playlistName, Toast.LENGTH_SHORT).show();
-
 
                         list.add(playlistName);
                         adapter.notifyDataSetChanged();
@@ -171,8 +166,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //TextUtils.isEmpty(s)
-                if (TextUtils.isEmpty(s)) {
+                if (TextUtils.isEmpty(s)||db.getAllTableNames().contains(s.toString())) {
                     alertDialog.getButton(
                             AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                 } else {

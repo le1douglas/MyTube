@@ -175,6 +175,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
             TextView idView = (TextView) view.findViewById(R.id.id);
             TextView videoTitle = (TextView) view.findViewById(R.id.title);
             String videoId = idView.getText().toString();
+            Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show();
             if (!isMyServiceRunning(MusicService.class)) {
                 Intent intent = new Intent(SearchActivity.this, MusicService.class);
                 intent.putExtra("videoId", videoId);

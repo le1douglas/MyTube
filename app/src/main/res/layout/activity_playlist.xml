@@ -13,4 +13,10 @@
         android:minHeight="?attr/actionBarSize"
         app:theme="@style/AppTheme.whiteTextColorSecondary" />
 
+    <ListView
+        android:id="@+id/playlistList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
 </LinearLayout>
