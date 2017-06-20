@@ -20,11 +20,6 @@ import static le1.mytube.MusicDBHelper.FLD_START;
 import static le1.mytube.MusicDBHelper.FLD_TITLE;
 import static le1.mytube.MusicDBHelper.TB_NAME;
 
-
-/**
- * Created by Leone on 09/06/17.
- */
-
 public class MusicDB {
 
     private Context context;

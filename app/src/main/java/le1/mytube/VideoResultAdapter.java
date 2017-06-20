@@ -21,10 +21,6 @@ import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 
 
-/**
- * Created by Leone on 18/04/17.
- */
-
 public class VideoResultAdapter extends ArrayAdapter<String> {
 
     ArrayList<String> videoIdArray;
@@ -74,7 +70,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
                         if (ytFiles != null) {
                             int itag = 140;
                             String downloadUrl = ytFiles.get(itag).getUrl();
-                            new DownloadSong().execute(downloadUrl, title, id);
+                            new DownloadSong(context).execute(downloadUrl, title, id);
                         }
                     }
                 }.extract("http://youtube.com/watch?v=" + id, false, false);

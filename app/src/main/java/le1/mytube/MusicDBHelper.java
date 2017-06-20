@@ -4,9 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-/**
- * Created by Leone on 09/06/17.
- */
 
 public class MusicDBHelper extends SQLiteOpenHelper {
 

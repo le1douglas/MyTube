@@ -1,5 +1,6 @@
 package le1.mytube;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -12,13 +13,11 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
-import static le1.mytube.MainActivity.db;
-
-/**
- * Created by Leone on 12/06/17.
- */
+//import static le1.mytube.MainActivity.db;
 
 public class DownloadSong extends AsyncTask<String, String, File> {
+
+    private Context mContext;
 
     @Override
     protected void onPreExecute() {
@@ -64,7 +63,7 @@ public class DownloadSong extends AsyncTask<String, String, File> {
             int count = 0;
             while ((count = input.read(data)) != -1) {
                 total++;
-                publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+                publishProgress(String.valueOf(lenghtOfFile));
                 output.write(data, 0, count);
             }
 
@@ -72,7 +71,11 @@ public class DownloadSong extends AsyncTask<String, String, File> {
             output.close();
             input.close();
 
+
+            MusicDB db= new MusicDB(mContext);
+            db.open();
             db.addSong(info[1], info[2], f.getPath(), null, null);
+            db.close();
 
             return f;
         } catch (Exception e) {
@@ -104,6 +107,10 @@ public class DownloadSong extends AsyncTask<String, String, File> {
             e.printStackTrace();
         }*/
 
+    }
+
+    public DownloadSong(Context context) {
+        mContext = context;
     }
 
 }

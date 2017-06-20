@@ -32,7 +32,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener {
     public static boolean modalitaPorno;
-    public static MusicDB db;
+    MusicDB db;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
     ListView listView;
