@@ -11,6 +11,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -147,7 +148,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (s.toString().equals("")) {
+        if (TextUtils.isEmpty(s)) {
             autocompleteAdapter.clear();
         } else {
             new AutocompleteTask().execute(s.toString());

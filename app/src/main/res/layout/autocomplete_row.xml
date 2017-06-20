@@ -13,14 +13,13 @@
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
         android:id="@+id/imageButton5" />
-  <!--  android:background="?attr/selectableItemBackground"-->
 
     <TextView
         android:layout_marginLeft="56dp"
         android:paddingLeft="16dp"
         android:gravity="center_vertical"
 
-        android:textColor="#999999"
+        android:textColor="@color/dark"
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

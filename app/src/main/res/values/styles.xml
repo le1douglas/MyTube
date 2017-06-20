@@ -6,9 +6,13 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColorSecondary">@android:color/black</item>
+    </style>
+    <style name="AppTheme.whiteTextColorSecondary">
         <item name="android:textColorSecondary">@android:color/white</item>
     </style>
-    <style name="AppTheme.ActionBarLight">
-        <item name="android:textColorSecondary">#757575</item>
+
+    <style name="AppTheme.darkTextColorSecondary">
+        <item name="android:textColorSecondary">@color/dark</item>
     </style>
 </resources>

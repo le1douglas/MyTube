@@ -43,8 +43,9 @@ public class DownloadSong extends AsyncTask<String, String, File> {
         try {
 
             File file = new File(android.os.Environment.getExternalStorageDirectory(), "MyTube");
-            if (!file.exists())
+            if (!file.exists()) {
                 file.mkdirs();
+            }
 
             URL url = new URL(info[0]);
             File f = new File(file, info[1] + ".mp3");

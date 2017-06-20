@@ -8,6 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.media.MediaMetadataRetriever;
 import android.util.Log;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import static le1.mytube.MusicDBHelper.FLD_END;
 import static le1.mytube.MusicDBHelper.FLD_ID;
@@ -35,6 +38,8 @@ public class MusicDB {
     public MusicDB open() throws SQLException {
         musicDbHelper = new MusicDBHelper(context);
         database = musicDbHelper.getWritableDatabase();
+        // database = SQLiteDatabase.openOrCreateDatabase(Environment.getExternalStorageDirectory() + "/mydatabase.db", null);
+
         return this;
     }
 
@@ -43,8 +48,20 @@ public class MusicDB {
     }
 
     public void clear() {
-        database.execSQL("delete from sqlite_sequence where name='" + TB_NAME + "'");
-        database.execSQL("delete from " + TB_NAME);
+        MainActivity.list.clear();
+        MainActivity.adapter.notifyDataSetChanged();
+
+        for (Object i: getAllTableNames()) {
+            if (i.equals(TB_NAME)) {
+                database.execSQL("delete from " + TB_NAME);
+            } else {
+                Log.d("DBoperation", "deleting " + i);
+                database.execSQL("drop table " + i);
+            }
+        }
+        database.execSQL("update sqlite_sequence set seq=0 where name='" + TB_NAME + "'");
+        Toast.makeText(context, "All tables deleted", Toast.LENGTH_SHORT).show();
+
     }
 
     private ContentValues generateSongCV(String title, String videoID, String path, int startTime, int endTime) {
@@ -77,7 +94,7 @@ public class MusicDB {
         if (startTime < endTime) {
 
             ContentValues initialValues = generateSongCV(title, videoID, path, startTime, endTime);
-            return database.insertOrThrow(TB_NAME, null, initialValues)>-1;
+            return database.insertOrThrow(TB_NAME, null, initialValues) > -1;
         } else {
             Log.e("MusicDB.addSong", "end time must be greater than start time");
             return false;
@@ -110,7 +127,7 @@ public class MusicDB {
     }
 
     public boolean addSongToPlaylist(String tableName, String videoID) {
-        return database.insertOrThrow(tableName, null, generatePlaylistCV(videoID))>-1;
+        return database.insertOrThrow(tableName, null, generatePlaylistCV(videoID)) > -1;
     }
 
 
@@ -142,7 +159,31 @@ public class MusicDB {
         return sb.toString();
     }
 
-    public String getAllSongsInPlaylist(String tableName){
+    public ArrayList getAllTableNames() {
+        try {
+            Cursor cursor = database.rawQuery("select name from sqlite_sequence", null);
+            ArrayList<String> arrayList = new ArrayList<>();
+            if (cursor != null && cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        String singlerow = cursor.getString(cursor.getColumnIndex("name"));
+
+                        arrayList.add(singlerow);
+
+
+                    } while (cursor.moveToNext());
+
+                }
+            }
+            cursor.close();
+            return arrayList;
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String getAllSongsInPlaylist(String tableName) {
         try {
             Cursor cursor = database.query(tableName, new String[]{FLD_INDEX, FLD_ID}, null, null, null, null, null);
             StringBuilder sb = new StringBuilder();
@@ -163,8 +204,8 @@ public class MusicDB {
             }
             cursor.close();
             return sb.toString();
-        }catch (SQLiteException e){
-            return tableName+ " Probally does not exits";
+        } catch (SQLiteException e) {
+            return tableName + " Probally does not exits";
         }
 
     }
