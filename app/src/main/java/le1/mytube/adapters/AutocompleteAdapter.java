@@ -1,4 +1,4 @@
-package le1.mytube;
+package le1.mytube.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -11,22 +11,24 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import le1.mytube.R;
+
 
 public class AutocompleteAdapter extends ArrayAdapter<String> {
     EditText editText;
     Context context;
-    private ArrayList<String> res;
+    private ArrayList<String> arrayList;
 
-    public AutocompleteAdapter(Context c, ArrayList<String> r, EditText e) {
-        super(c, 0, r);
-        res = r;
-        editText = e;
-        context = c;
+    public AutocompleteAdapter(Context context, ArrayList<String> arrayList, EditText editText) {
+        super(context, 0, arrayList);
+        this.arrayList = arrayList;
+        this.editText = editText;
+        this.context = context;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final String textToDisplay = res.get(position);
+        final String textToDisplay = arrayList.get(position);
 
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.autocomplete_row, parent, false);

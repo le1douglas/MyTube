@@ -1,10 +1,12 @@
-package le1.mytube;
+package le1.mytube.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 import android.widget.Toast;
+
+import le1.mytube.MusicService;
 
 import static le1.mytube.MusicService.pauseSong;
 import static le1.mytube.MusicService.playSong;

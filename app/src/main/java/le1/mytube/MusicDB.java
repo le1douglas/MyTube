@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.media.MediaMetadataRetriever;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -46,12 +45,12 @@ public class MusicDB {
         MainActivity.list.clear();
         MainActivity.adapter.notifyDataSetChanged();
 
-        for (Object i: getAllTableNames()) {
+        for (Object i : getAllTableNames()) {
             if (i.equals(TB_NAME)) {
                 database.execSQL("delete from " + TB_NAME);
             } else {
                 Log.d("DBoperation", "deleting " + i);
-                database.execSQL("drop table `" + i+ "`");
+                database.execSQL("drop table `" + i + "`");
             }
         }
         database.execSQL("update sqlite_sequence set seq=0 where name='" + TB_NAME + "'");
@@ -59,46 +58,26 @@ public class MusicDB {
 
     }
 
-    private ContentValues generateSongCV(String title, String videoID, String path, int startTime, int endTime) {
+    private ContentValues generateSongCV(YouTubeSong ytSong) {
         ContentValues values = new ContentValues();
-        values.put(FLD_TITLE, title);
-        values.put(FLD_ID, videoID);
-        values.put(FLD_PATH, path);
-        values.put(FLD_START, startTime);
-        values.put(FLD_END, endTime);
+        values.put(FLD_TITLE, ytSong.getTitle());
+        values.put(FLD_ID, ytSong.getId());
+        values.put(FLD_PATH, ytSong.getPath());
+        values.put(FLD_START, ytSong.getStart());
+        values.put(FLD_END, ytSong.getEnd());
         return values;
     }
 
-    private ContentValues generatePlaylistCV(String videoID) {
-        ContentValues values = new ContentValues();
-        values.put(FLD_ID, videoID);
-        return values;
-    }
 
     //integer because it may be null
-    public boolean addSong(String title, String videoID, String path, Integer startTime, Integer endTime) {
-        if (startTime == null) {
-            startTime = 0;
-        }
-        if (endTime == null) {
-            MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
-            metaRetriever.setDataSource(path);
-            endTime = Integer.parseInt(metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-        }
-
-        if (startTime < endTime) {
-
-            ContentValues initialValues = generateSongCV(title, videoID, path, startTime, endTime);
-            return database.insertOrThrow(TB_NAME, null, initialValues) > -1;
-        } else {
-            Log.e("MusicDB.addSong", "end time must be greater than start time");
-            return false;
-        }
+    public boolean addSong(YouTubeSong ytSong) {
+        ContentValues initialValues = generateSongCV(ytSong);
+        return database.insertOrThrow(TB_NAME, null, initialValues) > -1;
     }
 
     //update a contact
-    public boolean updateSong(long _id, String title, String videoID, String path, int startTime, int endTime) {
-        ContentValues updateValues = generateSongCV(title, videoID, path, startTime, endTime);
+    public boolean updateSong(long _id, YouTubeSong ytSong) {
+        ContentValues updateValues = generateSongCV(ytSong);
         return database.update(TB_NAME, updateValues, FLD_INDEX + "=" + _id, null) > 0;
     }
 
@@ -117,18 +96,45 @@ public class MusicDB {
     }
 
     public void deleteTable(String tableName) {
-        String query = "drop table if exists `" + tableName+"`";
+        String query = "drop table if exists `" + tableName + "`";
         database.execSQL(query);
     }
 
-    public void addSongToPlaylist(String tableName, String videoID) {
-        database.execSQL("insert into `" + tableName+ "` (id) values ('"+videoID+"')");
+    public void addSongToPlaylist(String tableName, YouTubeSong ytSong) {
+        database.execSQL("insert into `" + tableName + "` (id) values ('" + ytSong.getId() + "')");
         //return database.insertOrThrow(tableName, null, generatePlaylistCV(videoID)) > -1;
     }
 
 
-    //fetch all contacts
-    public String getAllSongs() {
+    public Cursor getAllSongsCursor() {
+        Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
+        return cursor;
+    }
+
+    public ArrayList<YouTubeSong> getAllSongs() {
+        Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
+        ArrayList<YouTubeSong> arrayList = new ArrayList<>();
+        if (cursor != null && cursor.getCount() > 0) {
+            if (cursor.moveToFirst()) {
+                do {
+                    YouTubeSong ytSong= new YouTubeSong(
+                            cursor.getString(cursor.getColumnIndex(FLD_TITLE)),
+                            cursor.getString(cursor.getColumnIndex(FLD_ID)),
+                            cursor.getString(cursor.getColumnIndex(FLD_PATH)),
+                            cursor.getInt(cursor.getColumnIndex(FLD_START)),
+                            cursor.getInt(cursor.getColumnIndex(FLD_END)));
+                    arrayList.add(ytSong);
+
+                } while (cursor.moveToNext());
+
+            }
+
+        }
+        cursor.close();
+        return arrayList;
+    }
+
+    public String getAllSongsString() {
         Cursor cursor = database.query(TB_NAME, new String[]{FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END}, null, null, null, null, null);
         StringBuilder sb = new StringBuilder();
         if (cursor != null && cursor.getCount() > 0) {
@@ -163,9 +169,7 @@ public class MusicDB {
                 if (cursor.moveToFirst()) {
                     do {
                         String singlerow = cursor.getString(cursor.getColumnIndex("name"));
-
                         arrayList.add(singlerow);
-
 
                     } while (cursor.moveToNext());
 
@@ -206,26 +210,21 @@ public class MusicDB {
     }
 
     //fetch contacts filter by a string
-    public String getSongsByFilter(String fieldToBeFiltered, String filter) {
-
+    public YouTubeSong getSongById(String id) {
+        YouTubeSong ytSong = null;
         Cursor cursor = database.query(true, TB_NAME, new String[]{
                         FLD_INDEX, FLD_TITLE, FLD_ID, FLD_PATH, FLD_START, FLD_END},
-                fieldToBeFiltered + " like '%" + filter + "%'", null, null, null, null, null);
+                FLD_ID + " like '%" + id + "%'", null, null, null, null, null);
 
-        StringBuilder sb = new StringBuilder();
         if (cursor != null && cursor.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 do {
-                    String singlerow =
-                            cursor.getString(cursor.getColumnIndex(FLD_INDEX)) + "| " +
-                                    cursor.getString(cursor.getColumnIndex(FLD_TITLE)) + ", " +
-                                    cursor.getString(cursor.getColumnIndex(FLD_ID)) + ", " +
-                                    cursor.getString(cursor.getColumnIndex(FLD_PATH)) + ", " +
-                                    cursor.getString(cursor.getColumnIndex(FLD_START)) + ", " +
-                                    cursor.getString(cursor.getColumnIndex(FLD_END)) + "."
-                                    + System.getProperty("line.separator");
-
-                    sb.append(singlerow);
+                    ytSong= new YouTubeSong(
+                            cursor.getString(cursor.getColumnIndex(FLD_TITLE)),
+                            cursor.getString(cursor.getColumnIndex(FLD_ID)),
+                            cursor.getString(cursor.getColumnIndex(FLD_PATH)),
+                            cursor.getInt(cursor.getColumnIndex(FLD_START)),
+                            cursor.getInt(cursor.getColumnIndex(FLD_END)));
 
                 } while (cursor.moveToNext());
 
@@ -233,6 +232,6 @@ public class MusicDB {
 
         }
         cursor.close();
-        return sb.toString();
+        return ytSong;
     }
 }

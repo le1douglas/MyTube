@@ -1,4 +1,4 @@
-package le1.mytube;
+package le1.mytube.adapters;
 
 import android.content.Context;
 import android.net.Uri;
@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
+import le1.mytube.DownloadSong;
+import le1.mytube.R;
 
 
 public class VideoResultAdapter extends ArrayAdapter<String> {
@@ -59,6 +61,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
 
         titleView.setText(title);
         idView.setText(id);
+
 
         addToQuequeButton.setOnClickListener(new View.OnClickListener() {
             @Override

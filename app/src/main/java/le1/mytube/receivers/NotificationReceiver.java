@@ -1,16 +1,18 @@
-package le1.mytube;
+package le1.mytube.receivers;
 
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import le1.mytube.MusicService;
+
 import static le1.mytube.MusicService.pauseSong;
 import static le1.mytube.MusicService.playSong;
 import static le1.mytube.MusicService.player;
 
 
-public class NotificationClickHandler extends BroadcastReceiver {
+public class NotificationReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
         if (intent.getStringExtra("NOT") != null) {

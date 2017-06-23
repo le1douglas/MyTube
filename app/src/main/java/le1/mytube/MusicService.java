@@ -19,6 +19,8 @@ import java.io.IOException;
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
+import le1.mytube.receivers.MusicReceiver;
+import le1.mytube.receivers.NotificationReceiver;
 
 import static le1.mytube.MainActivity.modalitaPorno;
 
@@ -32,10 +34,10 @@ public class MusicService extends Service {
     static AudioManager.OnAudioFocusChangeListener afChangeListener;
     static AudioManager audioManager;
     ComponentName componentName;
+    YouTubeSong youTubeSong;
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
+    public void onCreate() {
         createNotification();
 
         player = new MediaPlayer();
@@ -77,7 +79,6 @@ public class MusicService extends Service {
                                     playSong(true);
                                     break;
 
-
                             }
 
                         }
@@ -93,40 +94,54 @@ public class MusicService extends Service {
             }
         });
 
-        MusicService.startSong(intent.getStringExtra("videoId"), intent.getStringExtra("title"), this);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+
+        MusicService.startSong(new YouTubeSong(intent.getStringExtra("title"),intent.getStringExtra("videoId"),null,null,null), this);
 
         return super.onStartCommand(intent, flags, startId);
 
     }
 
-    public static void startSong(String videoId, String videoTitle, Context context) {
+
+    public static void startSong(YouTubeSong youTubeSong, Context context) {
 
         if (player.isPlaying()) player.stop();
         player.reset();
         remoteView.setTextViewText(R.id.btn1, "loading");
-        remoteView.setTextViewText(R.id.title, videoTitle);
+        remoteView.setTextViewText(R.id.title, youTubeSong.getTitle());
         remoteView.setBoolean(R.id.btn1, "setEnabled", false);
         mNotificationManager.notify(666, notification);
 
-        new YouTubeExtractor(context) {
-            @Override
-            public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
-                if (ytFiles != null) {
-                    int itag = 140;
-                    String downloadUrl = ytFiles.get(itag).getUrl();
-                    System.out.println(downloadUrl);
-                    try {
-                        player.reset();
-                        player.setDataSource(downloadUrl);
-                        player.prepareAsync();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        if (youTubeSong.getPath() == null) {
+            new YouTubeExtractor(context) {
+                @Override
+                public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
+                    if (ytFiles != null) {
+                        String downloadUrl = ytFiles.get(140).getUrl();
+                        System.out.println(downloadUrl);
+                        try {
+                            player.setDataSource(downloadUrl);
+                            player.prepareAsync();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                     }
-
                 }
-            }
-        }.extract("http://youtube.com/watch?v=" + videoId, false, false);
+            }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), false, false);
 
+        } else {
+            try {
+                player.setDataSource(youTubeSong.getPath());
+                player.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -163,14 +178,14 @@ public class MusicService extends Service {
 
 
         //play button
-        final Intent play = new Intent(MusicService.this, NotificationClickHandler.class);
+        final Intent play = new Intent(MusicService.this, NotificationReceiver.class);
         play.putExtra("NOT", "play");
         PendingIntent playPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, play, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteView.setOnClickPendingIntent(R.id.btn1, playPendingIntent);
         remoteView.setTextViewText(R.id.btn1, "test");
 
         //stop button
-        final Intent stop = new Intent(MusicService.this, NotificationClickHandler.class);
+        final Intent stop = new Intent(MusicService.this, NotificationReceiver.class);
         stop.putExtra("NOT", "stop");
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(MusicService.this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteView.setOnClickPendingIntent(R.id.btn2, stopPendingIntent);

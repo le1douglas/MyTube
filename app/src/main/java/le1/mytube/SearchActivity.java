@@ -1,8 +1,6 @@
 package le1.mytube;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -40,7 +38,11 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
+import le1.mytube.adapters.AutocompleteAdapter;
+import le1.mytube.adapters.VideoResultAdapter;
+
 import static le1.mytube.MainActivity.changeStatusBarColor;
+import static le1.mytube.MainActivity.isMyServiceRunning;
 
 public class SearchActivity extends AppCompatActivity implements TextWatcher, AdapterView.OnItemClickListener {
     ListView autocompleteListView;
@@ -176,26 +178,18 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
             TextView videoTitle = (TextView) view.findViewById(R.id.title);
             String videoId = idView.getText().toString();
             Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show();
-            if (!isMyServiceRunning(MusicService.class)) {
+            if (!isMyServiceRunning(this, MusicService.class)) {
                 Intent intent = new Intent(SearchActivity.this, MusicService.class);
                 intent.putExtra("videoId", videoId);
                 intent.putExtra("title", videoTitle.getText().toString());
                 startService(intent);
             } else {
-                MusicService.startSong(videoId, videoTitle.getText().toString(), this);
+                MusicService.startSong(new YouTubeSong(videoTitle.getText().toString(),videoId,null,null,null), this);
             }
         }
     }
 
-    public boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     private class AutocompleteTask extends AsyncTask<String, Void, String> {
 

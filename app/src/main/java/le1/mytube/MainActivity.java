@@ -1,6 +1,7 @@
 package le1.mytube;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,6 +29,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+
+import static le1.mytube.MusicDBHelper.TB_NAME;
 
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener {
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         setSupportActionBar(tb);
 
         listView = (ListView) findViewById(R.id.playlistList);
-        list = new ArrayList<String>();
+        list = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
 
 
@@ -107,7 +110,8 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                     Log.d("DBoperation", db.getAllTableNames().get(i).toString());
                 }
                 Log.d("DBoperation", "-----Offline----");
-                Log.d("DBoperation", db.getAllSongs());
+                Log.d("DBoperation", db.getAllSongsString());
+
                 return true;
             case R.id.clearDB:
                 db.clear();
@@ -142,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                         list.add(playlistName);
                         adapter.notifyDataSetChanged();
                         db.addTable(playlistName);
-                        db.addSongToPlaylist(playlistName, "PLACEHOLDER");
+                        db.addSongToPlaylist(playlistName, new YouTubeSong(null, "PLACEHOLDER", null, null,null));
                     }
                 });
 
@@ -186,6 +190,16 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     }
 
 
+    public static boolean isMyServiceRunning(Context context, Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Intent playlistIntent = new Intent(this, PlaylistActivity.class);
@@ -218,5 +232,11 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                 });
         alertDialogBuilder.show();
         return true;
+    }
+
+    public void MyMusic(View view) {
+        Intent playlistIntent = new Intent(this, PlaylistActivity.class);
+        playlistIntent.putExtra("TITLE", TB_NAME);
+        startActivity(playlistIntent);
     }
 }

@@ -32,13 +32,6 @@ public class DownloadSong extends AsyncTask<String, String, File> {
     @Override
     protected File doInBackground(String... info) {
 
-        // 0 url
-        // 1 title
-        // 2 id
-        // 3 path
-        // 4 start
-        // 5 end
-
         try {
 
             File file = new File(android.os.Environment.getExternalStorageDirectory(), "MyTube");
@@ -74,7 +67,7 @@ public class DownloadSong extends AsyncTask<String, String, File> {
 
             MusicDB db= new MusicDB(mContext);
             db.open();
-            db.addSong(info[1], info[2], f.getPath(), null, null);
+            db.addSong(new YouTubeSong(info[1], info[2], f.getAbsolutePath(), null, null));
             db.close();
 
             return f;
@@ -91,6 +84,7 @@ public class DownloadSong extends AsyncTask<String, String, File> {
 
     @Override
     protected void onPostExecute(File file) {
+
         //TODO it does not work
         /*try {
             MP3File mp3file = new MP3File(file);
