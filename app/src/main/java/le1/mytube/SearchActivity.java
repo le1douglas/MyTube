@@ -9,7 +9,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -56,6 +55,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
     InputMethodManager imm;
     EditText searchEditText;
     ProgressBar loadingIcon;
+    AutocompleteTask autocompleteTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +71,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         actionBar.setDisplayHomeAsUpEnabled(true);
 
         imm = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
-
+        autocompleteTask = new AutocompleteTask();
 
         searchEditText = (EditText) findViewById(R.id.SearchEditText);
         autocompleteListView = (ListView) findViewById(R.id.AutocompleteList);
@@ -150,11 +150,14 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (TextUtils.isEmpty(s)) {
+
+        autocompleteTask.cancel(true);
+
+        if (s.toString().trim().equals(""))
             autocompleteAdapter.clear();
-        } else {
-            new AutocompleteTask().execute(s.toString());
-        }
+        else
+            autocompleteTask = (AutocompleteTask) new AutocompleteTask().execute(s.toString());
+
     }
 
     @Override
@@ -184,23 +187,14 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
                 intent.putExtra("title", videoTitle.getText().toString());
                 startService(intent);
             } else {
-                MusicService.startSong(new YouTubeSong(videoTitle.getText().toString(),videoId,null,null,null), this);
+                MusicService.startSong(new YouTubeSong(videoTitle.getText().toString(), videoId, null, null, null), this);
             }
         }
     }
 
-
-
     private class AutocompleteTask extends AsyncTask<String, Void, String> {
 
         URL url;
-
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
 
         @Override
         protected String doInBackground(String... params) {
@@ -277,9 +271,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
                 urlConnection.setRequestMethod("GET");
                 urlConnection.setReadTimeout(10000 /* milliseconds */);
                 urlConnection.setConnectTimeout(15000 /* milliseconds */);
-
                 urlConnection.setDoOutput(true);
-
                 urlConnection.connect();
 
                 BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));

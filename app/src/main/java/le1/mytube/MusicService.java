@@ -9,10 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 import android.util.SparseArray;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -100,12 +103,11 @@ public class MusicService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 
-        MusicService.startSong(new YouTubeSong(intent.getStringExtra("title"),intent.getStringExtra("videoId"),null,null,null), this);
+        MusicService.startSong(new YouTubeSong(intent.getStringExtra("title"), intent.getStringExtra("videoId"), null, null, null), this);
 
         return super.onStartCommand(intent, flags, startId);
 
     }
-
 
     public static void startSong(YouTubeSong youTubeSong, Context context) {
 
@@ -117,6 +119,8 @@ public class MusicService extends Service {
         mNotificationManager.notify(666, notification);
 
         if (youTubeSong.getPath() == null) {
+            Toast.makeText(context, "Streaming", Toast.LENGTH_SHORT).show();
+
             new YouTubeExtractor(context) {
                 @Override
                 public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
@@ -135,12 +139,14 @@ public class MusicService extends Service {
             }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), false, false);
 
         } else {
+            Toast.makeText(context, "Local file", Toast.LENGTH_SHORT).show();
             try {
                 player.setDataSource(youTubeSong.getPath());
                 player.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
         }
 
     }
