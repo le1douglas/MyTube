@@ -1,4 +1,4 @@
-package le1.mytube;
+package le1.mytube.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,15 +9,19 @@ import android.database.sqlite.SQLiteException;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 
-import static le1.mytube.MusicDBHelper.FLD_END;
-import static le1.mytube.MusicDBHelper.FLD_ID;
-import static le1.mytube.MusicDBHelper.FLD_INDEX;
-import static le1.mytube.MusicDBHelper.FLD_PATH;
-import static le1.mytube.MusicDBHelper.FLD_START;
-import static le1.mytube.MusicDBHelper.FLD_TITLE;
-import static le1.mytube.MusicDBHelper.TB_NAME;
+import le1.mytube.MainActivity;
+import le1.mytube.YouTubeSong;
+
+import static le1.mytube.database.MusicDBHelper.FLD_END;
+import static le1.mytube.database.MusicDBHelper.FLD_ID;
+import static le1.mytube.database.MusicDBHelper.FLD_INDEX;
+import static le1.mytube.database.MusicDBHelper.FLD_PATH;
+import static le1.mytube.database.MusicDBHelper.FLD_START;
+import static le1.mytube.database.MusicDBHelper.FLD_TITLE;
+import static le1.mytube.database.MusicDBHelper.TB_NAME;
 
 public class MusicDB {
 
@@ -82,8 +86,10 @@ public class MusicDB {
     }
 
     //delete a contact
-    public boolean deleteSong(String fieldToBeFiltered, String filter) {
-        return database.delete(TB_NAME, fieldToBeFiltered + "='" + filter + "'", null) > 0;
+    public boolean deleteSong(YouTubeSong ytSong) {
+        File file = new File(ytSong.getPath());
+        return database.delete(TB_NAME, FLD_ID + "='" + ytSong.getId() + "'", null) > 0 && file.delete();
+
     }
 
 

@@ -1,4 +1,4 @@
-package le1.mytube;
+package le1.mytube.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

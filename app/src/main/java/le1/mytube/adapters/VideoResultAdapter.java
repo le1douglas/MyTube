@@ -2,6 +2,7 @@ package le1.mytube.adapters;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,7 +74,9 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
                         if (ytFiles != null) {
                             int itag = 140;
                             String downloadUrl = ytFiles.get(itag).getUrl();
-                            new DownloadSong(context).execute(downloadUrl, title, id);
+
+                            new DownloadSong(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, downloadUrl, title, id);
+
                         }
                     }
                 }.extract("http://youtube.com/watch?v=" + id, false, false);

@@ -30,7 +30,9 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-import static le1.mytube.MusicDBHelper.TB_NAME;
+import le1.mytube.database.MusicDB;
+
+import static le1.mytube.database.MusicDBHelper.TB_NAME;
 
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener {

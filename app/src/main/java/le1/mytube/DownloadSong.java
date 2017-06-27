@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import le1.mytube.database.MusicDB;
+
 //import static le1.mytube.MainActivity.db;
 
 public class DownloadSong extends AsyncTask<String, String, File> {
