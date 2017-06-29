@@ -1,8 +1,10 @@
 package le1.mytube;
 
 import android.media.MediaMetadataRetriever;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class YouTubeSong {
+public class YouTubeSong implements Parcelable{
     private String mTitle;
     private String mId;
     private String mPath;
@@ -30,6 +32,24 @@ public class YouTubeSong {
             throw new RuntimeException("start (" + String.valueOf(start) + ") is greater than end (" + String.valueOf(end) + ")");
     }
 
+
+    protected YouTubeSong(Parcel in) {
+        mTitle = in.readString();
+        mId = in.readString();
+        mPath = in.readString();
+    }
+
+    public static final Creator<YouTubeSong> CREATOR = new Creator<YouTubeSong>() {
+        @Override
+        public YouTubeSong createFromParcel(Parcel in) {
+            return new YouTubeSong(in);
+        }
+
+        @Override
+        public YouTubeSong[] newArray(int size) {
+            return new YouTubeSong[size];
+        }
+    };
 
     public String getTitle() {
         return this.mTitle;
@@ -70,5 +90,17 @@ public class YouTubeSong {
 
     public void setEnd(Integer end) {
         mEnd = end;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mTitle);
+        dest.writeString(mId);
+        dest.writeString(mPath);
     }
 }

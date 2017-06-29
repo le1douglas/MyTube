@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -15,7 +16,6 @@ import java.net.URLConnection;
 
 import le1.mytube.database.MusicDB;
 
-//import static le1.mytube.MainActivity.db;
 
 public class DownloadSong extends AsyncTask<String, String, File> {
 
@@ -28,11 +28,12 @@ public class DownloadSong extends AsyncTask<String, String, File> {
             myDirectory.mkdir();
         }
         super.onPreExecute();
-        //show notif
+        //TODO show notif
     }
 
     @Override
     protected File doInBackground(String... info) {
+        Thread.currentThread().setName("le1.mytube.DownloadSong");
 
         try {
 
@@ -86,7 +87,7 @@ public class DownloadSong extends AsyncTask<String, String, File> {
 
     @Override
     protected void onPostExecute(File file) {
-
+        Toast.makeText(mContext, "finished downloading song", Toast.LENGTH_SHORT).show();
         //TODO it does not work
         /*try {
             MP3File mp3file = new MP3File(file);

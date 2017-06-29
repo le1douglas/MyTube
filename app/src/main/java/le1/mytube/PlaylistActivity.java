@@ -67,11 +67,11 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (!isMyServiceRunning(this, MusicService.class)) {
             Intent intent = new Intent(this, MusicService.class);
-            intent.putExtra("videoId", adapter.getItem(position).getId());
-            intent.putExtra("title", adapter.getItem(position).getTitle());
+            intent.putExtra("song",  adapter.getItem(position));
+            intent.putExtra("local",  true);
             startService(intent);
         } else {
-            MusicService.startSong(adapter.getItem(position), this);
+            MusicService.startSong(this, adapter.getItem(position), true);
         }
 
 
@@ -96,6 +96,7 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         db.deleteSong(adapter.getItem(position));
+
                         adapter.notifyDataSetChanged();
                     }
                 });

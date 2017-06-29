@@ -36,7 +36,7 @@ import static le1.mytube.database.MusicDBHelper.TB_NAME;
 
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener {
-    public static boolean modalitaPorno;
+    public static boolean handleAudioFocus;
     MusicDB db;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
         sharedPref = this.getPreferences(Context.MODE_PRIVATE);
         editor = sharedPref.edit();
-        modalitaPorno = sharedPref.getBoolean("modalitaPorno", false);
+        handleAudioFocus = sharedPref.getBoolean("handleAudioFocus", false);
 
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
         tb.setTitle(R.string.app_name);
@@ -83,20 +83,18 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
-        MenuItem item = menu.findItem(R.id.modalitaPorno);
-
-        final CompoundButton modalitaPornoSwitch = (CompoundButton) MenuItemCompat.getActionView(item);
-        modalitaPornoSwitch.setChecked(sharedPref.getBoolean("modalitaPorno", false));
+        MenuItem handleAudioFocusItem = menu.findItem(R.id.handleAudioFocus);
+        final CompoundButton modalitaPornoSwitch = (CompoundButton) MenuItemCompat.getActionView(handleAudioFocusItem);
+        modalitaPornoSwitch.setChecked(sharedPref.getBoolean("handleAudioFocus", true));
         modalitaPornoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                modalitaPorno = isChecked;
-                editor.putBoolean("modalitaPorno", modalitaPorno);
+                handleAudioFocus = isChecked;
+                editor.putBoolean("handleAudioFocus", handleAudioFocus);
                 editor.commit();
 
             }
         });
-
         return true;
     }
 
@@ -118,7 +116,9 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
             case R.id.clearDB:
                 db.clear();
                 return true;
-            case R.id.modalitaPorno:
+            case R.id.handleAudioFocus:
+
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

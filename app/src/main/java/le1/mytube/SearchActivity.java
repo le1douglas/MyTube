@@ -177,17 +177,17 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
             imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
 
         } else if (parent == videoResultListView) {
+            Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show();
             TextView idView = (TextView) view.findViewById(R.id.id);
             TextView videoTitle = (TextView) view.findViewById(R.id.title);
-            String videoId = idView.getText().toString();
-            Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show();
+           YouTubeSong youTubeSong= new YouTubeSong(videoTitle.getText().toString(), idView.getText().toString(), null, null, null);
             if (!isMyServiceRunning(this, MusicService.class)) {
-                Intent intent = new Intent(SearchActivity.this, MusicService.class);
-                intent.putExtra("videoId", videoId);
-                intent.putExtra("title", videoTitle.getText().toString());
+                Intent intent = new Intent(this, MusicService.class);
+                intent.putExtra("song", youTubeSong);
+                intent.putExtra("local", false);
                 startService(intent);
             } else {
-                MusicService.startSong(new YouTubeSong(videoTitle.getText().toString(), videoId, null, null, null), this);
+                MusicService.startSong(this, youTubeSong, false);
             }
         }
     }
@@ -198,7 +198,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
         @Override
         protected String doInBackground(String... params) {
-
+            Thread.currentThread().setName("le1.mytube.AutocompleteTask");
             try {
                 url = new URL("http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=" + Uri.encode(params[0]));
                 String JSON_string;
@@ -256,7 +256,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
         @Override
         protected JSONObject doInBackground(String... params) {
-
+            Thread.currentThread().setName("le1.mytube.SearchTask");
             HttpURLConnection urlConnection;
 
             URL url;

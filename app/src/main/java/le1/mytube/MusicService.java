@@ -9,10 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
 import android.util.SparseArray;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -25,7 +23,8 @@ import at.huber.youtubeExtractor.YtFile;
 import le1.mytube.receivers.MusicReceiver;
 import le1.mytube.receivers.NotificationReceiver;
 
-import static le1.mytube.MainActivity.modalitaPorno;
+import static le1.mytube.MainActivity.handleAudioFocus;
+import static le1.mytube.MainActivity.isMyServiceRunning;
 
 
 public class MusicService extends Service {
@@ -64,7 +63,7 @@ public class MusicService extends Service {
         afChangeListener =
                 new AudioManager.OnAudioFocusChangeListener() {
                     public void onAudioFocusChange(int focusChange) {
-                        if (player != null && !modalitaPorno) {
+                        if (player != null && handleAudioFocus) {
                             switch (focusChange) {
                                 case (AudioManager.AUDIOFOCUS_LOSS):
                                     pauseSong(true);
@@ -101,15 +100,15 @@ public class MusicService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        YouTubeSong youTubeSong = intent.getParcelableExtra("song");
 
-
-        MusicService.startSong(new YouTubeSong(intent.getStringExtra("title"), intent.getStringExtra("videoId"), null, null, null), this);
+        MusicService.startSong(this, youTubeSong, intent.getBooleanExtra("local", false));
 
         return super.onStartCommand(intent, flags, startId);
 
     }
 
-    public static void startSong(YouTubeSong youTubeSong, Context context) {
+    public static void startSong(final Context context, YouTubeSong youTubeSong, boolean local) {
 
         if (player.isPlaying()) player.stop();
         player.reset();
@@ -118,9 +117,17 @@ public class MusicService extends Service {
         remoteView.setBoolean(R.id.btn1, "setEnabled", false);
         mNotificationManager.notify(666, notification);
 
-        if (youTubeSong.getPath() == null) {
-            Toast.makeText(context, "Streaming", Toast.LENGTH_SHORT).show();
+        if (local) {
+            Toast.makeText(context, "Local file", Toast.LENGTH_SHORT).show();
+            try {
+                player.setDataSource(youTubeSong.getPath());
+                player.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
+        } else {
+            Toast.makeText(context, "Streaming", Toast.LENGTH_SHORT).show();
             new YouTubeExtractor(context) {
                 @Override
                 public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
@@ -128,8 +135,10 @@ public class MusicService extends Service {
                         String downloadUrl = ytFiles.get(140).getUrl();
                         System.out.println(downloadUrl);
                         try {
-                            player.setDataSource(downloadUrl);
-                            player.prepareAsync();
+                            if (isMyServiceRunning(context, MusicService.class)) {
+                                player.setDataSource(downloadUrl);
+                                player.prepareAsync();
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -138,14 +147,6 @@ public class MusicService extends Service {
                 }
             }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), false, false);
 
-        } else {
-            Toast.makeText(context, "Local file", Toast.LENGTH_SHORT).show();
-            try {
-                player.setDataSource(youTubeSong.getPath());
-                player.prepareAsync();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
         }
 

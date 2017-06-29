@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/modalitaPorno"
+        android:id="@+id/handleAudioFocus"
         android:title=""
         app:actionLayout="@layout/switch_menu"
         app:showAsAction="always" />
