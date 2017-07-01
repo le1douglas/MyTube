@@ -63,7 +63,7 @@
         </receiver>
 
         <activity
-            android:name=".PlaylistActivity"
+            android:name=".mvpViews.PlaylistActivity"
             android:parentActivityName=".MainActivity" />
 
     </application>

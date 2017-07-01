@@ -1,4 +1,4 @@
-package le1.mytube.database;
+package le1.mytube.mvpModel;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,10 +14,9 @@ import static le1.mytube.mvpUtils.DatabaseConstants.FLD_START;
 import static le1.mytube.mvpUtils.DatabaseConstants.FLD_TITLE;
 import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
 
+class DatabaseHelper extends SQLiteOpenHelper {
 
-public class MusicDBHelper extends SQLiteOpenHelper {
-
-    private static final String DB_CREATE = "create table "+ TB_NAME + "(" +
+    private static final String DB_CREATE = "create table " + TB_NAME + "(" +
             FLD_INDEX + " integer primary key autoincrement, " +
             FLD_TITLE + " text, " +
             FLD_ID + " text, " +
@@ -26,7 +25,7 @@ public class MusicDBHelper extends SQLiteOpenHelper {
             FLD_END + " int);";
 
 
-    public MusicDBHelper(Context context) {
+    public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
@@ -36,10 +35,12 @@ public class MusicDBHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade( SQLiteDatabase database, int oldVersion, int newVersion ) {
+    public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
 
         database.execSQL("DROP TABLE IF EXISTS " + TB_NAME);
         onCreate(database);
 
     }
+
+
 }

@@ -5,38 +5,38 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class YouTubeSong implements Parcelable{
-    private String mTitle;
-    private String mId;
-    private String mPath;
-    private Integer mStart;
-    private Integer mEnd;
+    private String title;
+    private String id;
+    private String path;
+    private Integer start;
+    private Integer end;
 
-    public YouTubeSong(String title, String videoId, String path, Integer start, Integer end) throws RuntimeException {
-        mTitle = title;
-        mId = videoId;
-        mPath = path;
-        if (start == null) mStart = 0;
-        else mStart = start;
+    public YouTubeSong(String title, String videoId, String path, Integer start, Integer end) throws IllegalArgumentException {
+        this.title = title;
+        id = videoId;
+        this.path = path;
+        if (start == null) this.start = 0;
+        else this.start = start;
 
         if (end == null) {
             if (path != null) {
                 MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
                 metaRetriever.setDataSource(path);
-                mEnd = Integer.parseInt(metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+                this.end = Integer.parseInt(metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
             } else {
-                mEnd = 0;
+                this.end = 0;
             }
-        } else if (start < end) {
-            mEnd = end;
+        } else if (end > start) {
+            this.end = end;
         } else
-            throw new RuntimeException("start (" + String.valueOf(start) + ") is greater than end (" + String.valueOf(end) + ")");
+            throw new IllegalArgumentException("start (" + String.valueOf(start) + ") is greater than end (" + String.valueOf(end) + ")");
     }
 
 
     protected YouTubeSong(Parcel in) {
-        mTitle = in.readString();
-        mId = in.readString();
-        mPath = in.readString();
+        title = in.readString();
+        id = in.readString();
+        path = in.readString();
     }
 
     public static final Creator<YouTubeSong> CREATOR = new Creator<YouTubeSong>() {
@@ -52,44 +52,44 @@ public class YouTubeSong implements Parcelable{
     };
 
     public String getTitle() {
-        return this.mTitle;
+        return this.title;
     }
 
     public String getId() {
-        return this.mId;
+        return this.id;
     }
 
     public String getPath() {
-        return this.mPath;
+        return this.path;
     }
 
     public Integer getStart() {
-        return this.mStart;
+        return this.start;
     }
 
     public Integer getEnd() {
-        return this.mEnd;
+        return this.end;
     }
 
 
     public void setTitle(String title) {
-        mTitle = title;
+        this.title = title;
     }
 
     public void setId(String id) {
-        mId = id;
+        this.id = id;
     }
 
     public void setPath(String path) {
-        mPath = path;
+        this.path = path;
     }
 
     public void setStart(Integer start) {
-        mStart = start;
+        this.start = start;
     }
 
     public void setEnd(Integer end) {
-        mEnd = end;
+        this.end = end;
     }
 
     @Override
@@ -99,8 +99,8 @@ public class YouTubeSong implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mTitle);
-        dest.writeString(mId);
-        dest.writeString(mPath);
+        dest.writeString(title);
+        dest.writeString(id);
+        dest.writeString(path);
     }
 }

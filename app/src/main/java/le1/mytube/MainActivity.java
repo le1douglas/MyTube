@@ -31,8 +31,9 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 import le1.mytube.database.MusicDB;
+import le1.mytube.mvpViews.PlaylistActivity;
 
-import static le1.mytube.database.MusicDBHelper.TB_NAME;
+import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
 
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener {
@@ -148,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                         list.add(playlistName);
                         adapter.notifyDataSetChanged();
                         db.addTable(playlistName);
-                        db.addSongToPlaylist(playlistName, new YouTubeSong(null, "PLACEHOLDER", null, null,null));
+                        db.addSongToPlaylist(playlistName, new YouTubeSong(null, "UiyDmqO59QE", null, null,null));
                     }
                 });
 

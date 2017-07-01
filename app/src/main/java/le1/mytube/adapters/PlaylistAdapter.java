@@ -16,13 +16,13 @@ import le1.mytube.YouTubeSong;
  * Created by Leone on 23/06/17.
  */
 
-public class PlaylistAdapter extends BaseAdapter{
-    Context context;
-    ArrayList<YouTubeSong> arrayList;
+public class PlaylistAdapter extends BaseAdapter {
+    private Context context;
+    private ArrayList<YouTubeSong> arrayList;
 
     public PlaylistAdapter(Context context, ArrayList<YouTubeSong> arrayList) {
-        this.context= context;
-        this.arrayList= arrayList;
+        this.context = context;
+        this.arrayList = arrayList;
     }
 
     @Override
@@ -35,6 +35,10 @@ public class PlaylistAdapter extends BaseAdapter{
         return arrayList.get(position);
     }
 
+    public static void test(){
+        //wooo
+    }
+
     @Override
     public long getItemId(int position) {
         return getItem(position).hashCode();
@@ -43,12 +47,11 @@ public class PlaylistAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        if (convertView==null)
-        {
-            convertView= LayoutInflater.from(context).inflate(R.layout.playlist_row, null);
+        if (convertView == null) {
+            convertView = LayoutInflater.from(context).inflate(R.layout.playlist_row, parent, false);
         }
 
-        TextView title= (TextView) convertView.findViewById(R.id.playlistSongTitle);
+        TextView title = (TextView) convertView.findViewById(R.id.playlistSongTitle);
         title.setText(arrayList.get(position).getTitle());
         return convertView;
     }

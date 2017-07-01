@@ -15,13 +15,14 @@ import java.util.ArrayList;
 import le1.mytube.MainActivity;
 import le1.mytube.YouTubeSong;
 
-import static le1.mytube.database.MusicDBHelper.FLD_END;
-import static le1.mytube.database.MusicDBHelper.FLD_ID;
-import static le1.mytube.database.MusicDBHelper.FLD_INDEX;
-import static le1.mytube.database.MusicDBHelper.FLD_PATH;
-import static le1.mytube.database.MusicDBHelper.FLD_START;
-import static le1.mytube.database.MusicDBHelper.FLD_TITLE;
-import static le1.mytube.database.MusicDBHelper.TB_NAME;
+import static le1.mytube.mvpUtils.DatabaseConstants.FLD_END;
+import static le1.mytube.mvpUtils.DatabaseConstants.FLD_ID;
+import static le1.mytube.mvpUtils.DatabaseConstants.FLD_INDEX;
+import static le1.mytube.mvpUtils.DatabaseConstants.FLD_PATH;
+import static le1.mytube.mvpUtils.DatabaseConstants.FLD_START;
+import static le1.mytube.mvpUtils.DatabaseConstants.FLD_TITLE;
+import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
+
 
 public class MusicDB {
 
