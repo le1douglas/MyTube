@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import le1.mytube.YouTubeSong;
 
 
-interface ModelInterface {
+public interface ModelInterface {
 
     void addSong(YouTubeSong youTubeSong);
 
