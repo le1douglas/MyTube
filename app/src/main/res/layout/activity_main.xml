@@ -20,12 +20,6 @@
         android:text="Add"
         android:onClick="Add"/>
 
-    <Button
-        android:id="@+id/myMusic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="My music"
-        android:onClick="MyMusic"/>
 
     <ListView
         android:id="@+id/playlistList"

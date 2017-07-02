@@ -8,7 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 
-import le1.mytube.mvpModel.Model;
+import le1.mytube.mvpModel.Repository;
 import le1.mytube.mvpPresenters.PlaylistPresenter;
 import le1.mytube.mvpViews.PlaylistInterface;
 
@@ -23,7 +23,7 @@ public class PlaylistTest {
     @Mock
     PlaylistInterface view;
     @Mock
-    Model model;
+    Repository repository;
 
     @Test
     public void getSongsInPlaylistSomeSongs() {
@@ -32,9 +32,9 @@ public class PlaylistTest {
         songs.add(new YouTubeSong(null, null, null, null, null));
         songs.add(new YouTubeSong(null, null, null, null, null));
 
-        Mockito.when(model.getSongsInPlaylist("PLACEHOLDER")).thenReturn(songs);
+        Mockito.when(repository.getSongsInPlaylist("PLACEHOLDER")).thenReturn(songs);
 
-        PlaylistPresenter presenter = new PlaylistPresenter(model);
+        PlaylistPresenter presenter = new PlaylistPresenter(repository);
         presenter.bind(view);
         presenter.loadSongsInPlaylist("PLACEHOLDER");
 
@@ -47,9 +47,9 @@ public class PlaylistTest {
     public void getSongsInPlaylistNoSongs() {
         ArrayList<YouTubeSong> songs = new ArrayList<>();
 
-        Mockito.when(model.getSongsInPlaylist("PLACEHOLDER")).thenReturn(songs);
+        Mockito.when(repository.getSongsInPlaylist("PLACEHOLDER")).thenReturn(songs);
 
-        PlaylistPresenter presenter = new PlaylistPresenter(model);
+        PlaylistPresenter presenter = new PlaylistPresenter(repository);
         presenter.bind(view);
         presenter.loadSongsInPlaylist("PLACEHOLDER");
 
@@ -60,13 +60,13 @@ public class PlaylistTest {
 
     @Test
     public void getSongsInPlaylistError() {
-        Mockito.when(model.getSongsInPlaylist("PLACEHOLDER")).thenThrow(new RuntimeException("something went wrong (sql exception)"));
+        Mockito.when(repository.getSongsInPlaylist("PLACEHOLDER")).thenThrow(new RuntimeException("something went wrong (sql exception)"));
 
-        PlaylistPresenter presenter = new PlaylistPresenter(model);
+        PlaylistPresenter presenter = new PlaylistPresenter(repository);
         presenter.bind(view);
         presenter.loadSongsInPlaylist("PLACEHOLDER");
 
-        Mockito.verify(view).displayError();
+        Mockito.verify(view).displayErrorSongs();
         presenter.unbind();
 
     }
@@ -77,9 +77,9 @@ public class PlaylistTest {
         songs.add(new YouTubeSong(null, null, null, null, null));
         songs.add(new YouTubeSong(null, null, null, null, null));
         songs.add(new YouTubeSong(null, null, null, null, null));
-        Mockito.when(model.getAllSongs()).thenReturn(songs);
+        Mockito.when(repository.getAllSongs()).thenReturn(songs);
 
-        PlaylistPresenter presenter = new PlaylistPresenter(model);
+        PlaylistPresenter presenter = new PlaylistPresenter(repository);
         presenter.bind(view);
         presenter.loadSongsInPlaylist(TB_NAME);
 
@@ -90,9 +90,9 @@ public class PlaylistTest {
 
     @Test
     public void getAllSongsNoSongs(){
-        Mockito.when(model.getAllSongs()).thenReturn(new ArrayList<YouTubeSong>());
+        Mockito.when(repository.getAllSongs()).thenReturn(new ArrayList<YouTubeSong>());
 
-        PlaylistPresenter presenter = new PlaylistPresenter(model);
+        PlaylistPresenter presenter = new PlaylistPresenter(repository);
         presenter.bind(view);
         presenter.loadSongsInPlaylist(TB_NAME);
 

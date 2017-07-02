@@ -3,7 +3,7 @@ package le1.mytube.mvpPresenters;
 import java.util.ArrayList;
 
 import le1.mytube.YouTubeSong;
-import le1.mytube.mvpModel.ModelInterface;
+import le1.mytube.mvpModel.Repository;
 import le1.mytube.mvpViews.PlaylistInterface;
 
 import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
@@ -11,10 +11,10 @@ import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
 public class PlaylistPresenter {
 
     public PlaylistInterface view;
-    public ModelInterface model;
+    public Repository repository;
 
-    public PlaylistPresenter(ModelInterface model) {
-        this.model = model;
+    public PlaylistPresenter(Repository repository) {
+        this.repository = repository;
     }
 
     public void bind(PlaylistInterface view) {
@@ -23,16 +23,16 @@ public class PlaylistPresenter {
 
     public void unbind() {
         this.view = null;
-        model.closeDatabase();
+        repository.closeDatabase();
     }
 
     public void loadSongsInPlaylist(String playlistName) {
         try {
             ArrayList<YouTubeSong> youTubeSongs;
             if (playlistName.equals(TB_NAME)) {
-                youTubeSongs = model.getAllSongs();
+                youTubeSongs = repository.getAllSongs();
             } else {
-                youTubeSongs = model.getSongsInPlaylist(playlistName);
+                youTubeSongs = repository.getSongsInPlaylist(playlistName);
             }
 
             if (youTubeSongs.size() > 0) {
@@ -45,27 +45,28 @@ public class PlaylistPresenter {
             /**every exception ends here, even {@link  le1.mytube.mvpViews.PlaylistActivity#displaySongs(ArrayList)}
              * and {@link   le1.mytube.mvpViews.PlaylistActivity#displayNoSongs()}
              */
-            view.displayError();
+            view.displayErrorSongs();
             e.printStackTrace();
         }
 
     }
 
     public void deleteSong(YouTubeSong youtubeSong) {
-        model.deleteSong(youtubeSong);
+        repository.deleteSong(youtubeSong);
         //TODO think about a more lightweight method to get a playlist size
-        if (model.getAllSongs().size() == 0) {
+        if (repository.getAllSongs().size() == 0) {
             view.displayNoSongs();
         }
 
     }
 
     public void removeSongFromPlaylist(YouTubeSong youTubeSong, String playlistName) {
-        model.removeSongFromPlaylist(youTubeSong, playlistName);
+        repository.removeSongFromPlaylist(youTubeSong, playlistName);
         //TODO think about a more lightweight method to get a playlist size
-        if (model.getSongsInPlaylist(playlistName).size() == 0) {
+        if (repository.getSongsInPlaylist(playlistName).size() == 0) {
             view.displayNoSongs();
         }
 
     }
+
 }

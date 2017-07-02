@@ -19,21 +19,16 @@ import static le1.mytube.mvpUtils.DatabaseConstants.FLD_PATH;
 import static le1.mytube.mvpUtils.DatabaseConstants.FLD_START;
 import static le1.mytube.mvpUtils.DatabaseConstants.FLD_TITLE;
 import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
+import static le1.mytube.mvpUtils.SharedPreferencesConstants.keyAudiofocus;
 
-public class Model implements ModelInterface, SharedPreferencesInterface {
+public class Repository implements DatabaseInterface, SharedPreferencesInterface {
 
     private SQLiteDatabase database;
     private SharedPreferences preferences;
 
-    public Model(Context context) {
+    public Repository(Context context) {
        openDatabase(context);
        preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    }
-
-
-    @Override
-    public void closeDatabase() {
-        database.close();
     }
 
     @Override
@@ -42,6 +37,12 @@ public class Model implements ModelInterface, SharedPreferencesInterface {
         //if there is not one it will go to the OnCreate of databaseHelper (?)
         database = databaseHelper.getWritableDatabase();
     }
+
+    @Override
+    public void closeDatabase() {
+        database.close();
+    }
+
 
     private ContentValues generateSongCV(YouTubeSong youTubeSong) {
         ContentValues values = new ContentValues();
@@ -231,6 +232,13 @@ public class Model implements ModelInterface, SharedPreferencesInterface {
         }
     }
 
+    @Override
+    public boolean getHandleAudiofocus() {
+        return preferences.getBoolean(keyAudiofocus, true);
+    }
 
-
+    @Override
+    public void setHandleAudiofocus(boolean handleAudioFocus) {
+        preferences.edit().putBoolean(keyAudiofocus, handleAudioFocus).apply();
+    }
 }

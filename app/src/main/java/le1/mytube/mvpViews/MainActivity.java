@@ -1,4 +1,4 @@
-package le1.mytube;
+package le1.mytube.mvpViews;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -30,13 +30,17 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
+import le1.mytube.R;
+import le1.mytube.SearchActivity;
+import le1.mytube.YouTubeSong;
 import le1.mytube.database.MusicDB;
-import le1.mytube.mvpViews.PlaylistActivity;
+import le1.mytube.mvpModel.Repository;
 
 import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
+import static le1.mytube.mvpUtils.SharedPreferencesConstants.keyAudiofocus;
 
 
-public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener {
+public class MainActivity extends AppCompatActivity implements MainActivityInterface,ListView.OnItemClickListener, ListView.OnItemLongClickListener {
     public static boolean handleAudioFocus;
     MusicDB db;
     SharedPreferences sharedPref;
@@ -60,8 +64,8 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
         sharedPref = this.getPreferences(Context.MODE_PRIVATE);
         editor = sharedPref.edit();
-        handleAudioFocus = sharedPref.getBoolean("handleAudioFocus", false);
-
+        handleAudioFocus = sharedPref.getBoolean(keyAudiofocus, false);
+        boolean qulo = sharedPref.getBoolean("uela", false);
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
         tb.setTitle(R.string.app_name);
         tb.setTitleTextColor(Color.WHITE);
@@ -69,6 +73,9 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
         listView = (ListView) findViewById(R.id.playlistList);
         list = new ArrayList<>();
+
+        //TODO GET RID OF THIS
+        list.addAll(new Repository(this).getAllPlaylistsName());
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
 
 
@@ -86,12 +93,12 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         getMenuInflater().inflate(R.menu.main, menu);
         MenuItem handleAudioFocusItem = menu.findItem(R.id.handleAudioFocus);
         final CompoundButton modalitaPornoSwitch = (CompoundButton) MenuItemCompat.getActionView(handleAudioFocusItem);
-        modalitaPornoSwitch.setChecked(sharedPref.getBoolean("handleAudioFocus", true));
+        modalitaPornoSwitch.setChecked(sharedPref.getBoolean(keyAudiofocus, true));
         modalitaPornoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 handleAudioFocus = isChecked;
-                editor.putBoolean("handleAudioFocus", handleAudioFocus);
+                editor.putBoolean(keyAudiofocus, handleAudioFocus);
                 editor.commit();
 
             }
@@ -149,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                         list.add(playlistName);
                         adapter.notifyDataSetChanged();
                         db.addTable(playlistName);
-                        db.addSongToPlaylist(playlistName, new YouTubeSong(null, "UiyDmqO59QE", null, null,null));
+                        db.addSongToPlaylist(playlistName, new YouTubeSong(null, "UiyDmqO59QE", null, null, null));
                     }
                 });
 
@@ -173,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (TextUtils.isEmpty(s)||db.getAllTableNames().contains(s.toString())) {
+                if (TextUtils.isEmpty(s) || db.getAllTableNames().contains(s.toString())) {
                     alertDialog.getButton(
                             AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                 } else {
@@ -215,31 +222,62 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     @Override
     public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
         final String playlistName = parent.getItemAtPosition(position).toString();
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-        alertDialogBuilder.setTitle("Delete " + playlistName + "?");
-        alertDialogBuilder.setMessage("The songs inside this playlist will be available offline anyway. You can see all of your downloaded songs in \"My music\"");
-        alertDialogBuilder.setPositiveButton("Delete",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        list.remove(position);
-                        adapter.notifyDataSetChanged();
-                        db.deleteTable(playlistName);
-                    }
-                });
 
-        alertDialogBuilder.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-        alertDialogBuilder.show();
+        if (!playlistName.equals(TB_NAME)) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+            alertDialogBuilder.setTitle("Delete " + playlistName + "?");
+            alertDialogBuilder.setMessage("The songs inside this playlist will be available offline anyway. You can see all of your downloaded songs in \"My music\"");
+            alertDialogBuilder.setPositiveButton("Delete",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            list.remove(position);
+                            adapter.notifyDataSetChanged();
+                            db.deleteTable(playlistName);
+                        }
+                    });
+
+            alertDialogBuilder.setNegativeButton("Cancel",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+            alertDialogBuilder.show();
+        } else {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+            alertDialogBuilder.setMessage("You cannot delete this");
+            alertDialogBuilder.setPositiveButton("Ok",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {dialog.cancel();}});
+            alertDialogBuilder.show();
+
+        }
         return true;
     }
 
-    public void MyMusic(View view) {
-        Intent playlistIntent = new Intent(this, PlaylistActivity.class);
-        playlistIntent.putExtra("TITLE", TB_NAME);
-        startActivity(playlistIntent);
+
+    @Override
+    public void displayPlaylist(ArrayList<String> playlists) {
+
+    }
+
+    @Override
+    public void displayNoPlaylist() {
+
+    }
+
+    @Override
+    public void displayErrorPlaylist() {
+
+    }
+
+    @Override
+    public void displayHandleAudioFocus() {
+
+    }
+
+    @Override
+    public void displayNoHandleAudioFocus() {
+
     }
 }

@@ -14,6 +14,6 @@ public interface PlaylistInterface {
 
     void displayNoSongs();
 
-    void displayError();
+    void displayErrorSongs();
 
 }

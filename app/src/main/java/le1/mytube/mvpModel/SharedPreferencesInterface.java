@@ -1,10 +1,10 @@
 package le1.mytube.mvpModel;
 
-/**
- * Created by Leone on 01/07/17.
- */
 
 public interface SharedPreferencesInterface {
 
+    boolean getHandleAudiofocus();
+
+    void setHandleAudiofocus(boolean handleAudioFocus);
 
 }

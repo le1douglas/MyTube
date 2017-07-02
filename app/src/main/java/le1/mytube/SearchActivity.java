@@ -40,8 +40,8 @@ import java.util.ArrayList;
 import le1.mytube.adapters.AutocompleteAdapter;
 import le1.mytube.adapters.VideoResultAdapter;
 
-import static le1.mytube.MainActivity.changeStatusBarColor;
-import static le1.mytube.MainActivity.isMyServiceRunning;
+import static le1.mytube.mvpViews.MainActivity.changeStatusBarColor;
+import static le1.mytube.mvpViews.MainActivity.isMyServiceRunning;
 
 public class SearchActivity extends AppCompatActivity implements TextWatcher, AdapterView.OnItemClickListener {
     ListView autocompleteListView;

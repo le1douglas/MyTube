@@ -20,11 +20,12 @@ import java.io.IOException;
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
+import le1.mytube.mvpViews.MainActivity;
 import le1.mytube.receivers.MusicReceiver;
 import le1.mytube.receivers.NotificationReceiver;
 
-import static le1.mytube.MainActivity.handleAudioFocus;
-import static le1.mytube.MainActivity.isMyServiceRunning;
+import static le1.mytube.mvpViews.MainActivity.handleAudioFocus;
+import static le1.mytube.mvpViews.MainActivity.isMyServiceRunning;
 
 
 public class MusicService extends Service {

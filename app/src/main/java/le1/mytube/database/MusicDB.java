@@ -12,8 +12,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 
-import le1.mytube.MainActivity;
 import le1.mytube.YouTubeSong;
+import le1.mytube.mvpViews.MainActivity;
 
 import static le1.mytube.mvpUtils.DatabaseConstants.FLD_END;
 import static le1.mytube.mvpUtils.DatabaseConstants.FLD_ID;

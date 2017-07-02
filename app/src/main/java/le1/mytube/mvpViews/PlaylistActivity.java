@@ -1,6 +1,7 @@
 package le1.mytube.mvpViews;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -14,19 +15,18 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import le1.mytube.MusicService;
 import le1.mytube.R;
 import le1.mytube.YouTubeSong;
 import le1.mytube.adapters.PlaylistAdapter;
-import le1.mytube.mvpModel.Model;
-import le1.mytube.mvpModel.ModelInterface;
+import le1.mytube.mvpModel.Repository;
 import le1.mytube.mvpPresenters.PlaylistPresenter;
 
 import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
+import static le1.mytube.mvpViews.MainActivity.isMyServiceRunning;
 
 
 public class PlaylistActivity extends AppCompatActivity implements PlaylistInterface, ListView.OnItemClickListener, ListView.OnItemLongClickListener {
-
-    private ListView listView;
 
     private BaseAdapter adapter;
     private PlaylistPresenter presenter;
@@ -44,12 +44,12 @@ public class PlaylistActivity extends AppCompatActivity implements PlaylistInter
         setSupportActionBar(tb);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        listView = (ListView) findViewById(R.id.playlistList);
+        ListView listView = (ListView) findViewById(R.id.playlistList);
         adapter = new PlaylistAdapter(this, songList);
         listView.setAdapter(adapter);
 
-        ModelInterface model = new Model(this);
-        presenter = new PlaylistPresenter(model);
+        Repository repository = new Repository(this);
+        presenter = new PlaylistPresenter(repository);
         presenter.bind(this);
         presenter.loadSongsInPlaylist(playlistName);
 
@@ -66,15 +66,15 @@ public class PlaylistActivity extends AppCompatActivity implements PlaylistInter
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-     /*   if (!isMyServiceRunning(this, MusicService.class)) {
+      if (!isMyServiceRunning(this, MusicService.class)) {
             Intent intent = new Intent(this, MusicService.class);
-            intent.putExtra("song",  adapter.getItem(position));
+            intent.putExtra("song",  (YouTubeSong) adapter.getItem(position));
             intent.putExtra("local",  true);
             startService(intent);
         } else {
-            MusicService.startSong(this, adapter.getItem(position), true);
+            MusicService.startSong(this, (YouTubeSong) adapter.getItem(position), true);
         }
-*/
+
 
     }
 
@@ -135,7 +135,7 @@ public class PlaylistActivity extends AppCompatActivity implements PlaylistInter
     }
 
     @Override
-    public void displayError() {
+    public void displayErrorSongs() {
         Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
     }
 }
