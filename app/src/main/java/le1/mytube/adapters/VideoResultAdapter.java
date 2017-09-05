@@ -25,7 +25,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
     private Context context;
 
     public VideoResultAdapter(Context c, ArrayList<YouTubeSong> youTubeSongs) {
-        super(c, R.layout.video_row);
+        super(c, R.layout.row_video);
         this.youTubeSongs=youTubeSongs;
         context = c;
     }
@@ -41,7 +41,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         final YouTubeSong youTubeSong = youTubeSongs.get(position);
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.video_row, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.row_video, parent, false);
         }
 
         TextView titleView = (TextView) convertView.findViewById(R.id.title);

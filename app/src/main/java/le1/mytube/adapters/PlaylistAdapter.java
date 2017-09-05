@@ -48,7 +48,7 @@ public class PlaylistAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.playlist_row, parent, false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.row_playlist, parent, false);
         }
 
         TextView title = (TextView) convertView.findViewById(R.id.playlistSongTitle);

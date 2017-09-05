@@ -19,8 +19,8 @@ import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.songs.YouTubeSong;
-import le1.mytube.services.notification.musicNotification.MusicNotification;
-import le1.mytube.services.notification.musicNotification.MusicNotificationImpl;
+import le1.mytube.notification.musicNotification.MusicNotification;
+import le1.mytube.notification.musicNotification.MusicNotificationImpl;
 
 import static le1.mytube.services.MusicServiceConstants.ACTION_FAST_FORWARD;
 import static le1.mytube.services.MusicServiceConstants.ACTION_NEXT;

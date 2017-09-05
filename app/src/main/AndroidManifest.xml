@@ -46,7 +46,7 @@
         </activity>
 
 
-        <receiver android:name=".services.notification.NotificationReceiver" />
+        <receiver android:name=".notification.NotificationReceiver" />
         <receiver android:name=".services.MusicReceiver">
             <intent-filter>
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />

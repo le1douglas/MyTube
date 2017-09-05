@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     @Override
     public void onNewPlaylistDialog() {
-        final View layout = getLayoutInflater().inflate(R.layout.dialog_view, null);
+        final View layout = getLayoutInflater().inflate(R.layout.dialog_new_playlist, null);
         final EditText input = (EditText) layout.findViewById(R.id.dialogEditText);
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);

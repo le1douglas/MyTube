@@ -1,4 +1,4 @@
-package le1.mytube.services.notification;
+package le1.mytube.notification;
 
 
 import android.content.BroadcastReceiver;
@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import le1.mytube.mvpModel.Repo;
-import le1.mytube.services.notification.musicNotification.MusicNotificationConstants;
+import le1.mytube.notification.musicNotification.MusicNotificationConstants;
 
 
 public class NotificationReceiver extends BroadcastReceiver {

@@ -1,4 +1,4 @@
-package le1.mytube.services.notification.musicNotification;
+package le1.mytube.notification.musicNotification;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -13,7 +13,7 @@ import android.widget.RemoteViews;
 import le1.mytube.R;
 import le1.mytube.mvpModel.songs.YouTubeSong;
 import le1.mytube.mvpViews.MainActivity;
-import le1.mytube.services.notification.NotificationReceiver;
+import le1.mytube.notification.NotificationReceiver;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class MusicNotificationImpl extends MusicNotification {
@@ -91,7 +91,7 @@ public class MusicNotificationImpl extends MusicNotification {
                 remote.setTextViewText(R.id.title, youTubeSong.getTitle());
                 remote.setTextViewText(R.id.text, youTubeSong.getId());
                 try {
-                    remote.setTextViewText(R.id.text2, String.valueOf(youTubeSong.getPath() != null));
+                    remote.setTextViewText(R.id.text2,  youTubeSong.getPath() == null ? "Streaming" : "Local");
                 } catch (Exception ignored) {
                     //there is no text2 in smallRemoteView
                 }

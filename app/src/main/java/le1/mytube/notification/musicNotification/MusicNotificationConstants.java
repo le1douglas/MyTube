@@ -1,4 +1,4 @@
-package le1.mytube.services.notification.musicNotification;
+package le1.mytube.notification.musicNotification;
 
 /**
  * Created by Leone on 29/08/17.

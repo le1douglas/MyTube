@@ -61,9 +61,10 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
 
         searchEditText = (EditText) findViewById(R.id.SearchEditText);
         searchEditText.setOnTouchListener(this);
-        searchEditText.setSelection(searchEditText.length());
 
         presenter.getSearchResults(getIntent().getStringExtra("QUERY"), this);
+        searchEditText.setText(getIntent().getStringExtra("QUERY"));
+        searchEditText.setSelection(searchEditText.length());
 
     }
 
@@ -117,7 +118,9 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
                         String idString = id.getString("videoId");
                         String titleString = snippet.getString("title");
 
-                        youTubeSongArray.add(new YouTubeSong.Builder( idString, titleString).image(Uri.parse(imageString)).build());
+                        youTubeSongArray.add(new YouTubeSong.Builder(idString, titleString)
+                                .image(Uri.parse(imageString))
+                                .build());
                         videoResultAdapter.add("WITHOUT THIS IT DOESN'T WORK AND I DON'T KNOW WHY");
                     }
                     videoResultAdapter.notifyDataSetChanged();

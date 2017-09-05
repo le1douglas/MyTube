@@ -9,7 +9,6 @@ import android.net.Uri;
 
 public class Converters {
 
-
         @TypeConverter
         public static Uri uriFromString(String value) {
             return value == null ? null : Uri.parse(value);

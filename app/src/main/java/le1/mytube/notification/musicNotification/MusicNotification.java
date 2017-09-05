@@ -1,4 +1,4 @@
-package le1.mytube.services.notification.musicNotification;
+package le1.mytube.notification.musicNotification;
 
 /**
  * Created by Leone on 29/08/17.
@@ -14,7 +14,7 @@ import android.content.Intent;
 import le1.mytube.mvpModel.songs.YouTubeSong;
 import le1.mytube.mvpViews.MainActivity;
 
-import static le1.mytube.services.notification.musicNotification.MusicNotificationConstants.ID;
+import static le1.mytube.notification.musicNotification.MusicNotificationConstants.ID;
 
 public abstract class MusicNotification {
 

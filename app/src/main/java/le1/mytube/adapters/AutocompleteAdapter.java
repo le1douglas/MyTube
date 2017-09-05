@@ -32,7 +32,7 @@ public class AutocompleteAdapter extends ArrayAdapter<String> {
         final String textToDisplay = arrayList.get(position);
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.autocomplete_row, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.row_autocomplete, parent, false);
         }
 
         final TextView textView = (TextView) convertView.findViewById(R.id.text);
