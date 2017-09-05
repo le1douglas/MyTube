@@ -10,7 +10,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import le1.mytube.R;
-import le1.mytube.YouTubeSong;
+import le1.mytube.mvpModel.songs.YouTubeSong;
 
 /**
  * Created by Leone on 23/06/17.

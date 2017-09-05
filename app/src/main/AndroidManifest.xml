@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -43,21 +44,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".SearchActivity"
-            android:parentActivityName=".mvpViews.MainActivity"
-            android:windowSoftInputMode="stateAlwaysVisible" />
 
-        <service
-            android:name=".MusicService"
-            android:enabled="true" />
 
-        <receiver android:name=".receivers.NotificationReceiver" />
-        <receiver android:name=".receivers.MusicReceiver">
+        <receiver android:name=".services.notification.NotificationReceiver" />
+        <receiver android:name=".services.MusicReceiver">
             <intent-filter>
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-            </intent-filter>
-            <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
@@ -66,6 +58,22 @@
             android:name=".mvpViews.PlaylistActivity"
             android:parentActivityName=".mvpViews.MainActivity" />
 
+        <service
+            android:name=".services.MusicService"
+            android:enabled="true"
+            android:exported="true"
+            android:stopWithTask="false"/>
+
+        <activity
+            android:name=".mvpViews.SearchActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateAlwaysVisible"
+            android:parentActivityName=".mvpViews.MainActivity"/>
+
+        <activity android:name=".mvpViews.SearchResultActivity"
+            android:launchMode="singleTask"
+            android:parentActivityName=".mvpViews.MainActivity"
+            android:windowSoftInputMode="stateHidden" />
     </application>
 
 </manifest>

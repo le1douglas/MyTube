@@ -23,5 +23,9 @@
         android:title="Clear Db"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/stopService"
+        android:title="stopService"
+        app:showAsAction="never" />
 
 </menu>

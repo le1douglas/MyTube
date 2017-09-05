@@ -1,11 +1,9 @@
 package le1.mytube.mvpViews;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,9 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,27 +23,29 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
 import le1.mytube.R;
-import le1.mytube.SearchActivity;
-import le1.mytube.YouTubeSong;
-import le1.mytube.database.MusicDB;
-import le1.mytube.mvpModel.Repository;
+import le1.mytube.listeners.OnCheckValidPlaylistNameListener;
+import le1.mytube.listeners.OnLoadAudioFocusListener;
+import le1.mytube.listeners.OnLoadPlaylistListener;
+import le1.mytube.listeners.OnRequestPlaylistDialogListener;
+import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.mvpModel.songs.SongDatabaseConstants;
+import le1.mytube.mvpPresenters.MainPresenter;
 
-import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
-import static le1.mytube.mvpUtils.SharedPreferencesConstants.keyAudiofocus;
 
+public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadPlaylistListener, OnLoadAudioFocusListener, OnRequestPlaylistDialogListener, OnCheckValidPlaylistNameListener {
+    private static ArrayList<String> displayedList;
+    private static ArrayAdapter<String> adapter;
 
-public class MainActivity extends AppCompatActivity implements MainActivityInterface,ListView.OnItemClickListener, ListView.OnItemLongClickListener {
-    public static boolean handleAudioFocus;
-    MusicDB db;
-    SharedPreferences sharedPref;
-    SharedPreferences.Editor editor;
-    ListView listView;
-    public static ArrayList<String> list;
-    public static ArrayAdapter<String> adapter;
+    private AlertDialog alertDialog;
+    private CompoundButton audioFocusSwitch;
+
+    private MainPresenter presenter;
+
 
     public static void changeStatusBarColor(String color, Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -62,47 +60,38 @@ public class MainActivity extends AppCompatActivity implements MainActivityInter
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-        editor = sharedPref.edit();
-        handleAudioFocus = sharedPref.getBoolean(keyAudiofocus, false);
-        boolean qulo = sharedPref.getBoolean("uela", false);
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
         tb.setTitle(R.string.app_name);
         tb.setTitleTextColor(Color.WHITE);
         setSupportActionBar(tb);
 
-        listView = (ListView) findViewById(R.id.playlistList);
-        list = new ArrayList<>();
+        presenter = ViewModelProviders.of(this).get(MainPresenter.class);
 
-        //TODO GET RID OF THIS
-        list.addAll(new Repository(this).getAllPlaylistsName());
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
-
+        ListView listView = (ListView) findViewById(R.id.playlistList);
+        displayedList = new ArrayList<>();
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, displayedList);
 
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
 
-        db = new MusicDB(this);
-        db.open();
-
+        presenter.startMusicService();
+        presenter.loadPlaylists(this);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         MenuItem handleAudioFocusItem = menu.findItem(R.id.handleAudioFocus);
-        final CompoundButton modalitaPornoSwitch = (CompoundButton) MenuItemCompat.getActionView(handleAudioFocusItem);
-        modalitaPornoSwitch.setChecked(sharedPref.getBoolean(keyAudiofocus, true));
-        modalitaPornoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        audioFocusSwitch = (CompoundButton) MenuItemCompat.getActionView(handleAudioFocusItem);
+        audioFocusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                handleAudioFocus = isChecked;
-                editor.putBoolean(keyAudiofocus, handleAudioFocus);
-                editor.commit();
+                presenter.setHandleAudioFocus(isChecked);
 
             }
         });
+        presenter.loadSharedPreferences(this);
         return true;
     }
 
@@ -114,38 +103,96 @@ public class MainActivity extends AppCompatActivity implements MainActivityInter
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
             case R.id.printDB:
-                for (int i = 0; i < db.getAllTableNames().size(); i++) {
-                    Log.d("DBoperation", db.getAllTableNames().get(i).toString());
-                }
-                Log.d("DBoperation", "-----Offline----");
-                Log.d("DBoperation", db.getAllSongsString());
-
+                presenter.logDatabase();
                 return true;
             case R.id.clearDB:
-                db.clear();
+                presenter.clearDatabase();
                 return true;
             case R.id.handleAudioFocus:
-
-
+                return true;
+            case R.id.stopService:
+                presenter.stopMusicService();
+                this.finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        db.close();
-        super.onDestroy();
+    public void Add(View view) {
+        presenter.onNewPlaylistButtonCLick(this);
     }
 
-    public void Add(View view) {
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Intent intent = new Intent(this, PlaylistActivity.class);
+        intent.putExtra("TITLE", parent.getItemAtPosition(position).toString());
+        startActivity(intent);
+
+
+    }
+
+    @Override
+    public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
+        presenter.onItemLongClick(new Playlist(parent.getItemAtPosition(position).toString(), null, 0,0), position, this);
+        return true;
+    }
+
+    @Override
+    public void onPlaylistLoaded(ArrayList<Playlist> playlists) {
+        Toast.makeText(this, "Displaying playlists", Toast.LENGTH_SHORT).show();
+        for (Playlist p:playlists) {
+            displayedList.add(p.getName());
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onNoPlaylistLoaded() {
+        Toast.makeText(this, "No playlist to load", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPlaylistLoadingError() {
+        Toast.makeText(this, "Error loading playlists", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onAudioFocusTrue() {
+        audioFocusSwitch.setChecked(true);
+        audioFocusSwitch.setEnabled(true);
+    }
+
+    @Override
+    public void onAudioFocusFalse() {
+        Toast.makeText(this, "onAudioFocusFalse", Toast.LENGTH_SHORT).show();
+        audioFocusSwitch.setChecked(true);
+        audioFocusSwitch.setEnabled(true);
+    }
+
+    @Override
+    public void onAudioFocusLoadingError() {
+        Toast.makeText(this, "onAudioFocusERROR", Toast.LENGTH_SHORT).show();
+        audioFocusSwitch.setEnabled(false);
+    }
+
+    @Override
+    public void onPlaylistNameValid() {
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+    }
+
+    @Override
+    public void onPlaylistNameInvalid() {
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+    }
+
+    @Override
+    public void onNewPlaylistDialog() {
+        final View layout = getLayoutInflater().inflate(R.layout.dialog_view, null);
+        final EditText input = (EditText) layout.findViewById(R.id.dialogEditText);
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
         alertDialogBuilder.setTitle("New Playlist");
-
-        View layout = getLayoutInflater().inflate(R.layout.dialog_view, null);
-        final EditText input = (EditText) layout.findViewById(R.id.dialogEditText);
         alertDialogBuilder.setView(layout);
 
         alertDialogBuilder.setPositiveButton("Create Playlist",
@@ -153,10 +200,10 @@ public class MainActivity extends AppCompatActivity implements MainActivityInter
                     public void onClick(DialogInterface dialog, int which) {
                         String playlistName = input.getText().toString();
 
-                        list.add(playlistName);
+                        presenter.addPlaylist(playlistName);
+
+                        displayedList.add(playlistName);
                         adapter.notifyDataSetChanged();
-                        db.addTable(playlistName);
-                        db.addSongToPlaylist(playlistName, new YouTubeSong(null, "UiyDmqO59QE", null, null, null));
                     }
                 });
 
@@ -167,10 +214,11 @@ public class MainActivity extends AppCompatActivity implements MainActivityInter
                     }
                 });
 
-        final AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog = alertDialogBuilder.create();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         alertDialog.show();
-        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+
+        presenter.checkValidPlaylistName(input.getText().toString(), MainActivity.this);
 
         input.addTextChangedListener(new TextWatcher() {
             @Override
@@ -180,13 +228,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityInter
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (TextUtils.isEmpty(s) || db.getAllTableNames().contains(s.toString())) {
-                    alertDialog.getButton(
-                            AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                } else {
-                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                }
-
+                presenter.checkValidPlaylistName(input.getText().toString(), MainActivity.this);
             }
 
             @Override
@@ -196,88 +238,39 @@ public class MainActivity extends AppCompatActivity implements MainActivityInter
 
         });
 
-
-    }
-
-
-    public static boolean isMyServiceRunning(Context context, Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Intent playlistIntent = new Intent(this, PlaylistActivity.class);
-        playlistIntent.putExtra("TITLE", parent.getItemAtPosition(position).toString());
-        startActivity(playlistIntent);
-
-
+    public void onOfflineDeletePlaylistDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        alertDialogBuilder.setMessage("You cannot delete this");
+        alertDialogBuilder.setPositiveButton("Ok",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {dialog.cancel();}});
+        alertDialogBuilder.show();
     }
 
     @Override
-    public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
-        final String playlistName = parent.getItemAtPosition(position).toString();
+    public void onStandardDeletePlaylistDialog(final Playlist playlist, final int position) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        alertDialogBuilder.setTitle("Delete " + playlist.getName() + "?");
+        alertDialogBuilder.setMessage("The songs inside this playlist will be available offline anyway. You can see all of your downloaded songs in \""+ SongDatabaseConstants.TB_NAME+"\"");
+        alertDialogBuilder.setPositiveButton("Delete",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        displayedList.remove(position);
+                        adapter.notifyDataSetChanged();
+                        presenter.deletePlaylist(playlist.getName());
+                    }
+                });
 
-        if (!playlistName.equals(TB_NAME)) {
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-            alertDialogBuilder.setTitle("Delete " + playlistName + "?");
-            alertDialogBuilder.setMessage("The songs inside this playlist will be available offline anyway. You can see all of your downloaded songs in \"My music\"");
-            alertDialogBuilder.setPositiveButton("Delete",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            list.remove(position);
-                            adapter.notifyDataSetChanged();
-                            db.deleteTable(playlistName);
-                        }
-                    });
-
-            alertDialogBuilder.setNegativeButton("Cancel",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
-            alertDialogBuilder.show();
-        } else {
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-            alertDialogBuilder.setMessage("You cannot delete this");
-            alertDialogBuilder.setPositiveButton("Ok",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {dialog.cancel();}});
-            alertDialogBuilder.show();
-
-        }
-        return true;
-    }
-
-
-    @Override
-    public void displayPlaylist(ArrayList<String> playlists) {
-
-    }
-
-    @Override
-    public void displayNoPlaylist() {
-
-    }
-
-    @Override
-    public void displayErrorPlaylist() {
-
-    }
-
-    @Override
-    public void displayHandleAudioFocus() {
-
-    }
-
-    @Override
-    public void displayNoHandleAudioFocus() {
+        alertDialogBuilder.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        alertDialogBuilder.show();
 
     }
 }

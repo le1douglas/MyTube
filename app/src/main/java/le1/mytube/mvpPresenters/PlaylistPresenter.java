@@ -1,72 +1,87 @@
 package le1.mytube.mvpPresenters;
 
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
+
 import java.util.ArrayList;
 
-import le1.mytube.YouTubeSong;
-import le1.mytube.mvpModel.Repository;
-import le1.mytube.mvpViews.PlaylistInterface;
+import le1.mytube.listeners.OnLoadSongInPlaylistListener;
+import le1.mytube.listeners.OnRequestSongDialogListener;
+import le1.mytube.mvpModel.Repo;
+import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.mvpModel.songs.SongDatabaseConstants;
+import le1.mytube.mvpModel.songs.YouTubeSong;
 
-import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
+public class PlaylistPresenter extends AndroidViewModel {
 
-public class PlaylistPresenter {
+    private Repo repository;
 
-    public PlaylistInterface view;
-    public Repository repository;
-
-    public PlaylistPresenter(Repository repository) {
-        this.repository = repository;
+    public PlaylistPresenter(Application application) {
+        super(application);
+        repository = new Repo(application);
     }
 
-    public void bind(PlaylistInterface view) {
-        this.view = view;
-    }
-
-    public void unbind() {
-        this.view = null;
-        repository.closeDatabase();
-    }
-
-    public void loadSongsInPlaylist(String playlistName) {
+    public void loadSongsInPlaylist(Playlist playlist, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
         try {
             ArrayList<YouTubeSong> youTubeSongs;
-            if (playlistName.equals(TB_NAME)) {
-                youTubeSongs = repository.getAllSongs();
+            if (playlist.getName().equals(SongDatabaseConstants.TB_NAME)) {
+                youTubeSongs = (ArrayList<YouTubeSong>) repository.getAllSongs();
             } else {
-                youTubeSongs = repository.getSongsInPlaylist(playlistName);
+                youTubeSongs = repository.getSongsInPlaylist(playlist);
             }
 
             if (youTubeSongs.size() > 0) {
-                view.displaySongs(youTubeSongs);
+                onLoadSongInPlaylistListener.onSongLoaded(youTubeSongs);
             } else {
-                view.displayNoSongs();
+                onLoadSongInPlaylistListener.onNoSongLoaded();
 
             }
         } catch (Exception e) {
-            /**every exception ends here, even {@link  le1.mytube.mvpViews.PlaylistActivity#displaySongs(ArrayList)}
-             * and {@link   le1.mytube.mvpViews.PlaylistActivity#displayNoSongs()}
-             */
-            view.displayErrorSongs();
+            onLoadSongInPlaylistListener.onSongLoadingError();
             e.printStackTrace();
         }
 
     }
 
-    public void deleteSong(YouTubeSong youtubeSong) {
+
+    public void deleteSong(YouTubeSong youtubeSong, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
         repository.deleteSong(youtubeSong);
-        //TODO think about a more lightweight method to get a playlist size
+        //TODO make getallsongsCount
         if (repository.getAllSongs().size() == 0) {
-            view.displayNoSongs();
+           onLoadSongInPlaylistListener.onNoSongLoaded();
         }
 
     }
 
-    public void removeSongFromPlaylist(YouTubeSong youTubeSong, String playlistName) {
-        repository.removeSongFromPlaylist(youTubeSong, playlistName);
+    public void removeSongFromPlaylist(Playlist playlist, YouTubeSong youTubeSong) {
+       /* repository.removeSongFromPlaylist(youTubeSong, playlistName);
         //TODO think about a more lightweight method to get a playlist size
         if (repository.getSongsInPlaylist(playlistName).size() == 0) {
             view.displayNoSongs();
-        }
+        }*/
 
     }
+
+
+    public void onListLongItemClick(Playlist playlist, YouTubeSong youtubeSong, int position, OnRequestSongDialogListener onRequestSongDialogListener) {
+        if (playlist.getName().equals(SongDatabaseConstants.TB_NAME)) {
+            onRequestSongDialogListener.onOfflineDeleteSongDialog(youtubeSong, position);
+        } else {
+            onRequestSongDialogListener.onStandardDeleteSongDialog(youtubeSong, position);
+        }
+    }
+
+    public void onListItemClick(YouTubeSong youtubeSong) {
+        repository.startSong(youtubeSong);
+    }
+
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        repository.onDestroy();
+    }
+
+
 
 }

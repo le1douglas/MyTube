@@ -11,8 +11,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="#f5f5f5"
         android:elevation="0dp"
-        app:theme="@style/AppTheme.darkTextColorSecondary"
-        >
+        app:theme="@style/AppTheme.darkTextColorSecondary">
 
         <EditText
             android:id="@+id/SearchEditText"
@@ -23,22 +22,28 @@
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1"
-            android:paddingEnd="16dp"
-             />
+            android:paddingEnd="16dp" />
     </android.support.v7.widget.Toolbar>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="5dp"
+        android:layout_below="@id/toolbarSearch"
         android:background="@drawable/shadow" />
 
 
-    <ListView
-        android:id="@+id/AutocompleteList"
+    <ProgressBar
+        android:id="@+id/loadingIcon"
+        style="?android:attr/progressBarStyle"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="0dp" />
+        android:layout_height="wrap_content"
+        android:padding="16dp" />
+
+
+    <ListView
+        android:id="@+id/videoResult"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 
 </LinearLayout>

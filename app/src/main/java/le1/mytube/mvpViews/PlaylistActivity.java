@@ -1,7 +1,7 @@
 package le1.mytube.mvpViews;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -15,31 +15,33 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import le1.mytube.MusicService;
 import le1.mytube.R;
-import le1.mytube.YouTubeSong;
 import le1.mytube.adapters.PlaylistAdapter;
-import le1.mytube.mvpModel.Repository;
+import le1.mytube.listeners.OnLoadSongInPlaylistListener;
+import le1.mytube.listeners.OnRequestSongDialogListener;
+import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.mvpModel.songs.YouTubeSong;
 import le1.mytube.mvpPresenters.PlaylistPresenter;
 
-import static le1.mytube.mvpUtils.DatabaseConstants.TB_NAME;
-import static le1.mytube.mvpViews.MainActivity.isMyServiceRunning;
 
-
-public class PlaylistActivity extends AppCompatActivity implements PlaylistInterface, ListView.OnItemClickListener, ListView.OnItemLongClickListener {
+public class PlaylistActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadSongInPlaylistListener, OnRequestSongDialogListener {
 
     private BaseAdapter adapter;
     private PlaylistPresenter presenter;
-    String playlistName;
-    ArrayList<YouTubeSong> songList= new ArrayList<>();
+    private ArrayList<YouTubeSong> songList = new ArrayList<>();
+    private Playlist playlist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playlist);
-        playlistName = getIntent().getStringExtra("TITLE");
+
+        playlist= new Playlist(getIntent().getStringExtra("TITLE"), "TODO"
+                //getIntent().getStringExtra("PATH")
+                , 0,0);
+
         Toolbar tb = (Toolbar) findViewById(R.id.toolbarPlaylist);
-        tb.setTitle(playlistName);
+        tb.setTitle(playlist.getName());
         tb.setTitleTextColor(Color.WHITE);
         setSupportActionBar(tb);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -47,63 +49,62 @@ public class PlaylistActivity extends AppCompatActivity implements PlaylistInter
         ListView listView = (ListView) findViewById(R.id.playlistList);
         adapter = new PlaylistAdapter(this, songList);
         listView.setAdapter(adapter);
-
-        Repository repository = new Repository(this);
-        presenter = new PlaylistPresenter(repository);
-        presenter.bind(this);
-        presenter.loadSongsInPlaylist(playlistName);
-
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
-    }
 
-    @Override
-    protected void onDestroy() {
-        presenter.unbind();
-        super.onDestroy();
+
+        presenter = ViewModelProviders.of(this).get(PlaylistPresenter.class);
+        presenter.loadSongsInPlaylist(playlist, this);
 
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      if (!isMyServiceRunning(this, MusicService.class)) {
-            Intent intent = new Intent(this, MusicService.class);
-            intent.putExtra("song",  (YouTubeSong) adapter.getItem(position));
-            intent.putExtra("local",  true);
-            startService(intent);
-        } else {
-            MusicService.startSong(this, (YouTubeSong) adapter.getItem(position), true);
-        }
-
-
+        presenter.onListItemClick((YouTubeSong) adapter.getItem(position));
     }
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+        presenter.onListLongItemClick(playlist,(YouTubeSong) adapter.getItem(position), position, this);
+        return true;
+    }
 
-        final YouTubeSong youTubeSong = (YouTubeSong) adapter.getItem(position);
+    @Override
+    public void onSongLoaded(ArrayList<YouTubeSong> songsInPlaylist) {
+        this.songList.addAll(songsInPlaylist);
+        adapter.notifyDataSetChanged();
+    }
 
+    @Override
+    public void onNoSongLoaded() {
+        //TODO add nice view
+        Toast.makeText(this, "Downloaded song will be saved here", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onSongLoadingError() {
+        Toast.makeText(this, "Something went wrong while loading songs", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onOfflineDeleteSongDialog(final YouTubeSong youTubeSong, final int position) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("Remove \""+ youTubeSong.getTitle()+ "\" ?");
+        alertDialogBuilder.setTitle("Remove \"" + youTubeSong.getTitle() + "\" ?");
+        alertDialogBuilder.setMessage("You won't be able to listen to this song offline anymore. You can remove the song from the playlist without deleting it");
 
-        if (playlistName.equals(TB_NAME)) {
-            alertDialogBuilder.setMessage("You won't be able to listen to this song offline anymore");
-        }else{
-            alertDialogBuilder.setMessage("You won't be able to listen to this song offline anymore. You can remove the song from the playlist without deleting it");
+        alertDialogBuilder.setNeutralButton("Delete from playlist",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        presenter.removeSongFromPlaylist(playlist, youTubeSong);
+                        songList.remove(position);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
 
-            alertDialogBuilder.setNeutralButton("Delete from playlist",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            presenter.removeSongFromPlaylist(youTubeSong, playlistName);
-                            songList.remove(position);
-                            adapter.notifyDataSetChanged();
-                        }
-                    });
-        }
         alertDialogBuilder.setPositiveButton("Delete",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        presenter.deleteSong(youTubeSong);
+                        presenter.deleteSong(youTubeSong, PlaylistActivity.this);
                         songList.remove(position);
                         adapter.notifyDataSetChanged();
                     }
@@ -119,23 +120,31 @@ public class PlaylistActivity extends AppCompatActivity implements PlaylistInter
 
 
         alertDialogBuilder.show();
-        return true;
     }
 
     @Override
-    public void displaySongs(ArrayList<YouTubeSong> songList) {
-        this.songList.addAll(songList);
-        adapter.notifyDataSetChanged();
-    }
+    public void onStandardDeleteSongDialog(final YouTubeSong youTubeSong, final int position) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Remove \"" + youTubeSong.getTitle() + "\" ?");
+        alertDialogBuilder.setMessage("You won't be able to listen to this song offline anymore");
+        alertDialogBuilder.setPositiveButton("Delete",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        presenter.deleteSong(youTubeSong, PlaylistActivity.this);
+                        songList.remove(position);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
 
-    @Override
-    public void displayNoSongs() {
-        //TODO add nice view
-        Toast.makeText(this, "Downloaded song will be saved here", Toast.LENGTH_SHORT).show();
-    }
 
-    @Override
-    public void displayErrorSongs() {
-        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
+        alertDialogBuilder.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+
+        alertDialogBuilder.show();
     }
 }
