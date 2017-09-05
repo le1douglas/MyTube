@@ -4,7 +4,7 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.content.Context;
-import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.SparseArray;
 import android.widget.Toast;
@@ -41,31 +41,22 @@ public class YouTubeSong {
     @ColumnInfo(name = SongDatabaseConstants.FLD_PATH)
     private String path;
 
+    @ColumnInfo
+    private Uri image;
+
     @ColumnInfo(name = SongDatabaseConstants.FLD_START)
-    private Integer start;
+    private int start;
 
     @ColumnInfo(name = SongDatabaseConstants.FLD_END)
-    private Integer end;
+    private int end;
 
-    public YouTubeSong(String title, String id, String path, Integer start, Integer end) {
+    public YouTubeSong(String id, String title, String path, Uri image, int start, int end) {
         this.title = title;
         this.id = id;
         this.path = path;
-        if (start == null) this.start = 0;
-        else this.start = start;
-
-        if (end == null) {
-            if (path != null) {
-                MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
-                metaRetriever.setDataSource(path);
-                this.end = Integer.parseInt(metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-            } else {
-                this.end = 0;
-            }
-        } else if (end >= start) {
-            this.end = end;
-        } else
-            throw new IllegalArgumentException("start (" + String.valueOf(start) + ") is greater than end (" + String.valueOf(end) + ")");
+        this.image = image;
+        this.start = start;
+        this.end = end;
     }
 
     public String getTitle() {
@@ -88,6 +79,15 @@ public class YouTubeSong {
         return this.end;
     }
 
+    public Uri getImage() {
+        return image;
+    }
+
+
+
+    public void setImage(Uri imageUri) {
+        this.image = imageUri;
+    }
 
     public void setTitle(String title) {
         this.title = title;
@@ -106,7 +106,6 @@ public class YouTubeSong {
     }
 
     public void setEnd(Integer end) {
-        //TODO add check if greater than start
         this.end = end;
     }
 
@@ -116,6 +115,7 @@ public class YouTubeSong {
                 this.title + "," +
                 this.id + "," +
                 this.path + "," +
+                this.image + "," +
                 this.start + "," +
                 this.end + "}";
     }
@@ -148,7 +148,7 @@ public class YouTubeSong {
                 while ((count = input.read(data)) != -1) {
                     total += count;
                     if (lenghtOfFile > 0) // only if total length is known
-                        e.onNext(total*100/ lenghtOfFile);
+                        e.onNext(total * 100 / lenghtOfFile);
                     output.write(data, 0, count);
                 }
 
@@ -198,4 +198,42 @@ public class YouTubeSong {
 
     }
 
+    public static class Builder {
+        private final String id;
+        private final String title;
+        private String path;
+        private int start;
+        private int end;
+        private Uri image;
+
+        public Builder(String id, String title) {
+            this.id = id;
+            this.title = title;
+        }
+
+        public Builder path(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder startTime(int maybemilliseconds) {
+            this.start = maybemilliseconds;
+            return this;
+        }
+
+        public Builder endTime(int maybemilliseconds) {
+            this.end = maybemilliseconds;
+            return this;
+        }
+
+        public Builder image(Uri image){
+            this.image = image;
+            return this;
+        }
+
+        public YouTubeSong build(){
+            if (this.end<this.start) throw new IllegalArgumentException("end ("+String.valueOf(this.end)+") must be grater han start("+String.valueOf(this.start)+")");
+            else return new YouTubeSong(this.id, this.title, this.path, this.image, this.start, this.end);
+        }
+    }
 }

@@ -158,8 +158,8 @@ public class Repo {
 
         Intent i = new Intent(context, MusicService.class);
         i.putExtra(KEY_SONG, new String[]{
-                youTubeSong.getTitle(),
                 youTubeSong.getId(),
+                youTubeSong.getTitle(),
                 youTubeSong.getPath(),
                 String.valueOf(youTubeSong.getStart()),
                 String.valueOf(youTubeSong.getEnd())});
@@ -230,7 +230,7 @@ public class Repo {
 
     public ArrayList<YouTubeSong> getSongsInPlaylist(Playlist playlist) {
         ArrayList<YouTubeSong> array = new ArrayList<>();
-        array.add(new YouTubeSong("aa", "ss", "rr", 0, 0));
+        array.add(new YouTubeSong.Builder("aa", "ss").build());
         return array;
     }
 

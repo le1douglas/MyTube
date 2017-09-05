@@ -1,7 +1,6 @@
 package le1.mytube.adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,13 +22,11 @@ import le1.mytube.mvpModel.songs.YouTubeSong;
 public class VideoResultAdapter extends ArrayAdapter<String> {
 
     private ArrayList<YouTubeSong> youTubeSongs;
-    private ArrayList<Uri> imageUriArray;
     private Context context;
 
-    public VideoResultAdapter(Context c, ArrayList<YouTubeSong> youTubeSongs, ArrayList<Uri> iUrl) {
+    public VideoResultAdapter(Context c, ArrayList<YouTubeSong> youTubeSongs) {
         super(c, R.layout.video_row);
         this.youTubeSongs=youTubeSongs;
-        imageUriArray = iUrl;
         context = c;
     }
 
@@ -37,14 +34,12 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
     public void clear() {
         super.clear();
         youTubeSongs.clear();
-        imageUriArray.clear();
         this.notifyDataSetChanged();
     }
 
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         final YouTubeSong youTubeSong = youTubeSongs.get(position);
-        Uri uri = imageUriArray.get(position);
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.video_row, parent, false);
         }
@@ -66,7 +61,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
             }
         });
 
-        Picasso.with(context).load(uri).into(thumb);
+        Picasso.with(context).load(youTubeSong.getImage()).into(thumb);
         return convertView;
     }
 }

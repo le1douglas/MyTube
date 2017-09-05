@@ -3,9 +3,11 @@ package le1.mytube.mvpModel.songs;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
+import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 
 @Database(entities = {YouTubeSong.class}, version = SongDatabaseConstants.DB_VERSION)
+@TypeConverters({Converters.class})
 public abstract class SongDatabase extends RoomDatabase{
     private static SongDatabase INSTANCE;
 

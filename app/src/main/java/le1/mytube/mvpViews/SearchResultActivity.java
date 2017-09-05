@@ -35,7 +35,6 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
     ProgressBar loadingIcon;
     VideoResultAdapter videoResultAdapter;
     ArrayList<YouTubeSong> youTubeSongArray;
-    ArrayList<Uri> uriArray;
     EditText searchEditText;
     SearchResultPresenter presenter;
     @Override
@@ -56,9 +55,7 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
 
         videoResultListView = (ListView) findViewById(R.id.videoResult);
         youTubeSongArray = new ArrayList<>();
-        uriArray = new ArrayList<>();
-        //TODO add image to youtube object
-        videoResultAdapter = new VideoResultAdapter(this, youTubeSongArray, uriArray);
+        videoResultAdapter = new VideoResultAdapter(this, youTubeSongArray);
         videoResultListView.setAdapter(videoResultAdapter);
         videoResultListView.setOnItemClickListener(this);
 
@@ -74,7 +71,7 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         TextView idView = (TextView) view.findViewById(R.id.id);
         TextView videoTitle = (TextView) view.findViewById(R.id.title);
-        YouTubeSong youTubeSong = new YouTubeSong(videoTitle.getText().toString(), idView.getText().toString(), null, null, null);
+        YouTubeSong youTubeSong = new YouTubeSong.Builder(idView.getText().toString(), videoTitle.getText().toString()).build();
         presenter.startSong(youTubeSong);
     }
 
@@ -120,10 +117,8 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
                         String idString = id.getString("videoId");
                         String titleString = snippet.getString("title");
 
-                        youTubeSongArray.add(new YouTubeSong(titleString, idString,null,null,null));
-                        uriArray.add(Uri.parse(imageString));
+                        youTubeSongArray.add(new YouTubeSong.Builder( idString, titleString).image(Uri.parse(imageString)).build());
                         videoResultAdapter.add("WITHOUT THIS IT DOESN'T WORK AND I DON'T KNOW WHY");
-
                     }
                     videoResultAdapter.notifyDataSetChanged();
                 } else {

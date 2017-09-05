@@ -22,7 +22,6 @@ import le1.mytube.mvpModel.songs.YouTubeSong;
 import le1.mytube.services.notification.musicNotification.MusicNotification;
 import le1.mytube.services.notification.musicNotification.MusicNotificationImpl;
 
-import static le1.mytube.mvpViews.MainActivity.handleAudioFocus;
 import static le1.mytube.services.MusicServiceConstants.ACTION_FAST_FORWARD;
 import static le1.mytube.services.MusicServiceConstants.ACTION_NEXT;
 import static le1.mytube.services.MusicServiceConstants.ACTION_PAUSE;
@@ -72,12 +71,11 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             String action = intent.getAction();
             String[] songInfo = intent.getStringArrayExtra(KEY_SONG);
             if (songInfo != null) {
-                YouTubeSong youTubeSong = new YouTubeSong(
-                        songInfo[0],
-                        songInfo[1],
-                        songInfo[2],
-                        Integer.parseInt(songInfo[3]),
-                        Integer.parseInt(songInfo[4]));
+                YouTubeSong youTubeSong = new YouTubeSong.Builder(songInfo[0], songInfo[1])
+                        .path(songInfo[2])
+                        .startTime(Integer.parseInt(songInfo[3]))
+                        .endTime(Integer.parseInt(songInfo[4])).build();
+
 
                 switch (action) {
                     case ACTION_START_LOCAL:
@@ -236,7 +234,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     @Override
     public void onAudioFocusChange(int focusChange) {
-        if (player != null && handleAudioFocus) {
+        if (player != null && repo.getAudioFocus()) {
             switch (focusChange) {
                 case (AudioManager.AUDIOFOCUS_GAIN):
                     playSong(true, null);
