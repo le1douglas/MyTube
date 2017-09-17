@@ -2,7 +2,7 @@ package le1.mytube.listeners;
 
 import java.util.ArrayList;
 
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
  * Created by Leone on 04/09/17.

@@ -4,7 +4,7 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
  * Created by Leone on 29/08/17.

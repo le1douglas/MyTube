@@ -16,18 +16,22 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import le1.mytube.R;
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.mvpPresenters.SearchResultPresenter;
 
 
 public class VideoResultAdapter extends ArrayAdapter<String> {
 
     private ArrayList<YouTubeSong> youTubeSongs;
     private Context context;
+    private SearchResultPresenter presenter;
 
-    public VideoResultAdapter(Context c, ArrayList<YouTubeSong> youTubeSongs) {
+    public VideoResultAdapter(Context c, SearchResultPresenter presenter, ArrayList<YouTubeSong> youTubeSongs) {
         super(c, R.layout.row_video);
         this.youTubeSongs=youTubeSongs;
         context = c;
+
+        this.presenter = presenter;
     }
 
     @Override
@@ -46,18 +50,27 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
 
         TextView titleView = (TextView) convertView.findViewById(R.id.title);
         TextView idView = (TextView) convertView.findViewById(R.id.id);
-        ImageButton addToQuequeButton = (ImageButton) convertView.findViewById(R.id.addToQueque);
+        ImageButton download = (ImageButton) convertView.findViewById(R.id.download);
+        ImageButton addToQueue = (ImageButton) convertView.findViewById(R.id.queue_add);
         ImageView thumb = (ImageView) convertView.findViewById(R.id.thumb);
+
 
         titleView.setText(youTubeSong.getTitle());
         idView.setText(youTubeSong.getId());
 
-        addToQuequeButton.setOnClickListener(new View.OnClickListener() {
+        download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(context, "Downloading song", Toast.LENGTH_SHORT).show();
-                youTubeSong.download(context);
+                presenter.downloadSong(youTubeSong);
 
+            }
+        });
+
+        addToQueue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.addSongToQueue(youTubeSong);
             }
         });
 

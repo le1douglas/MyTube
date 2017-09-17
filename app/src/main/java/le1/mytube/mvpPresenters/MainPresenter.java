@@ -12,9 +12,9 @@ import le1.mytube.listeners.OnLoadAudioFocusListener;
 import le1.mytube.listeners.OnLoadPlaylistListener;
 import le1.mytube.listeners.OnRequestPlaylistDialogListener;
 import le1.mytube.mvpModel.Repo;
+import le1.mytube.mvpModel.database.DatabaseConstants;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpModel.songs.SongDatabaseConstants;
-import le1.mytube.mvpModel.songs.YouTubeSong;
 
 /**
  * Created by Leone on 02/07/17.
@@ -22,9 +22,10 @@ import le1.mytube.mvpModel.songs.YouTubeSong;
 
 public class MainPresenter extends AndroidViewModel{
     private Repo repository;
-
+    private Application application;
     public MainPresenter(Application application) {
         super(application);
+        this.application=application;
         this.repository = new Repo(application);
     }
 
@@ -55,13 +56,17 @@ public class MainPresenter extends AndroidViewModel{
 
     }
 
+    public void addSongToQueueStart(YouTubeSong youTubeSong){
+        repository.addSongToQueueStart(youTubeSong);
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();
         repository.onDestroy();
     }
 
-    public void logDatabase() {
+    public String logDatabase() {
         List<String> playlists = repository.getAllPlaylistsName();
         for (int i = 0; i < playlists.size(); i++) {
             Log.d("DBoperation", playlists.get(i));
@@ -71,11 +76,14 @@ public class MainPresenter extends AndroidViewModel{
             Log.d("DBoperation", song.toString());
         }
 
+        return repository.queueDatabaseAsString();
+
     }
 
     public void clearDatabase() {
         repository.deleteAllSongs();
         repository.deleteAllPlaylists();
+        repository.deleteQueue();
     }
 
     public void stopMusicService() {
@@ -104,7 +112,7 @@ public class MainPresenter extends AndroidViewModel{
     }
 
     public void onItemLongClick(Playlist playlist, int position, OnRequestPlaylistDialogListener onRequestDialogListener) {
-        if (playlist.getName().equals(SongDatabaseConstants.TB_NAME)){
+        if (playlist.getName().equals(DatabaseConstants.TB_NAME)){
             onRequestDialogListener.onOfflineDeletePlaylistDialog();
         }else {
             onRequestDialogListener.onStandardDeletePlaylistDialog(playlist, position);

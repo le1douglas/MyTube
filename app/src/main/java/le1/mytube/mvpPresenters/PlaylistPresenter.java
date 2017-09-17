@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import le1.mytube.listeners.OnLoadSongInPlaylistListener;
 import le1.mytube.listeners.OnRequestSongDialogListener;
 import le1.mytube.mvpModel.Repo;
+import le1.mytube.mvpModel.database.DatabaseConstants;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpModel.songs.SongDatabaseConstants;
-import le1.mytube.mvpModel.songs.YouTubeSong;
 
 public class PlaylistPresenter extends AndroidViewModel {
 
@@ -21,13 +21,13 @@ public class PlaylistPresenter extends AndroidViewModel {
         repository = new Repo(application);
     }
 
-    public void loadSongsInPlaylist(Playlist playlist, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
+    public void loadSongsInPlaylist(String playlistName, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
         try {
             ArrayList<YouTubeSong> youTubeSongs;
-            if (playlist.getName().equals(SongDatabaseConstants.TB_NAME)) {
+            if (playlistName.equals(DatabaseConstants.TB_NAME)) {
                 youTubeSongs = (ArrayList<YouTubeSong>) repository.getAllSongs();
             } else {
-                youTubeSongs = repository.getSongsInPlaylist(playlist);
+                youTubeSongs = repository.getSongsInPlaylist(playlistName);
             }
 
             if (youTubeSongs.size() > 0) {
@@ -36,6 +36,8 @@ public class PlaylistPresenter extends AndroidViewModel {
                 onLoadSongInPlaylistListener.onNoSongLoaded();
 
             }
+            repository.deleteQueue();
+            repository.addSongToQueueStart(youTubeSongs);
         } catch (Exception e) {
             onLoadSongInPlaylistListener.onSongLoadingError();
             e.printStackTrace();
@@ -64,7 +66,7 @@ public class PlaylistPresenter extends AndroidViewModel {
 
 
     public void onListLongItemClick(Playlist playlist, YouTubeSong youtubeSong, int position, OnRequestSongDialogListener onRequestSongDialogListener) {
-        if (playlist.getName().equals(SongDatabaseConstants.TB_NAME)) {
+        if (playlist.getName().equals(DatabaseConstants.TB_NAME)) {
             onRequestSongDialogListener.onOfflineDeleteSongDialog(youtubeSong, position);
         } else {
             onRequestSongDialogListener.onStandardDeleteSongDialog(youtubeSong, position);

@@ -9,7 +9,8 @@ import android.provider.MediaStore;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
  * Created by Leone on 25/08/17.
@@ -42,12 +43,13 @@ public class PlaylistDatabaseImpl implements PlaylistDatabase {
     }
 
     @Override
-    public List<Playlist> getAllPlaylists() {
-        List<Playlist> playlistList = new ArrayList<>();
+    public ArrayList<Playlist> getAllPlaylists() {
+        ArrayList<Playlist> playlistList = new ArrayList<>();
         final Cursor playLists = resolver.query(PLAYLISTS_URI, columns, null, null, null);
         if (playLists != null) {
             for (boolean hasItem = playLists.moveToFirst(); hasItem; hasItem = playLists.moveToNext()) {
                 playlistList.add(new Playlist(
+                        playLists.getInt(playLists.getColumnIndex(columns[0])),
                         playLists.getString(playLists.getColumnIndex(columns[1])),
                         playLists.getString(playLists.getColumnIndex(columns[2])),
                         playLists.getInt(playLists.getColumnIndex(columns[3])),
@@ -59,22 +61,20 @@ public class PlaylistDatabaseImpl implements PlaylistDatabase {
 
     }
 
+
     @Override
     public Playlist getPlaylistByName(String name) {
-        final Cursor playLists = resolver.query(PLAYLISTS_URI, columns, null, null, null);
-        if (playLists != null) {
-            String s = playLists.getString(playLists.getColumnIndex(columns[1]));
-            for (boolean hasItem = playLists.moveToFirst(); hasItem; hasItem = playLists.moveToNext()) {
-                if (s.equals(name)) {
-                    return new Playlist(
-                            s,
-                            playLists.getString(playLists.getColumnIndex(columns[2])),
-                            playLists.getInt(playLists.getColumnIndex(columns[3])),
-                            playLists.getInt(playLists.getColumnIndex(columns[4])));
-                }
-
-            }
+        Playlist playlist;
+        final Cursor playLists = resolver.query(PLAYLISTS_URI, columns, columns[1] + " LIKE '" + name + "'", null, null);
+        if (playLists != null && playLists.moveToFirst()) {
+            playlist = new Playlist(
+                    playLists.getInt(playLists.getColumnIndex(columns[0])),
+                    playLists.getString(playLists.getColumnIndex(columns[1])),
+                    playLists.getString(playLists.getColumnIndex(columns[2])),
+                    playLists.getInt(playLists.getColumnIndex(columns[3])),
+                    playLists.getInt(playLists.getColumnIndex(columns[4])));
             playLists.close();
+            return playlist;
         }
         return null;
     }
@@ -148,8 +148,8 @@ public class PlaylistDatabaseImpl implements PlaylistDatabase {
     }
 
     @Override
-    public List<String> getAllPlaylistsName() {
-        List<String> playlistNames = new ArrayList<>();
+    public ArrayList<String> getAllPlaylistsName() {
+        ArrayList<String> playlistNames = new ArrayList<>();
         final Cursor playLists = resolver.query(PLAYLISTS_URI, columns, null, null, null);
         if (playLists != null) {
             for (boolean hasItem = playLists.moveToFirst(); hasItem; hasItem = playLists.moveToNext()) {
@@ -159,6 +159,35 @@ public class PlaylistDatabaseImpl implements PlaylistDatabase {
             playLists.close();
         }
         return playlistNames;
+    }
+
+    String audio_id = MediaStore.Audio.Playlists.Members.AUDIO_ID;
+    String artist = MediaStore.Audio.Playlists.Members.ARTIST;
+    String title = MediaStore.Audio.Playlists.Members.TITLE;
+    String duration = MediaStore.Audio.Playlists.Members.DURATION;
+    String location = MediaStore.Audio.Playlists.Members.DATA;
+
+    @Override
+    public ArrayList<YouTubeSong> getAllSongInPlaylist(String playlistName) {
+        ArrayList<YouTubeSong> songList = new ArrayList<>();
+        Uri newuri = MediaStore.Audio.Playlists.Members.getContentUri(
+                "external", getPlaylistByName(playlistName).getId());
+
+        String[] columns = {audio_id, duration, title, artist,
+                location};
+        Cursor c = resolver.query(newuri, columns, null, null, null);
+
+        if (c != null && c.moveToFirst()) {
+            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                songList.add(
+                        new YouTubeSong.Builder(c.getString(c.getColumnIndex(audio_id)), c.getString(c.getColumnIndex(title)))
+                                .path(c.getString(c.getColumnIndex(location)))
+                                .startTime(0)
+                                .endTime(c.getInt(c.getColumnIndex(duration)))
+                                .build());
+            }
+        }
+        return songList;
     }
 
 }

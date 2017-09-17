@@ -39,20 +39,33 @@
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-
         <receiver android:name=".notification.NotificationReceiver" />
-        <receiver android:name=".services.MusicReceiver">
+        <!--<receiver android:name=".services.MusicReceiver">
             <intent-filter>
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                &lt;!&ndash;
+                TODO mediabutton must be only one
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                &ndash;&gt;
+                />
             </intent-filter>
         </receiver>
+-->
+
+        <service
+            android:name=".services.MusicServiceMediaBrowser"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserServiceCompat" />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </service>
+
 
         <activity
             android:name=".mvpViews.PlaylistActivity"
@@ -62,18 +75,20 @@
             android:name=".services.MusicService"
             android:enabled="true"
             android:exported="true"
-            android:stopWithTask="false"/>
+            android:stopWithTask="false" />
 
         <activity
             android:name=".mvpViews.SearchActivity"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="stateAlwaysVisible"
-            android:parentActivityName=".mvpViews.MainActivity"/>
-
-        <activity android:name=".mvpViews.SearchResultActivity"
+            android:parentActivityName=".mvpViews.MainActivity"
+            android:windowSoftInputMode="stateAlwaysVisible" />
+        <activity
+            android:name=".mvpViews.SearchResultActivity"
             android:launchMode="singleTask"
             android:parentActivityName=".mvpViews.MainActivity"
             android:windowSoftInputMode="stateHidden" />
+
+        <activity android:name=".mvpViews.MusicPlayerActivity"></activity>
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package le1.mytube.mvpModel.songs;
+package le1.mytube.mvpModel.database.song;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;

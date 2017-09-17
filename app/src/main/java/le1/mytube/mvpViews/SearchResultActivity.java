@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import le1.mytube.R;
 import le1.mytube.adapters.VideoResultAdapter;
 import le1.mytube.listeners.OnExecuteTaskCallback;
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpPresenters.SearchResultPresenter;
 
 import static le1.mytube.mvpViews.MainActivity.changeStatusBarColor;
@@ -55,7 +55,7 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
 
         videoResultListView = (ListView) findViewById(R.id.videoResult);
         youTubeSongArray = new ArrayList<>();
-        videoResultAdapter = new VideoResultAdapter(this, youTubeSongArray);
+        videoResultAdapter = new VideoResultAdapter(this, presenter, youTubeSongArray);
         videoResultListView.setAdapter(videoResultAdapter);
         videoResultListView.setOnItemClickListener(this);
 
@@ -70,10 +70,11 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        TextView idView = (TextView) view.findViewById(R.id.id);
-        TextView videoTitle = (TextView) view.findViewById(R.id.title);
+        TextView idView = view.findViewById(R.id.id);
+        TextView videoTitle = view.findViewById(R.id.title);
         YouTubeSong youTubeSong = new YouTubeSong.Builder(idView.getText().toString(), videoTitle.getText().toString()).build();
-        presenter.startSong(youTubeSong);
+         //presenter.startSong(youTubeSong);
+        startActivity(new Intent(this, MusicPlayerActivity.class));
     }
 
     @Override

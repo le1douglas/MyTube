@@ -32,8 +32,8 @@ import le1.mytube.listeners.OnCheckValidPlaylistNameListener;
 import le1.mytube.listeners.OnLoadAudioFocusListener;
 import le1.mytube.listeners.OnLoadPlaylistListener;
 import le1.mytube.listeners.OnRequestPlaylistDialogListener;
+import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpModel.songs.SongDatabaseConstants;
 import le1.mytube.mvpPresenters.MainPresenter;
 
 
@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
         presenter.startMusicService();
         presenter.loadPlaylists(this);
+
+
     }
 
     @Override
@@ -103,7 +105,10 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
             case R.id.printDB:
-                presenter.logDatabase();
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                alertDialogBuilder.setTitle("QueueDatabase")
+                        .setMessage(presenter.logDatabase());
+                alertDialogBuilder.show();
                 return true;
             case R.id.clearDB:
                 presenter.clearDatabase();
@@ -134,14 +139,14 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     @Override
     public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
-        presenter.onItemLongClick(new Playlist(parent.getItemAtPosition(position).toString(), null, 0,0), position, this);
+        presenter.onItemLongClick(new Playlist(0,parent.getItemAtPosition(position).toString(), null, 0, 0), position, this);
         return true;
     }
 
     @Override
     public void onPlaylistLoaded(ArrayList<Playlist> playlists) {
         Toast.makeText(this, "Displaying playlists", Toast.LENGTH_SHORT).show();
-        for (Playlist p:playlists) {
+        for (Playlist p : playlists) {
             displayedList.add(p.getName());
         }
         adapter.notifyDataSetChanged();
@@ -246,7 +251,10 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         alertDialogBuilder.setMessage("You cannot delete this");
         alertDialogBuilder.setPositiveButton("Ok",
                 new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {dialog.cancel();}});
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
         alertDialogBuilder.show();
     }
 
@@ -254,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     public void onStandardDeletePlaylistDialog(final Playlist playlist, final int position) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
         alertDialogBuilder.setTitle("Delete " + playlist.getName() + "?");
-        alertDialogBuilder.setMessage("The songs inside this playlist will be available offline anyway. You can see all of your downloaded songs in \""+ SongDatabaseConstants.TB_NAME+"\"");
+        alertDialogBuilder.setMessage("The songs inside this playlist will be available offline anyway. You can see all of your downloaded songs in \"" + DatabaseConstants.TB_NAME + "\"");
         alertDialogBuilder.setPositiveButton("Delete",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {

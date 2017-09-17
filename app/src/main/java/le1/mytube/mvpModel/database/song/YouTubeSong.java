@@ -1,4 +1,4 @@
-package le1.mytube.mvpModel.songs;
+package le1.mytube.mvpModel.database.song;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
@@ -28,26 +28,27 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import le1.mytube.mvpModel.database.DatabaseConstants;
 
-@Entity(tableName = SongDatabaseConstants.TB_NAME)
+@Entity(tableName = DatabaseConstants.TB_NAME)
 public class YouTubeSong {
 
-    @ColumnInfo(name = SongDatabaseConstants.FLD_TITLE)
+    @ColumnInfo
     private String title;
 
     @PrimaryKey
     private String id;
 
-    @ColumnInfo(name = SongDatabaseConstants.FLD_PATH)
+    @ColumnInfo
     private String path;
 
     @ColumnInfo
     private Uri image;
 
-    @ColumnInfo(name = SongDatabaseConstants.FLD_START)
+    @ColumnInfo
     private int start;
 
-    @ColumnInfo(name = SongDatabaseConstants.FLD_END)
+    @ColumnInfo
     private int end;
 
     public YouTubeSong(String id, String title, String path, Uri image, int start, int end) {
@@ -119,7 +120,6 @@ public class YouTubeSong {
                 this.start + "," +
                 this.end + "}";
     }
-
 
     public void download(final Context context) {
         final File myTubeFolder = new File(Environment.getExternalStorageDirectory(), "MyTube");

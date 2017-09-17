@@ -19,8 +19,8 @@ import le1.mytube.R;
 import le1.mytube.adapters.PlaylistAdapter;
 import le1.mytube.listeners.OnLoadSongInPlaylistListener;
 import le1.mytube.listeners.OnRequestSongDialogListener;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpModel.songs.YouTubeSong;
 import le1.mytube.mvpPresenters.PlaylistPresenter;
 
 
@@ -36,7 +36,7 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playlist);
 
-        playlist= new Playlist(getIntent().getStringExtra("TITLE"), "TODO"
+        playlist= new Playlist(0,getIntent().getStringExtra("TITLE"), "TODO"
                 //getIntent().getStringExtra("PATH")
                 , 0,0);
 
@@ -54,7 +54,7 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
 
 
         presenter = ViewModelProviders.of(this).get(PlaylistPresenter.class);
-        presenter.loadSongsInPlaylist(playlist, this);
+        presenter.loadSongsInPlaylist(getIntent().getStringExtra("TITLE"), this);
 
     }
 

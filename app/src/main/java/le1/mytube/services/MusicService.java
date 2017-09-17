@@ -18,7 +18,7 @@ import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 import le1.mytube.mvpModel.Repo;
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.notification.musicNotification.MusicNotification;
 import le1.mytube.notification.musicNotification.MusicNotificationImpl;
 
@@ -64,10 +64,15 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         super.onCreate();
     }
 
+    private void log(String message){
+        Log.d("LE1_DEBUG SERVICE" , message);
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        log("onStartCommand");
         if (intent != null && intent.getAction() != null) {
-
+            log("intent not null");
             String action = intent.getAction();
             String[] songInfo = intent.getStringArrayExtra(KEY_SONG);
             if (songInfo != null) {
@@ -76,12 +81,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                         .startTime(Integer.parseInt(songInfo[3]))
                         .endTime(Integer.parseInt(songInfo[4])).build();
 
-
                 switch (action) {
                     case ACTION_START_LOCAL:
+                        log("ACTION_START_LOCAL");
                         startLocalSong(youTubeSong);
                         break;
                     case ACTION_START_STREAMING:
+                        log("ACTION_START_STREAMING");
                         startStreamingSong(youTubeSong);
                         break;
                 }
@@ -89,28 +95,35 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
             switch (action) {
                 case ACTION_PLAY_PAUSE:
+                    log("ACTION_PLAY_PAUSE");
                     if (player != null && player.isPlaying()) pauseSong(repo.getAudioFocus());
                     else playSong(repo.getAudioFocus(), null);
                     break;
                 case ACTION_PLAY:
+                    log("ACTION_PLAY");
                     playSong(repo.getAudioFocus(), null);
                     break;
                 case ACTION_PAUSE:
+                    log("ACTION_PAUSE");
                     pauseSong(repo.getAudioFocus());
                     break;
                 case ACTION_REWIND:
+                    log("ACTION_REWIND");
                     player.seekTo(5000);
                     break;
                 case ACTION_FAST_FORWARD:
+                    log("ACTION_FAST_FORWARD");
                     player.seekTo(10000);
                     break;
                 case ACTION_NEXT:
-                    player.seekTo(5000);
+                    log("ACTION_NEXT");
                     break;
                 case ACTION_PREVIOUS:
-                    player.seekTo(10000);
+                    log("ACTION_PREVIOUS");
+                    player.seekTo(0);
                     break;
                 case ACTION_STOP:
+                    log("ACTION_STOP");
                     this.stopSelf();
                     break;
                 default:
@@ -122,6 +135,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
 
     private synchronized void startLocalSong(YouTubeSong youTubeSong) {
+        log("startLocalSong");
         //REQUIRED path
         notification.setLoading();
         if (player.isPlaying()) player.stop();
@@ -132,6 +146,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             player.setDataSource(youTubeSong.getPath());
             player.prepare();
             playSong(repo.getAudioFocus(), youTubeSong);
+            log("playSong called");
         } catch (IOException e) {
             notification.setError();
             e.printStackTrace();
@@ -142,6 +157,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     boolean extracting = false;
 
     private synchronized void startStreamingSong(final YouTubeSong youTubeSong) {
+        log("startStreamingSong");
         //REQUIRED id
         if (player.isPlaying()) player.stop();
         player.reset();
@@ -152,11 +168,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 extracting = false;
                 if (ytFiles != null) {
                     try {
+                        log("onExtractionComplete");
                         String downloadUrl = ytFiles.get(140).getUrl();
                         System.out.println(downloadUrl);
                         player.setDataSource(downloadUrl);
                         player.prepare();
                         playSong(repo.getAudioFocus(), youTubeSong);
+                        log("playSong called");
                     } catch (Exception e) {
                         notification.setError();
                         e.printStackTrace();
@@ -175,23 +193,30 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     }
 
     public void playSong(Boolean handleAudioFocus, YouTubeSong youTubeSong) {
+        log("playSong");
         if (player != null) {
+            log("audiofocus = " + String.valueOf(handleAudioFocus));
             if (handleAudioFocus) {
                 audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
             }
             if (!notification.isVisible(this)) {
+                log("start notification");
                 notification.start(this, notification.getNotification());
             }
             notification.setPlaying(youTubeSong);
             player.start();
+            player.setOnCompletionListener(this);
             player.setVolume(1f, 1f);
-        } else notification.setError();
+        } else {notification.setError();
+            log("mediaplayer is null");}
 
     }
 
     public void pauseSong(Boolean handleAudioFocus) {
+        log("pauseSong");
         if (player != null) {
             if (player.isPlaying()) {
+                log("audiofocus = " + String.valueOf(handleAudioFocus));
                 if (handleAudioFocus) {
                     audioManager.abandonAudioFocus(this);
                 }
@@ -199,21 +224,28 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 notification.setDismissable();
                 notification.setPaused();
             }
-        } else notification.setError();
+        } else {notification.setError();
+            log("mediaplayer is null");
+        }
 
     }
 
+
     public void duckSong() {
+        log("duckSong");
         if (player != null) {
             if (player.isPlaying()) {
                 player.setVolume(0.2f, 0.2f);
             }
-        } else notification.setError();
+        } else {notification.setError();
+            log("mediaplayer is null");
+        }
+
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        notification.setPaused();
+        log("onCompletion");
     }
 
 
@@ -225,6 +257,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     @Override
     public void onDestroy() {
+        log("onDestroy");
         if (notification.isVisible(this)) notification.stop();
         audioManager.abandonAudioFocus(this);
         audioManager.unregisterMediaButtonEventReceiver(eventReceiver);
@@ -234,18 +267,23 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     @Override
     public void onAudioFocusChange(int focusChange) {
+        log("onAudioFocusChange");
         if (player != null && repo.getAudioFocus()) {
             switch (focusChange) {
                 case (AudioManager.AUDIOFOCUS_GAIN):
-                    playSong(true, null);
+                    log("AUDIOFOCUS_GAIN");
+                    playSong(repo.getAudioFocus(),null);
                     break;
                 case (AudioManager.AUDIOFOCUS_LOSS):
+                    log("AUDIOFOCUS_LOSS");
                     pauseSong(true);
                     break;
                 case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK):
+                    log("AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
                     duckSong();
                     break;
                 case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT):
+                    log("AUDIOFOCUS_LOSS_TRANSIENT");
                     pauseSong(false);
                     break;
             }
@@ -258,6 +296,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         if (!player.isPlaying()) this.stopSelf();
-        Toast.makeText(this, "onTaskRemoved", Toast.LENGTH_SHORT).show();
+        log("onTaskRemoved");
     }
+
 }

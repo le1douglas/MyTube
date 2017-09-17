@@ -7,11 +7,16 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.SystemClock;
+import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
 import le1.mytube.R;
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpViews.MainActivity;
 import le1.mytube.notification.NotificationReceiver;
 
@@ -56,8 +61,11 @@ public class MusicNotificationImpl extends MusicNotification {
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
         PendingIntent notificationPendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-
-        notification = new Notification.Builder(context.getApplicationContext())
+        Bitmap bm = BitmapFactory.decodeResource(Resources.getSystem(), android.R.drawable.ic_lock_lock);
+        notification = new NotificationCompat.Builder(context.getApplicationContext())
+                .setLargeIcon(bm)
+                .setShowWhen(true)
+                .setWhen(SystemClock.currentThreadTimeMillis())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContent(smallRemoteView)
                 .setPriority(Notification.PRIORITY_MAX)

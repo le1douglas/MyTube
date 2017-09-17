@@ -1,6 +1,8 @@
 package le1.mytube.mvpModel.playlists;
 
-import java.util.List;
+import java.util.ArrayList;
+
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
  * Created by Leone on 25/08/17.
@@ -8,7 +10,7 @@ import java.util.List;
 
 public interface PlaylistDatabase {
 
-    List<Playlist> getAllPlaylists();
+    ArrayList<Playlist> getAllPlaylists();
 
     Playlist getPlaylistByName(String name);
 
@@ -20,5 +22,7 @@ public interface PlaylistDatabase {
 
     void deleteAllPlaylist();
 
-    List<String> getAllPlaylistsName();
+    ArrayList<String> getAllPlaylistsName();
+
+    ArrayList<YouTubeSong> getAllSongInPlaylist(String name);
 }

@@ -11,7 +11,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 
-import le1.mytube.mvpModel.songs.YouTubeSong;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpViews.MainActivity;
 
 import static le1.mytube.notification.musicNotification.MusicNotificationConstants.ID;

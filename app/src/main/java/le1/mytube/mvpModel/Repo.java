@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,12 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import le1.mytube.listeners.OnExecuteTaskCallback;
+import le1.mytube.mvpModel.database.Database;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpModel.playlists.PlaylistDatabase;
 import le1.mytube.mvpModel.playlists.PlaylistDatabaseImpl;
-import le1.mytube.mvpModel.songs.SongDatabase;
-import le1.mytube.mvpModel.songs.YouTubeSong;
-import le1.mytube.services.MusicService;
+import le1.mytube.services.MusicServiceMediaBrowser;
 
 import static le1.mytube.services.MusicServiceConstants.ACTION_FAST_FORWARD;
 import static le1.mytube.services.MusicServiceConstants.ACTION_NEXT;
@@ -38,56 +39,55 @@ import static le1.mytube.services.MusicServiceConstants.ACTION_START_STREAMING;
 import static le1.mytube.services.MusicServiceConstants.ACTION_STOP;
 import static le1.mytube.services.MusicServiceConstants.KEY_SONG;
 
-
-/**
- * Created by Leone on 18/08/17.
- */
-
-//TODO see if implemeting dao works
 public class Repo {
 
-    private SongDatabase songDatabase;
+    private Database database;
     private PlaylistDatabase playlistDatabase;
     private Context context;
     private AutocompleteTask autocompleteTask;
-    OnExecuteTaskCallback onExecuteTaskCallback;
+    private OnExecuteTaskCallback onExecuteTaskCallback;
+    private int playPosition;
 
-    public Repo(Context context) {
+    public Repo (Context context) {
         this.context = context;
-        songDatabase = SongDatabase.getDatabase(this.context);
+        database = Database.getDatabase(this.context);
         playlistDatabase = PlaylistDatabaseImpl.getDatabase(this.context);
+        playPosition=-1;
     }
 
+    private void log(String message) {
+        Log.d("LE1_DEBUG REPO", message);
+    }
 
-    //--------DATABASE
+    //--------SONG DATABASE
     public void onDestroy() {
-        songDatabase.close();
+        //database.close();
         context = null;
     }
 
 
     public void addSongs(YouTubeSong... youTubeSongs) {
-        songDatabase.youTubeSongDao().addSongs(youTubeSongs);
+        database.youTubeSongDao().addSongs(youTubeSongs);
     }
 
     public void updateSong(YouTubeSong... youTubeSongs) {
-        songDatabase.youTubeSongDao().updateSong(youTubeSongs);
+        database.youTubeSongDao().updateSong(youTubeSongs);
     }
 
     public void deleteSong(YouTubeSong youTubeSong) {
-        songDatabase.youTubeSongDao().deleteSong(youTubeSong);
+        database.youTubeSongDao().deleteSong(youTubeSong);
     }
 
     public void deleteAllSongs() {
-        songDatabase.youTubeSongDao().deleteAllSongs();
+        database.youTubeSongDao().deleteAllSongs();
     }
 
     public YouTubeSong getSongById(String id) {
-        return songDatabase.youTubeSongDao().getSongById(id);
+        return database.youTubeSongDao().getSongById(id);
     }
 
     public List<YouTubeSong> getAllSongs() {
-        return songDatabase.youTubeSongDao().getAllSongs();
+        return database.youTubeSongDao().getAllSongs();
     }
 
 
@@ -121,6 +121,70 @@ public class Repo {
         playlistDatabase.deleteAllPlaylist();
     }
 
+    public ArrayList<YouTubeSong> getSongsInPlaylist(String playlistName) {
+        return playlistDatabase.getAllSongInPlaylist(playlistName);
+    }
+
+/*
+    //--------QUEUE DATABASE
+
+
+    public void addSongToQueueStart(YouTubeSong youTubeSong) {
+        try {
+            database.queueDao().incrementByOneAfter(playPosition);
+            database.queueDao().addSongs(new QueueYouTubeSong(youTubeSong, playPosition + 1));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "error", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void addSongToQueueStart(ArrayList<YouTubeSong> youTubeSongs) {
+            for (YouTubeSong yts : youTubeSongs) {
+                addSongToQueueStart(yts);
+            }
+    }
+
+
+    public void addSongToQueueEnd(YouTubeSong youTubeSong) {
+        try {
+            database.queueDao().addSongs(new QueueYouTubeSong(youTubeSong, database.queueDao().getLastSong().getPosition() + 1));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "error", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void deleteQueue() {
+        playPosition=-1;
+        database.queueDao().deleteQueue();
+    }
+
+    public YouTubeSong playNextSongInQueue() {
+        log("playNextSongInQueue");
+        playPosition = playPosition+1;
+        return null;
+    }
+
+    public YouTubeSong getPlayingSong() {
+        return database.queueDao().getSongAtPosition(playPosition).getYouTubeSong();
+    }
+
+    public String queueDatabaseAsString() {
+        ArrayList<QueueYouTubeSong> songs = (ArrayList<QueueYouTubeSong>) database.queueDao().getAllSongs();
+        StringBuilder sb = new StringBuilder();
+        for (QueueYouTubeSong song : songs) {
+            sb.append(song.getTransactionNumber())
+                    .append("|")
+                    .append(song.getPosition())
+                    .append("|")
+                    .append(song.getYouTubeSong().toString())
+                    .append("\n")
+                    .append("\n");
+        }
+        return sb.toString();
+    }*/
 
     //--------SHAREDPREF
     public boolean getAudioFocus() {
@@ -139,7 +203,7 @@ public class Repo {
     private static boolean isMusicServiceRunning(Context context) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (MusicService.class.getName().equals(service.service.getClassName())) {
+            if (MusicServiceMediaBrowser.class.getName().equals(service.service.getClassName())) {
                 return true;
             }
         }
@@ -148,91 +212,91 @@ public class Repo {
 
     public void startMusicService() {
         if (!isMusicServiceRunning(context))
-            context.startService(new Intent(context, MusicService.class));
+            context.startService(new Intent(context, MusicServiceMediaBrowser.class));
     }
 
 
     public void startSong(YouTubeSong youTubeSong) {
+        log("startSong");
         if (!isMusicServiceRunning(context))
             throw new IllegalStateException("startSong must be called after the service is started");
+        if (youTubeSong != null) {
 
-        Intent i = new Intent(context, MusicService.class);
-        i.putExtra(KEY_SONG, new String[]{
-                youTubeSong.getId(),
-                youTubeSong.getTitle(),
-                youTubeSong.getPath(),
-                String.valueOf(youTubeSong.getStart()),
-                String.valueOf(youTubeSong.getEnd())});
 
-        if (youTubeSong.getPath() == null || youTubeSong.getPath().equals("")) {
-            i.setAction(ACTION_START_STREAMING);
-        } else {
-            i.setAction(ACTION_START_LOCAL);
-        }
 
-        context.startService(i);
+            Intent i = new Intent(context, MusicServiceMediaBrowser.class);
+            i.putExtra(KEY_SONG, new String[]{
+                    youTubeSong.getId(),
+                    youTubeSong.getTitle(),
+                    youTubeSong.getPath(),
+                    String.valueOf(youTubeSong.getStart()),
+                    String.valueOf(youTubeSong.getEnd())});
+
+            if (youTubeSong.getPath() == null || youTubeSong.getPath().equals("")) {
+                i.setAction(ACTION_START_STREAMING);
+            } else {
+                i.setAction(ACTION_START_LOCAL);
+            }
+
+            context.startService(i);
+        } else log("youtube song is null");
     }
 
     public void stopMusicService() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_STOP);
         context.startService(i);
     }
 
     public void playOrPauseSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_PLAY_PAUSE);
         context.startService(i);
 
     }
 
     public void playSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_PLAY);
         context.startService(i);
 
     }
 
     public void pauseSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_PAUSE);
         context.startService(i);
 
     }
 
     public void skipToPreviusSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_PREVIOUS);
         context.startService(i);
 
     }
 
     public void skipToNextSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_NEXT);
         context.startService(i);
 
     }
 
     public void rewindSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_REWIND);
         context.startService(i);
 
     }
 
     public void fastForwardSong() {
-        Intent i = new Intent(context, MusicService.class);
+        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         i.setAction(ACTION_FAST_FORWARD);
         context.startService(i);
 
     }
 
-    public ArrayList<YouTubeSong> getSongsInPlaylist(Playlist playlist) {
-        ArrayList<YouTubeSong> array = new ArrayList<>();
-        array.add(new YouTubeSong.Builder("aa", "ss").build());
-        return array;
-    }
 
     //TASKS
 
@@ -243,7 +307,7 @@ public class Repo {
 
     }
 
-    public void loadYouTubeSearchResult(String query, OnExecuteTaskCallback onExecuteTaskCallback){
+    public void loadYouTubeSearchResult(String query, OnExecuteTaskCallback onExecuteTaskCallback) {
         this.onExecuteTaskCallback = onExecuteTaskCallback;
         new SearchTask().execute(query);
     }
