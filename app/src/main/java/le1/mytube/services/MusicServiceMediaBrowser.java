@@ -14,14 +14,17 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.List;
 
 import le1.mytube.R;
+import le1.mytube.mvpModel.Repo;
 
-public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implements AudioManager.OnAudioFocusChangeListener{
-    private static final String TAG = "LE1_"+MusicServiceMediaBrowser.class.getSimpleName();
+public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implements AudioManager.OnAudioFocusChangeListener {
+    private static final String TAG = "LE1_" + MusicServiceMediaBrowser.class.getSimpleName();
     private static final int MEDIA_BUTTON_REQUEST_CODE = 33;
 
     private MediaSessionCompat mediaSession;
@@ -34,17 +37,20 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         }
     };
 
+    Repo repo;
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate");
+
+        repo = new Repo(this);
 
         mediaSession = new MediaSessionCompat(this, TAG);
         setSessionToken(mediaSession.getSessionToken());
         mediaSession.setCallback(new MediaSessionCallback());
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
 
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
@@ -54,27 +60,46 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         IntentFilter filter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(noisyReceiver, filter);
 
-        player= new Player(this, this, mediaSession);
+        player = new Player(this, this, this, mediaSession);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand");
+//        if (intent != null) {
+//            Log.d(TAG, "intent action=" + intent.getAction());
+//            switch (intent.getAction()) {
+//                case MusicServiceConstants.ACTION_START_STREAMING:
+//                    player.prepareFromUri(Uri.parse(intent.getStringExtra("Uri")));
+//                    break;
+//                case MusicServiceConstants.ACTION_START_LOCAL:
+//                    player.prepareFromId(intent.getStringExtra("Id"));
+//                    break;
+//                case MusicServiceConstants.ACTION_PAUSE:
+//                    player.pause();
+//                    break;
+//                case MusicServiceConstants.ACTION_PLAY:
+//                    player.play();
+//                    break;
+//                case MusicServiceConstants.ACTION_STOP:
+//                    player.stop();
+//                    break;
+//                case MusicServiceConstants.ACTION_PLAY_PAUSE:
+//                    player.playPause();
+//                    break;
+//            }
+//
+//        }
+
+        MediaButtonReceiver.handleIntent(mediaSession, intent);
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "onDestroy");
-        unregisterReceiver(noisyReceiver);
-        player.onDestroy();
-        super.onDestroy();
-    }
 
     @Override
     public void onAudioFocusChange(int focusChange) {
         Log.d(TAG, "onAudioFocusChange with focusChange=" + focusChange);
-        switch (focusChange){
+        switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
                 player.play();
                 break;
@@ -96,7 +121,7 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         public void onPrepareFromUri(Uri uri, Bundle extras) {
             super.onPrepareFromUri(uri, extras);
             Log.d(TAG, "onPrepareFromUri with uri=" + uri.toString());
-            player.prepare(uri);
+            player.prepareFromUri(uri);
         }
 
 
@@ -104,7 +129,7 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         public void onPrepareFromMediaId(String mediaId, Bundle extras) {
             super.onPrepareFromMediaId(mediaId, extras);
             Log.d(TAG, "onPrepareFromMediaId with id=" + mediaId);
-            player.prepare(mediaId);
+            player.prepareFromId(mediaId);
         }
 
         @Override
@@ -134,19 +159,54 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
             Log.d(TAG, "stop");
             player.stop();
         }
+
+        @Override
+        public void onSkipToNext() {
+            super.onSkipToNext();
+            Log.d(TAG, "onSkipToNext");
+            player.skipToNext();
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            super.onSkipToPrevious();
+            Log.d(TAG, "onSkipToPrevious");
+            player.skipToPrevious();
+        }
     }
 
 
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-        Log.d("service", "onGetRoot");
+        Log.d(TAG, "onGetRoot");
         return new BrowserRoot(getString(R.string.app_name), null);
     }
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        Log.d("service", "onLoadChildren");
+        Log.d(TAG, "onLoadChildren");
         result.sendResult(null);
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        Log.d(TAG, "onTaskRemoved");
+        Toast.makeText(this, "onTaskRemoved", Toast.LENGTH_SHORT).show();
+        stopSelf();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy");
+        Toast.makeText(this, "onDestroy", Toast.LENGTH_SHORT).show();
+        if (mediaSession.getController().getPlaybackState().getState() == PlaybackStateCompat.STATE_STOPPED) {
+            unregisterReceiver(noisyReceiver);
+            player.stop();
+            player.onDestroy();
+        }
+        super.onDestroy();
     }
 
 }

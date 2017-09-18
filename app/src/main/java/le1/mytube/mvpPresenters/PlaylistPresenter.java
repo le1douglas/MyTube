@@ -2,6 +2,7 @@ package le1.mytube.mvpPresenters;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
+import android.content.Intent;
 
 import java.util.ArrayList;
 
@@ -11,14 +12,18 @@ import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.mvpViews.MusicPlayerActivity;
+import le1.mytube.services.MusicServiceConstants;
 
 public class PlaylistPresenter extends AndroidViewModel {
 
     private Repo repository;
+    private Application application;
 
     public PlaylistPresenter(Application application) {
         super(application);
         repository = new Repo(application);
+        this.application = application;
     }
 
     public void loadSongsInPlaylist(String playlistName, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
@@ -36,8 +41,6 @@ public class PlaylistPresenter extends AndroidViewModel {
                 onLoadSongInPlaylistListener.onNoSongLoaded();
 
             }
-            repository.deleteQueue();
-            repository.addSongToQueueStart(youTubeSongs);
         } catch (Exception e) {
             onLoadSongInPlaylistListener.onSongLoadingError();
             e.printStackTrace();
@@ -74,7 +77,9 @@ public class PlaylistPresenter extends AndroidViewModel {
     }
 
     public void onListItemClick(YouTubeSong youtubeSong) {
-        repository.startSong(youtubeSong);
+        Intent i =new Intent(application, MusicPlayerActivity.class);
+        i.putExtra(MusicServiceConstants.KEY_SONG, youtubeSong);
+        application.startActivity(i);
     }
 
 

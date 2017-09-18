@@ -75,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
 
-        presenter.startMusicService();
         presenter.loadPlaylists(this);
 
 

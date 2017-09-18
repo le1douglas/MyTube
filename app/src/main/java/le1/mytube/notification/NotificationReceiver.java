@@ -12,19 +12,20 @@ import le1.mytube.notification.musicNotification.MusicNotificationConstants;
 public class NotificationReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Repo repo = new Repo(context);
+        //TODO
         if (intent.getStringExtra(MusicNotificationConstants.KEY_NOTIFICATION) != null) {
             switch (intent.getStringExtra(MusicNotificationConstants.KEY_NOTIFICATION)) {
                 case MusicNotificationConstants.EXTRA_PLAY_PAUSE:
-                    repo.playOrPauseSong();
+
                     break;
                 case MusicNotificationConstants.EXTRA_STOP:
-                    repo.stopMusicService();
+
                     break;
                 case MusicNotificationConstants.EXTRA_PREV:
-                    repo.skipToPreviusSong();
+
                     break;
                 case MusicNotificationConstants.EXTRA_NEXT:
-                    repo.skipToNextSong();
+
                     break;
                 default:
                     break;

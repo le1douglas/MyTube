@@ -1,5 +1,6 @@
 package le1.mytube.mvpPresenters;
 
+import android.app.Activity;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.util.Log;
@@ -56,9 +57,6 @@ public class MainPresenter extends AndroidViewModel{
 
     }
 
-    public void addSongToQueueStart(YouTubeSong youTubeSong){
-        repository.addSongToQueueStart(youTubeSong);
-    }
 
     @Override
     protected void onCleared() {
@@ -76,14 +74,13 @@ public class MainPresenter extends AndroidViewModel{
             Log.d("DBoperation", song.toString());
         }
 
-        return repository.queueDatabaseAsString();
+        return "qulo";
 
     }
 
     public void clearDatabase() {
         repository.deleteAllSongs();
         repository.deleteAllPlaylists();
-        repository.deleteQueue();
     }
 
     public void stopMusicService() {
@@ -123,8 +120,8 @@ public class MainPresenter extends AndroidViewModel{
        repository.setAudioFocus(handleAudioFocus);
     }
 
-    public void startMusicService() {
-        repository.startMusicService();
+    public void startMusicService(Activity activity) {
+     //  repository.connectToMusicService(activity);
     }
 
 }

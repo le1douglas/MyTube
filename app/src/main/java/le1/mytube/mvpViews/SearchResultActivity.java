@@ -27,6 +27,7 @@ import le1.mytube.adapters.VideoResultAdapter;
 import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpPresenters.SearchResultPresenter;
+import le1.mytube.services.MusicServiceConstants;
 
 import static le1.mytube.mvpViews.MainActivity.changeStatusBarColor;
 
@@ -73,8 +74,9 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
         TextView idView = view.findViewById(R.id.id);
         TextView videoTitle = view.findViewById(R.id.title);
         YouTubeSong youTubeSong = new YouTubeSong.Builder(idView.getText().toString(), videoTitle.getText().toString()).build();
-         //presenter.startSong(youTubeSong);
-        startActivity(new Intent(this, MusicPlayerActivity.class));
+        Intent i =new Intent(this, MusicPlayerActivity.class);
+        i.putExtra(MusicServiceConstants.KEY_SONG, youTubeSong);
+        this.startActivity(i);
     }
 
     @Override

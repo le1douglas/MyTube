@@ -6,6 +6,8 @@ import android.arch.persistence.room.PrimaryKey;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.SparseArray;
 import android.widget.Toast;
 
@@ -31,7 +33,7 @@ import io.reactivex.schedulers.Schedulers;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 
 @Entity(tableName = DatabaseConstants.TB_NAME)
-public class YouTubeSong {
+public class YouTubeSong implements Parcelable{
 
     @ColumnInfo
     private String title;
@@ -59,6 +61,44 @@ public class YouTubeSong {
         this.start = start;
         this.end = end;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    protected YouTubeSong(Parcel parcel) {
+        this.id = parcel.readString();
+        this.title = parcel.readString();
+        this.path = parcel.readString();
+        if (parcel.readString()!=null) this.image = Uri.parse(parcel.readString());
+        else this.image= null;
+        this.start = parcel.readInt();
+        this.end = parcel.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(this.id);
+        parcel.writeString(this.title);
+        if (this.path!=null) parcel.writeString(this.path);
+        else parcel.writeString(null);
+        if (this.image!=null) parcel.writeString(this.image.toString());
+        else parcel.writeString(null);
+        parcel.writeInt(start);
+        parcel.writeInt(end);
+    }
+
+    public static final Parcelable.Creator<YouTubeSong> CREATOR = new Parcelable.Creator<YouTubeSong>() {
+
+        public YouTubeSong createFromParcel(Parcel in) {
+            return new YouTubeSong(in);
+        }
+
+        public YouTubeSong[] newArray(int size) {
+            return new YouTubeSong[size];
+        }
+    };
 
     public String getTitle() {
         return this.title;
@@ -197,6 +237,8 @@ public class YouTubeSong {
         }.extract("http://youtube.com/watch?v=" + id, false, false);
 
     }
+
+
 
     public static class Builder {
         private final String id;

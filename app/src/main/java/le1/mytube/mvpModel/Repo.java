@@ -5,7 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.util.SparseArray;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +23,9 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import at.huber.youtubeExtractor.VideoMeta;
+import at.huber.youtubeExtractor.YouTubeExtractor;
+import at.huber.youtubeExtractor.YtFile;
 import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpModel.database.Database;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
@@ -27,33 +34,25 @@ import le1.mytube.mvpModel.playlists.PlaylistDatabase;
 import le1.mytube.mvpModel.playlists.PlaylistDatabaseImpl;
 import le1.mytube.services.MusicServiceMediaBrowser;
 
-import static le1.mytube.services.MusicServiceConstants.ACTION_FAST_FORWARD;
-import static le1.mytube.services.MusicServiceConstants.ACTION_NEXT;
-import static le1.mytube.services.MusicServiceConstants.ACTION_PAUSE;
-import static le1.mytube.services.MusicServiceConstants.ACTION_PLAY;
-import static le1.mytube.services.MusicServiceConstants.ACTION_PLAY_PAUSE;
-import static le1.mytube.services.MusicServiceConstants.ACTION_PREVIOUS;
-import static le1.mytube.services.MusicServiceConstants.ACTION_REWIND;
-import static le1.mytube.services.MusicServiceConstants.ACTION_START_LOCAL;
-import static le1.mytube.services.MusicServiceConstants.ACTION_START_STREAMING;
-import static le1.mytube.services.MusicServiceConstants.ACTION_STOP;
-import static le1.mytube.services.MusicServiceConstants.KEY_SONG;
-
 public class Repo {
+    private static final String TAG = "LE1_" + Repo.class.getSimpleName();
 
     private Database database;
     private PlaylistDatabase playlistDatabase;
     private Context context;
     private AutocompleteTask autocompleteTask;
     private OnExecuteTaskCallback onExecuteTaskCallback;
-    private int playPosition;
 
-    public Repo (Context context) {
+    private MediaBrowserCompat mediaBrowser;
+    private MediaBrowserCompat.ConnectionCallback mConnectionCallback;
+    private MediaControllerCompat mediaControllerCompat;
+
+    public Repo(Context context) {
         this.context = context;
         database = Database.getDatabase(this.context);
         playlistDatabase = PlaylistDatabaseImpl.getDatabase(this.context);
-        playPosition=-1;
     }
+
 
     private void log(String message) {
         Log.d("LE1_DEBUG REPO", message);
@@ -210,90 +209,123 @@ public class Repo {
         return false;
     }
 
-    public void startMusicService() {
-        if (!isMusicServiceRunning(context))
-            context.startService(new Intent(context, MusicServiceMediaBrowser.class));
+   /* public void connectToMusicService(final Activity activity) {
+        if (mediaBrowser != null && mediaBrowser.isConnected()) mediaBrowser.disconnect();
+        Log.d(TAG, "connectToMusicService");
+
+        mConnectionCallback = new MediaBrowserCompat.ConnectionCallback() {
+            @Override
+            public void onConnected() {
+                Log.d(TAG, "onConnected: session token " + mediaBrowser.getSessionToken());
+                try {
+                    MediaControllerCompat mediaController = new MediaControllerCompat(context, mediaBrowser.getSessionToken());
+                    MediaControllerCompat.setMediaController(activity, mediaController);
+                    Log.d(TAG, mediaController.toString());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onConnectionFailed() {
+                Log.e(TAG, "onConnectionFailed");
+            }
+
+            @Override
+            public void onConnectionSuspended() {
+                Log.d(TAG, "onConnectionSuspended");
+
+            }
+        };
+
+        mediaBrowser = new MediaBrowserCompat(context,
+                new ComponentName(context, MusicServiceMediaBrowser.class),
+                mConnectionCallback, null);
+
+        mediaBrowser.connect();
+
+
+    }*/
+
+
+    public void stopMusicService() {
+        Log.d(TAG, "stopMusicService");
+        mediaBrowser.disconnect();
+        context.stopService(new Intent(context, MusicServiceMediaBrowser.class));
+
     }
 
-
-    public void startSong(YouTubeSong youTubeSong) {
-        log("startSong");
+    public void startSong(final MediaControllerCompat mediaController, YouTubeSong youTubeSong) {
+        Log.d(TAG, "startSong");
+        final Intent i = new Intent(context, MusicServiceMediaBrowser.class);
         if (!isMusicServiceRunning(context))
             throw new IllegalStateException("startSong must be called after the service is started");
         if (youTubeSong != null) {
-
-
-
-            Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-            i.putExtra(KEY_SONG, new String[]{
-                    youTubeSong.getId(),
-                    youTubeSong.getTitle(),
-                    youTubeSong.getPath(),
-                    String.valueOf(youTubeSong.getStart()),
-                    String.valueOf(youTubeSong.getEnd())});
-
-            if (youTubeSong.getPath() == null || youTubeSong.getPath().equals("")) {
-                i.setAction(ACTION_START_STREAMING);
+            if (youTubeSong.getPath() != null) {
+                Log.d(TAG, "startSongFromId");
+                mediaController.getTransportControls().prepareFromMediaId(youTubeSong.getPath(), null);
             } else {
-                i.setAction(ACTION_START_LOCAL);
+                Log.d(TAG, "startSongFromUri");
+                new YouTubeExtractor(context) {
+                    @Override
+                    public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
+                        if (ytFiles != null) {
+                            Log.d(TAG, "onExtractionComplete");
+                            String downloadUrl = ytFiles.get(140).getUrl();
+                            mediaController.getTransportControls().prepareFromUri(Uri.parse(downloadUrl), null);
+                        }
+                    }
+                }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), false, false);
             }
 
-            context.startService(i);
-        } else log("youtube song is null");
+        } else Log.w(TAG, "youTubeSong is null");
     }
 
-    public void stopMusicService() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_STOP);
-        context.startService(i);
+    public void playOrPauseSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "playOrPauseSong");
+        if (mediaController.getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING)
+            mediaController.getTransportControls().pause();
+        else if (mediaController.getPlaybackState().getState() == PlaybackStateCompat.STATE_PAUSED)
+            mediaController.getTransportControls().play();
+        else Log.w(TAG, "playOrPauseSong called at invalid state");
     }
 
-    public void playOrPauseSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_PLAY_PAUSE);
-        context.startService(i);
-
-    }
-
-    public void playSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_PLAY);
-        context.startService(i);
+    public void playSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "playSong");
+        mediaController.getTransportControls().play();
 
     }
 
-    public void pauseSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_PAUSE);
-        context.startService(i);
+    public void pauseSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "pauseSong");
+        mediaController.getTransportControls().pause();
 
     }
 
-    public void skipToPreviusSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_PREVIOUS);
-        context.startService(i);
-
+    public void skipToPreviusSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "skipToPreviusSong");
+        mediaController.getTransportControls().skipToPrevious();
     }
 
-    public void skipToNextSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_NEXT);
-        context.startService(i);
-
+    public void skipToNextSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "skipToNextSong");
+        mediaController.getTransportControls().skipToNext();
     }
 
-    public void rewindSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_REWIND);
-        context.startService(i);
-
+    public void stopSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "stopSong");
+        mediaController.getTransportControls().stop();
     }
 
-    public void fastForwardSong() {
-        Intent i = new Intent(context, MusicServiceMediaBrowser.class);
-        i.setAction(ACTION_FAST_FORWARD);
-        context.startService(i);
+
+    public void rewindSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "rewindSong");
+        mediaController.getTransportControls().rewind();
+    }
+
+    public void fastForwardSong(MediaControllerCompat mediaController) {
+        Log.d(TAG, "fastForwardSong");
+        mediaController.getTransportControls().fastForward();
 
     }
 
@@ -311,6 +343,7 @@ public class Repo {
         this.onExecuteTaskCallback = onExecuteTaskCallback;
         new SearchTask().execute(query);
     }
+
 
     private class AutocompleteTask extends AsyncTask<String, Void, String> {
         URL url;
