@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -108,10 +109,22 @@ public class ServiceController {
         }
     }
 
+
+    boolean postProgressUpdate = false;
+
     private ServiceController(Context context) {
         this.context = context;
         this.mediaBrowser = new MediaBrowserCompat(context, new ComponentName(context, MusicService.class), this.connectionCallback, null);
         this.mediaBrowser.connect();
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                handler.postDelayed(this, 1000);
+                if (postProgressUpdate) callback.onPositionChanged(player.getCurrentPosition());
+            }
+        }, 1000);
     }
 
     public static ServiceController getInstance(Context context) {
@@ -134,13 +147,18 @@ public class ServiceController {
         this.mediaBrowser.disconnect();
     }
 
+    public void seekTo(long position){
+        player.seekTo(position);
+    }
+
     public void prepareForStreaming(final YouTubeSong youTubeSong) {
+        callback.onLoadingStarted(player);
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING);
         new YouTubeExtractor(this.context) {
             public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
                 if (ytFiles != null) {
                     Log.d(ServiceController.TAG, "onExtractionComplete");
-                    Uri audioUri = Uri.parse(( ytFiles.get(140)).getUrl());
+                    Uri audioUri = Uri.parse((ytFiles.get(140)).getUrl());
                     //TODO check if 136 is right
                     Uri videoUri = Uri.parse((ytFiles.get(134)).getUrl());
                     DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
@@ -151,11 +169,12 @@ public class ServiceController {
                     setMetadata(youTubeSong);
                     player.prepare(compositeSource);
                     songPreparing = youTubeSong;
+                    callback.onLoadingFinished();
                     play();
                 }
             }
         }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), false, false);
-        this.callback.onLoading(this.player);
+
     }
 
     public void prepareForLocal(YouTubeSong youTubeSong) {
@@ -163,11 +182,13 @@ public class ServiceController {
     }
 
     public void play() {
+        Log.d(TAG, "play");
         if (this.service.requestAudiofocus(this.context)) {
             setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
             this.player.setPlayWhenReady(true);
             this.mediaSession.setActive(true);
-            this.service.setConnectedToNoisyReciever(this.context, true);
+            this.service.setConnectedToNoisyReciever(context, true);
+            postProgressUpdate =true;
             this.callback.onPlaying();
             return;
         }
@@ -179,7 +200,15 @@ public class ServiceController {
         setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
         this.player.setPlayWhenReady(false);
         this.service.setConnectedToNoisyReciever(this.context, false);
+        postProgressUpdate= false;
         this.callback.onPaused();
+    }
+
+    public void playOrPause() {
+        if (getPlaybackState() == PlaybackStateCompat.STATE_PLAYING)
+            pause();
+        else
+            play();
     }
 
     public void stop() {
@@ -214,7 +243,7 @@ public class ServiceController {
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getId())
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId())
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, BitmapFactory.decodeResource(this.context.getResources(), R.mipmap.ic_launcher))
-               // .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImage().toString())
+                // .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImage().toString())
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, this.player.getDuration());
         this.mediaSession.setMetadata(metadata.build());
         this.callback.onMetadataChanged(metadata.build());
