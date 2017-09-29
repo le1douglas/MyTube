@@ -33,6 +33,7 @@ public class MusicPlayerActivity extends AppCompatActivity{
                 MediaControllerCompat.setMediaController(MusicPlayerActivity.this, mediaController);
                 Log.d(TAG, mediaController.toString());
                 repo.startSong(mediaController,youTubeSong);
+                //oiu
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
