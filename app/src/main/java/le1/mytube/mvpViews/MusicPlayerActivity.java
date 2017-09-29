@@ -1,86 +1,52 @@
 package le1.mytube.mvpViews;
 
-import android.content.ComponentName;
 import android.os.Bundle;
-import android.os.RemoteException;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
+import android.widget.TextView;
+
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 import le1.mytube.R;
-import le1.mytube.mvpModel.Repo;
+import le1.mytube.listeners.PlaybackStateCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.services.MusicServiceConstants;
-import le1.mytube.services.MusicServiceMediaBrowser;
+import le1.mytube.services.servicetest.ServiceController;
 
-
-public class MusicPlayerActivity extends AppCompatActivity{
-    private static final String TAG = "LE1_"+MusicPlayerActivity.class.getSimpleName();
-
-    Repo repo= new Repo(this);
-    MediaControllerCompat mediaController;
-    MediaBrowserCompat mediaBrowser;
+public class MusicPlayerActivity extends AppCompatActivity implements PlaybackStateCallback {
+    private static final String TAG = ("LE1_" + MusicPlayerActivity.class.getSimpleName());
+    SimpleExoPlayerView playerView;
+    TextView titleView;
     YouTubeSong youTubeSong;
 
-    MediaBrowserCompat.ConnectionCallback mConnectionCallback = new MediaBrowserCompat.ConnectionCallback() {
-        @Override
-        public void onConnected() {
-            Log.d(TAG, "onConnected: session token " + mediaBrowser.getSessionToken());
-            try {
-                mediaController = new MediaControllerCompat(MusicPlayerActivity.this, mediaBrowser.getSessionToken());
-                MediaControllerCompat.setMediaController(MusicPlayerActivity.this, mediaController);
-                Log.d(TAG, mediaController.toString());
-                repo.startSong(mediaController,youTubeSong);
-                //oiu
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            Log.e(TAG, "onConnectionFailed");
-        }
-
-        @Override
-        public void onConnectionSuspended() {
-            Log.d(TAG, "onConnectionSuspended");
-
-        }
-    };
-
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_music_player2);
+        setContentView( R.layout.activity_music_player2);
         Log.d(TAG, " onCreate");
-
-        youTubeSong= getIntent().getParcelableExtra(MusicServiceConstants.KEY_SONG);
-
-        mediaBrowser = new MediaBrowserCompat(this,
-                new ComponentName(this, MusicServiceMediaBrowser.class),
-                mConnectionCallback, null);
-
-
+        this.playerView = (SimpleExoPlayerView) findViewById(R.id.exo_player);
+        this.titleView = (TextView) findViewById(R.id.title);
+        this.youTubeSong = getIntent().getParcelableExtra(MusicServiceConstants.KEY_SONG);
+        ServiceController.getInstance(this).setCallback(this);
+        ServiceController.getInstance(this).prepareForStreaming(this.youTubeSong);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mediaBrowser.connect();
+    public void onPlaying() {
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mediaBrowser.disconnect();
+    public void onLoading(ExoPlayer exoPlayer) {
+        this.playerView.setPlayer((SimpleExoPlayer) exoPlayer);
     }
 
-    public void pause(View view) {
-        repo.playOrPauseSong(mediaController);
+    public void onStopped() {
     }
 
+    public void onPaused() {
+    }
+
+    public void onMetadataChanged(MediaMetadataCompat mediaMetadata) {
+        this.titleView.setText(mediaMetadata.getDescription().getTitle().toString() + "  |" + String.valueOf(mediaMetadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)));
+    }
 }

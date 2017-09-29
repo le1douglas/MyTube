@@ -28,12 +28,12 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
     private static final int MEDIA_BUTTON_REQUEST_CODE = 33;
 
     private MediaSessionCompat mediaSession;
-    private Player player;
+
 
     private BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            player.pause();
+
         }
     };
 
@@ -60,7 +60,7 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         IntentFilter filter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(noisyReceiver, filter);
 
-        player = new Player(this, this, this, mediaSession);
+
     }
 
     @Override
@@ -101,16 +101,16 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         Log.d(TAG, "onAudioFocusChange with focusChange=" + focusChange);
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
-                player.play();
+
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
-                player.pause();
+
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                player.pause();
+
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                player.duck();
+
                 break;
         }
     }
@@ -121,7 +121,7 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         public void onPrepareFromUri(Uri uri, Bundle extras) {
             super.onPrepareFromUri(uri, extras);
             Log.d(TAG, "onPrepareFromUri with uri=" + uri.toString());
-            player.prepareFromUri(uri);
+
         }
 
 
@@ -129,49 +129,48 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         public void onPrepareFromMediaId(String mediaId, Bundle extras) {
             super.onPrepareFromMediaId(mediaId, extras);
             Log.d(TAG, "onPrepareFromMediaId with id=" + mediaId);
-            player.prepareFromId(mediaId);
+
         }
 
         @Override
         public void onPlay() {
             super.onPlay();
             Log.d(TAG, "play");
-            player.play();
+
         }
 
         @Override
         public void onSeekTo(long position) {
             super.onSeekTo(position);
             Log.d(TAG, "onSeekTo:" + position);
-            player.seekTo(position);
+
         }
 
         @Override
         public void onPause() {
             super.onPause();
             Log.d(TAG, "pause");
-            player.pause();
+
         }
 
         @Override
         public void onStop() {
             super.onStop();
             Log.d(TAG, "stop");
-            player.stop();
+
         }
 
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
             Log.d(TAG, "onSkipToNext");
-            player.skipToNext();
+
         }
 
         @Override
         public void onSkipToPrevious() {
             super.onSkipToPrevious();
             Log.d(TAG, "onSkipToPrevious");
-            player.skipToPrevious();
         }
     }
 
@@ -203,8 +202,7 @@ public class MusicServiceMediaBrowser extends MediaBrowserServiceCompat implemen
         Toast.makeText(this, "onDestroy", Toast.LENGTH_SHORT).show();
         if (mediaSession.getController().getPlaybackState().getState() == PlaybackStateCompat.STATE_STOPPED) {
             unregisterReceiver(noisyReceiver);
-            player.stop();
-            player.onDestroy();
+
         }
         super.onDestroy();
     }

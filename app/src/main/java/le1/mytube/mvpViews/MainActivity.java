@@ -114,10 +114,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                 return true;
             case R.id.handleAudioFocus:
                 return true;
-            case R.id.stopService:
-                presenter.stopMusicService();
-                this.finish();
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
