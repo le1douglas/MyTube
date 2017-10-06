@@ -10,14 +10,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
+import le1.mytube.MyTubeApplication;
 import le1.mytube.R;
 import le1.mytube.listeners.PlaybackStateCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
-import le1.mytube.services.MusicServiceConstants;
-import le1.mytube.services.servicetest.ServiceController;
+
 
 public class MusicPlayerActivity extends AppCompatActivity implements PlaybackStateCallback, SeekBar.OnSeekBarChangeListener {
     private static final String TAG = ("LE1_" + MusicPlayerActivity.class.getSimpleName());
@@ -33,9 +32,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
         this.titleView = (TextView) findViewById(R.id.title);
         seekBar = (SeekBar) findViewById(R.id.progressBar);
         seekBar.setOnSeekBarChangeListener(this);
-        this.youTubeSong = getIntent().getParcelableExtra(MusicServiceConstants.KEY_SONG);
-        ServiceController.getInstance(this).setCallback(this);
-        ServiceController.getInstance(this).prepareForStreaming(this.youTubeSong);
+        this.youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
+
+        if (youTubeSong!=null) {
+        ((MyTubeApplication) getApplication()).getServiceRepo().setCallback(this);
+        ((MyTubeApplication) getApplication()).getServiceRepo().prepareStreaming(this.youTubeSong);}
+
+        if (playerView.getPlayer()==null) ((MyTubeApplication) getApplication()).getServiceRepo().setView(playerView);
+
     }
 
     @Override
@@ -44,7 +48,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onLoadingStarted(ExoPlayer exoPlayer) {
-        this.playerView.setPlayer((SimpleExoPlayer) exoPlayer);
+
     }
 
     @Override
@@ -54,6 +58,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onStopped() {
+    }
+
+    @Override
+    public void onError(String message) {
     }
 
     @Override
@@ -67,8 +75,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
     }
 
     @Override
-    public void onPositionChanged(long currentTimeinMill) {
-        seekBar.setProgress((int) currentTimeinMill);
+    public void onPositionChanged(long currentTimeInMill) {
+        seekBar.setProgress((int) currentTimeInMill);
     }
 
     public void rewButton(View view) {
@@ -81,7 +89,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     public void forButton(View view) {
         Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
-
     }
 
     public void nextButton(View view) {
@@ -89,7 +96,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
     }
 
     public void playpauseButton(View view) {
-        ServiceController.getInstance(this).playOrPause();
+        ((MyTubeApplication) getApplication()).getServiceRepo().playOrPause();
     }
 
     @Override
@@ -104,6 +111,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        ServiceController.getInstance(this).seekTo((long)seekBar.getProgress());
+        ((MyTubeApplication) getApplication()).getServiceRepo().seekTo((long)seekBar.getProgress());
     }
 }

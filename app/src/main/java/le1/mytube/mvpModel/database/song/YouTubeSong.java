@@ -53,13 +53,17 @@ public class YouTubeSong implements Parcelable{
     @ColumnInfo
     private int end;
 
-    public YouTubeSong(String id, String title, String path, Uri image, int start, int end) {
+    @ColumnInfo
+    private Long duration;
+
+    public YouTubeSong(String id, String title, String path, Uri image, int start, int end, Long duration) {
         this.title = title;
         this.id = id;
         this.path = path;
         this.image = image;
         this.start = start;
         this.end = end;
+        this.duration = duration;
     }
 
     @Override
@@ -124,7 +128,13 @@ public class YouTubeSong implements Parcelable{
         return image;
     }
 
+    public Long getDuration() {
+        return duration;
+    }
 
+    public void setDuration(Long duration) {
+        this.duration = duration;
+    }
 
     public void setImage(Uri imageUri) {
         this.image = imageUri;
@@ -158,7 +168,8 @@ public class YouTubeSong implements Parcelable{
                 this.path + "," +
                 this.image + "," +
                 this.start + "," +
-                this.end + "}";
+                this.end + "," +
+                this.duration + "}";
     }
 
     public void download(final Context context) {
@@ -238,8 +249,6 @@ public class YouTubeSong implements Parcelable{
 
     }
 
-
-
     public static class Builder {
         private final String id;
         private final String title;
@@ -247,6 +256,7 @@ public class YouTubeSong implements Parcelable{
         private int start;
         private int end;
         private Uri image;
+        private Long duration;
 
         public Builder(String id, String title) {
             this.id = id;
@@ -273,9 +283,14 @@ public class YouTubeSong implements Parcelable{
             return this;
         }
 
+        public Builder duration(Long duration){
+            this.duration = duration;
+            return this;
+        }
+
         public YouTubeSong build(){
             if (this.end<this.start) throw new IllegalArgumentException("end ("+String.valueOf(this.end)+") must be grater han start("+String.valueOf(this.start)+")");
-            else return new YouTubeSong(this.id, this.title, this.path, this.image, this.start, this.end);
+            else return new YouTubeSong(this.id, this.title, this.path, this.image, this.start, this.end, this.duration);
         }
     }
 }

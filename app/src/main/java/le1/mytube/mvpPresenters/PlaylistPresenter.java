@@ -6,6 +6,7 @@ import android.content.Intent;
 
 import java.util.ArrayList;
 
+import le1.mytube.MyTubeApplication;
 import le1.mytube.listeners.OnLoadSongInPlaylistListener;
 import le1.mytube.listeners.OnRequestSongDialogListener;
 import le1.mytube.mvpModel.Repo;
@@ -13,7 +14,6 @@ import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpViews.MusicPlayerActivity;
-import le1.mytube.services.MusicServiceConstants;
 
 public class PlaylistPresenter extends AndroidViewModel {
 
@@ -78,7 +78,7 @@ public class PlaylistPresenter extends AndroidViewModel {
 
     public void onListItemClick(YouTubeSong youtubeSong) {
         Intent i =new Intent(application, MusicPlayerActivity.class);
-        i.putExtra(MusicServiceConstants.KEY_SONG, youtubeSong);
+        i.putExtra(MyTubeApplication.KEY_SONG, youtubeSong);
         application.startActivity(i);
     }
 

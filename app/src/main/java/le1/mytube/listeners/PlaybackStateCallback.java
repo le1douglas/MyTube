@@ -11,11 +11,13 @@ public interface PlaybackStateCallback {
 
     void onMetadataChanged(MediaMetadataCompat mediaMetadataCompat);
 
-    void onPositionChanged(long currentTimeinMill);
+    void onPositionChanged(long currentTimeInMill);
 
     void onPaused();
 
     void onPlaying();
 
     void onStopped();
+
+    void onError(String message);
 }
