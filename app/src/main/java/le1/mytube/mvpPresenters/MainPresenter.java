@@ -23,10 +23,8 @@ import le1.mytube.mvpModel.playlists.Playlist;
 
 public class MainPresenter extends AndroidViewModel{
     private Repo repository;
-    private Application application;
     public MainPresenter(Application application) {
         super(application);
-        this.application=application;
         this.repository = new Repo(application);
     }
 
@@ -81,10 +79,6 @@ public class MainPresenter extends AndroidViewModel{
     public void clearDatabase() {
         repository.deleteAllSongs();
         repository.deleteAllPlaylists();
-    }
-
-    public void stopMusicService() {
-        repository.stopMusicService();
     }
 
     public void addPlaylist(String playlistName) {

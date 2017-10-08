@@ -19,7 +19,7 @@ import le1.mytube.R;
 import le1.mytube.mvpViews.MusicPlayerActivity;
 
 public class MusicNotification {
-    public static final int ID = 666;
+    private static final int ID = 666;
     private static final String TAG = ("LE1_" + MusicNotification.class.getSimpleName());
     private static Action fastForwardAction = null;
     private static Action playPauseAction = null;
@@ -65,14 +65,20 @@ public class MusicNotification {
                         .setSubText("error")
                         .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
                 break;
-            default:
-                throw new UnsupportedOperationException("unsupported state for music notification");
-        }
+            case PlaybackStateCompat.STATE_NONE:
+                setButtonsEnabled(true, context);
+                builder.setContentTitle("no song playing")
+                        .setContentText("choose a song to play")
+                        .setSubText("no song playing")
+                        .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
+
+                break;
+            default: return;
+            }
 
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
-        builder.
-                setContentIntent(contentIntent)
+        builder.setContentIntent(contentIntent)
                 .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
                 .setVisibility(1)
                 .setSmallIcon(R.drawable.ic_notification_icon)

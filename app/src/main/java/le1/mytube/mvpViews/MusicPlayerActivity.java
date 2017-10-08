@@ -24,15 +24,20 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
     TextView titleView;
     YouTubeSong youTubeSong;
     SeekBar seekBar;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_music_player2);
         Log.d(TAG, " onCreate");
-        this.playerView = (SimpleExoPlayerView) findViewById(R.id.exo_player);
-        this.titleView = (TextView) findViewById(R.id.title);
+
+
+        playerView = (SimpleExoPlayerView) findViewById(R.id.exo_player);
+        titleView = (TextView) findViewById(R.id.title);
         seekBar = (SeekBar) findViewById(R.id.progressBar);
         seekBar.setOnSeekBarChangeListener(this);
-        this.youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
+        youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
+
+       // ((MyTubeApplication) getApplication()).getServiceRepo().setMediaController(this);
 
         if (youTubeSong!=null) {
         ((MyTubeApplication) getApplication()).getServiceRepo().setCallback(this);
@@ -44,6 +49,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onPlaying() {
+        Toast.makeText(this, "onPlaying", Toast.LENGTH_SHORT).show();
+
     }
 
     @Override
@@ -58,6 +65,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onStopped() {
+        Toast.makeText(this, "onStopped", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -66,6 +74,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onPaused() {
+        Toast.makeText(this, "onPaused", Toast.LENGTH_SHORT).show();
     }
 
     @Override

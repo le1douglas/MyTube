@@ -1,13 +1,16 @@
 package le1.mytube.services.musicService;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.util.SparseArray;
@@ -141,19 +144,17 @@ public class ServiceRepoImpl implements ServiceRepo {
     }
 
 
-
     @Override
     public void play() {
         Log.d(TAG, "play");
         if (service.requestAudioFocus()) {
             service.setPlaybackState(PlaybackStateCompat.STATE_PLAYING, player.getCurrentPosition());
+            Log.d(TAG, "requestAudioFocus = true");
             player.setVolume(1.0f);
             player.setPlayWhenReady(true);
             service.setMediaSessionActive(true);
             service.setConnectedToNoisyReceiver(true);
             postProgressUpdate = true;
-            currentSong.setDuration(player.getDuration());
-            service.setMetadata(currentSong, playbackStateCallback);
         } else {
             Toast.makeText(this.context, "audio focus not granted", Toast.LENGTH_SHORT).show();
             pause();
@@ -182,12 +183,15 @@ public class ServiceRepoImpl implements ServiceRepo {
     @Override
     public void stop() {
         Log.d(TAG, "stop");
-        pause();
+        player.setPlayWhenReady(false);
+        service.setConnectedToNoisyReceiver(false);
+        postProgressUpdate = false;
         currentSong = null;
         service.setPlaybackState(PlaybackStateCompat.STATE_STOPPED, player.getCurrentPosition());
         player.stop();
         service.setMediaSessionActive(false);
         service.abandonAudioFocus();
+        playbackStateCallback.onStopped();
         stopService();
     }
 
@@ -211,8 +215,26 @@ public class ServiceRepoImpl implements ServiceRepo {
     @Override
     public void setView(SimpleExoPlayerView exoPlayerView) {
         exoPlayerView.setPlayer(player);
+
     }
 
+
+    private void setMediaController(Activity activity) {
+        try {
+            MediaControllerCompat controller = new MediaControllerCompat(activity, mediaBrowser.getSessionToken());
+            MediaControllerCompat.setMediaController(
+                    activity, controller);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    @Override
+    public int getPlaybackState() {
+        return service.getPlaybackState();
+    }
 
     private class PlayerListener implements Player.EventListener {
 
@@ -236,15 +258,20 @@ public class ServiceRepoImpl implements ServiceRepo {
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             switch (playbackState) {
                 case Player.STATE_READY:
-                    if (playWhenReady) playbackStateCallback.onPlaying();
-                    else playbackStateCallback.onPaused();
+                    if (playWhenReady) {
+                        currentSong.setDuration(player.getDuration());
+                        service.setMetadata(currentSong, playbackStateCallback);
+                        playbackStateCallback.onPlaying();
+                    } else {
+                        playbackStateCallback.onPaused();
+                    }
                     break;
                 case Player.STATE_IDLE:
-                    playbackStateCallback.onStopped();
                     break;
                 case Player.STATE_ENDED:
-                    pause();
-                    currentSong=null;
+                    service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
+                    playbackStateCallback.onStopped();
+                    currentSong = null;
                     break;
             }
         }

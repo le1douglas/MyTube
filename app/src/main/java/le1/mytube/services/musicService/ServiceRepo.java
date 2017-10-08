@@ -32,4 +32,6 @@ public interface ServiceRepo {
     void setCallback(PlaybackStateCallback playbackStateCallback);
 
     void setView(SimpleExoPlayerView exoPlayerView);
+
+    int getPlaybackState();
 }

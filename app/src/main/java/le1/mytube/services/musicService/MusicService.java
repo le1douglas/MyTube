@@ -18,6 +18,7 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import java.util.List;
@@ -39,7 +40,6 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
 
     private PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
 
-    private static Context context;
     private static Service service;
 
     @Override
@@ -51,7 +51,8 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
-        mediaSession.setMediaButtonReceiver(PendingIntent.getBroadcast(this, BUTTON_RECEIVER_REQUEST_CODE, mediaButtonIntent, 0));
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
+        mediaSession.setMediaButtonReceiver(pendingIntent);
         setSessionToken(mediaSession.getSessionToken());
 
         playbackState.setActions(
@@ -64,10 +65,20 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
 
 
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        context = this.getApplicationContext();
         service = this;
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand");
+        KeyEvent keyEvent =MediaButtonReceiver.handleIntent(mediaSession, intent);
+
+        if (keyEvent!=null)
+        Log.d(TAG, keyEvent.toString());
+        Log.d(TAG, "mediasession active = "+mediaSession.isActive());
+
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     public boolean requestAudioFocus() {
         return audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
@@ -94,7 +105,7 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, youTubeSong.getTitle())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getId())
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId())
-                .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, BitmapFactory.decodeResource(service.getApplicationContext().getResources(), R.mipmap.ic_launcher));
 
         if (youTubeSong.getImage() != null)
             metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImage().toString());
@@ -105,28 +116,6 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         callback.onMetadataChanged(metadata.build());
     }
 
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        Log.d(TAG, "onAudioFocusChange with focusChange=" + focusChange);
-        switch (focusChange) {
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                ((MyTubeApplication) getApplication()).getServiceRepo().pause();
-                return;
-            case AudioManager.AUDIOFOCUS_LOSS:
-                Toast.makeText(this, "AUDIOFOCUS_LOST", Toast.LENGTH_SHORT).show();
-                ((MyTubeApplication) getApplication()).getServiceRepo().pause();
-                return;
-            case AudioManager.AUDIOFOCUS_GAIN:
-                //if (ServiceController.getInstance(this).getPlaybackState()== PlaybackStateCompat.STATE_PAUSED)
-                ((MyTubeApplication) getApplication()).getServiceRepo().play();
-                return;
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                ((MyTubeApplication) getApplication()).getServiceRepo().duck();
-                return;
-            default:
-                break;
-        }
-    }
 
     public void setMediaSessionActive(boolean active) {
         mediaSession.setActive(active);
@@ -136,16 +125,17 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                ((MyTubeApplication) getApplication()).getServiceRepo().pause();
+                ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
             }
         };
 
         if (connect) {
-            context.registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+            service.getApplicationContext().registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
         } else {
             try {
-                context.unregisterReceiver(noisyReceiver);
+                service.getApplicationContext().unregisterReceiver(noisyReceiver);
             } catch (Exception ignored) {
+                //there is no way to check if receiver is registered or not
             }
         }
     }
@@ -155,33 +145,65 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
 
         playbackState.setState(state, playerCurrentPosition, PLAYBACK_SPEED_NORMAL);
         mediaSession.setPlaybackState(playbackState.build());
-        MusicNotification.updateNotification(context, service, mediaSession, state);
+
+        MusicNotification.updateNotification(service.getApplicationContext(), service, mediaSession, state);
     }
 
     public int getPlaybackState() {
         return mediaSession.getController().getPlaybackState().getState();
     }
 
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        Log.d(TAG, "onAudioFocusChange with focusChange=" + focusChange);
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
+                return;
+            case AudioManager.AUDIOFOCUS_LOSS:
+                Toast.makeText(this, "AUDIOFOCUS_LOST", Toast.LENGTH_SHORT).show();
+                ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
+                return;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                //if (ServiceController.getInstance(this).getPlaybackState()== PlaybackStateCompat.STATE_PAUSED)
+                ((MyTubeApplication) service.getApplication()).getServiceRepo().play();
+                return;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                ((MyTubeApplication) service.getApplication()).getServiceRepo().duck();
+                return;
+            default:
+                break;
+        }
+    }
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
 
         @Override
         public void onPause() {
             super.onPause();
-            ((MyTubeApplication) getApplication()).getServiceRepo().pause();
+            ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
         }
 
         @Override
         public void onPlay() {
             super.onPlay();
-            ((MyTubeApplication) getApplication()).getServiceRepo().play();
+            ((MyTubeApplication) service.getApplication()).getServiceRepo().play();
 
         }
 
         @Override
         public void onStop() {
             super.onStop();
-            ((MyTubeApplication) getApplication()).getServiceRepo().stop();
+            ((MyTubeApplication) service.getApplication()).getServiceRepo().stop();
 
         }
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        service=null;
+        mediaSession.release();
+    }
+
+
 }
