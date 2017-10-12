@@ -54,9 +54,9 @@ public class YouTubeSong implements Parcelable{
     private int end;
 
     @ColumnInfo
-    private Long duration;
+    private int duration;
 
-    public YouTubeSong(String id, String title, String path, Uri image, int start, int end, Long duration) {
+    public YouTubeSong(String id, String title, String path, Uri image, int start, int end, int duration) {
         this.title = title;
         this.id = id;
         this.path = path;
@@ -128,11 +128,11 @@ public class YouTubeSong implements Parcelable{
         return image;
     }
 
-    public Long getDuration() {
+    public int getDuration() {
         return duration;
     }
 
-    public void setDuration(Long duration) {
+    public void setDuration(int duration) {
         this.duration = duration;
     }
 
@@ -256,7 +256,7 @@ public class YouTubeSong implements Parcelable{
         private int start;
         private int end;
         private Uri image;
-        private Long duration;
+        private int duration;
 
         public Builder(String id, String title) {
             this.id = id;
@@ -283,7 +283,7 @@ public class YouTubeSong implements Parcelable{
             return this;
         }
 
-        public Builder duration(Long duration){
+        public Builder duration(int duration){
             this.duration = duration;
             return this;
         }

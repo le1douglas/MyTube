@@ -1,16 +1,14 @@
 package le1.mytube.services.musicService;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.util.SparseArray;
@@ -40,7 +38,8 @@ import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 import le1.mytube.R;
-import le1.mytube.listeners.PlaybackStateCallback;
+import le1.mytube.listeners.PlaybackStateCompositeListener;
+import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 public class ServiceRepoImpl implements ServiceRepo {
@@ -51,8 +50,9 @@ public class ServiceRepoImpl implements ServiceRepo {
     private Context context;
     private SimpleExoPlayer player;
 
+    private PlaybackStateCompositeListener listener = new PlaybackStateCompositeListener();
+
     private YouTubeSong currentSong;
-    private PlaybackStateCallback playbackStateCallback;
     private boolean postProgressUpdate = false;
 
     private class ConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
@@ -90,9 +90,11 @@ public class ServiceRepoImpl implements ServiceRepo {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
+
                 handler.postDelayed(this, 1000);
-                if (postProgressUpdate)
-                    playbackStateCallback.onPositionChanged(player.getCurrentPosition());
+                if (postProgressUpdate) {
+                    listener.onPositionChanged(player.getCurrentPosition());
+                }
             }
         }, 1000);
     }
@@ -106,6 +108,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
 
     private void stopService() {
+        service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
         player.release();
         context.stopService(new Intent(context.getApplicationContext(), MusicService.class));
         this.service = null;
@@ -132,7 +135,7 @@ public class ServiceRepoImpl implements ServiceRepo {
                 MediaSource videoSource = new ExtractorMediaSource(videoUri, dataSourceFactory, extractorsFactory, null, null);
                 MediaSource compositeSource = new MergingMediaSource(audioSource, videoSource);
                 player.prepare(compositeSource);
-                service.setMetadata(currentSong, playbackStateCallback);
+                service.setMetadata(currentSong);
                 play();
             }
         }.extract("http://youtube.com/watch?v=" + currentSong.getId(), false, false);
@@ -191,7 +194,7 @@ public class ServiceRepoImpl implements ServiceRepo {
         player.stop();
         service.setMediaSessionActive(false);
         service.abandonAudioFocus();
-        playbackStateCallback.onStopped();
+        listener.onStopped();
         stopService();
     }
 
@@ -208,8 +211,8 @@ public class ServiceRepoImpl implements ServiceRepo {
     }
 
     @Override
-    public void setCallback(PlaybackStateCallback playbackStateCallback) {
-        this.playbackStateCallback = playbackStateCallback;
+    public void addListener(PlaybackStateListener playbackStateListener) {
+       listener.addListener(playbackStateListener);
     }
 
     @Override
@@ -218,22 +221,15 @@ public class ServiceRepoImpl implements ServiceRepo {
 
     }
 
-
-    private void setMediaController(Activity activity) {
-        try {
-            MediaControllerCompat controller = new MediaControllerCompat(activity, mediaBrowser.getSessionToken());
-            MediaControllerCompat.setMediaController(
-                    activity, controller);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-
-    }
-
     @Override
     public int getPlaybackState() {
         return service.getPlaybackState();
+    }
+
+    @Nullable
+    @Override
+    public YouTubeSong getCurrentSong() {
+        return currentSong;
     }
 
     private class PlayerListener implements Player.EventListener {
@@ -250,8 +246,8 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onLoadingChanged(boolean isLoading) {
-            if (isLoading) playbackStateCallback.onLoadingStarted(player);
-            else playbackStateCallback.onLoadingFinished();
+            if (isLoading) listener.onLoadingStarted();
+            else listener.onLoadingFinished();
         }
 
         @Override
@@ -259,18 +255,18 @@ public class ServiceRepoImpl implements ServiceRepo {
             switch (playbackState) {
                 case Player.STATE_READY:
                     if (playWhenReady) {
-                        currentSong.setDuration(player.getDuration());
-                        service.setMetadata(currentSong, playbackStateCallback);
-                        playbackStateCallback.onPlaying();
+                        currentSong.setDuration((int) player.getDuration());
+                        service.setMetadata(currentSong);
+                        listener.onPlaying(currentSong);
                     } else {
-                        playbackStateCallback.onPaused();
+                        listener.onPaused();
                     }
                     break;
                 case Player.STATE_IDLE:
                     break;
                 case Player.STATE_ENDED:
                     service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
-                    playbackStateCallback.onStopped();
+                    listener.onStopped();
                     currentSong = null;
                     break;
             }
@@ -283,7 +279,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
-            playbackStateCallback.onError(error.getMessage());
+            listener.onError(error.getMessage());
         }
 
         @Override

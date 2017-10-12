@@ -1,111 +1,75 @@
 package le1.mytube.mvpViews;
 
+import android.arch.lifecycle.LifecycleActivity;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 import le1.mytube.MyTubeApplication;
+import le1.mytube.PlayerOverlayView;
 import le1.mytube.R;
-import le1.mytube.listeners.PlaybackStateCallback;
+import le1.mytube.listeners.MusicPlayerCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.mvpPresenters.MusicPlayerPresenter;
 
 
-public class MusicPlayerActivity extends AppCompatActivity implements PlaybackStateCallback, SeekBar.OnSeekBarChangeListener {
+public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.OnSeekBarChangeListener, MusicPlayerCallback, LifecycleOwner{
     private static final String TAG = ("LE1_" + MusicPlayerActivity.class.getSimpleName());
     SimpleExoPlayerView playerView;
-    TextView titleView;
     YouTubeSong youTubeSong;
-    SeekBar seekBar;
+    PlayerOverlayView overlay;
+    MusicPlayerPresenter presenter;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView( R.layout.activity_music_player2);
-        Log.d(TAG, " onCreate");
+        makeFullScreenIfLandscape();
+        setContentView(R.layout.activity_music_player);
+        playerView = findViewById(R.id.exo_player);
+        overlay = findViewById(R.id.overlay);
 
+        presenter = ViewModelProviders.of(this).get(MusicPlayerPresenter.class);
+        presenter.setListener(this);
+        this.getLifecycle().addObserver(presenter);
 
-        playerView = (SimpleExoPlayerView) findViewById(R.id.exo_player);
-        titleView = (TextView) findViewById(R.id.title);
-        seekBar = (SeekBar) findViewById(R.id.progressBar);
-        seekBar.setOnSeekBarChangeListener(this);
+        overlay.setOnSeekBarChangeListener(this);
+        overlay.setButtonOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.playOrPause();
+
+            }
+        });
+
+        if (getIntent()!=null)   Toast.makeText(this, "new Intent", Toast.LENGTH_SHORT).show();
         youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
 
-       // ((MyTubeApplication) getApplication()).getServiceRepo().setMediaController(this);
+        presenter.linkPlayerToView(playerView);
+        presenter.startSong(youTubeSong);
 
-        if (youTubeSong!=null) {
-        ((MyTubeApplication) getApplication()).getServiceRepo().setCallback(this);
-        ((MyTubeApplication) getApplication()).getServiceRepo().prepareStreaming(this.youTubeSong);}
 
-        if (playerView.getPlayer()==null) ((MyTubeApplication) getApplication()).getServiceRepo().setView(playerView);
+    }
 
+    private void makeFullScreenIfLandscape() {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
     }
 
     @Override
-    public void onPlaying() {
-        Toast.makeText(this, "onPlaying", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void onLoadingStarted(ExoPlayer exoPlayer) {
-
-    }
-
-    @Override
-    public void onLoadingFinished() {
-
-    }
-
-    @Override
-    public void onStopped() {
-        Toast.makeText(this, "onStopped", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onError(String message) {
-    }
-
-    @Override
-    public void onPaused() {
-        Toast.makeText(this, "onPaused", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onMetadataChanged(MediaMetadataCompat mediaMetadata) {
-        this.titleView.setText(mediaMetadata.getDescription().getTitle().toString());
-        seekBar.setMax((int) mediaMetadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
-    }
-
-    @Override
-    public void onPositionChanged(long currentTimeInMill) {
-        seekBar.setProgress((int) currentTimeInMill);
-    }
-
-    public void rewButton(View view) {
-        Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
-    }
-
-    public void backButton(View view) {
-        Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
-    }
-
-    public void forButton(View view) {
-        Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
-    }
-
-    public void nextButton(View view) {
-        Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
-    }
-
-    public void playpauseButton(View view) {
-        ((MyTubeApplication) getApplication()).getServiceRepo().playOrPause();
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
     }
 
     @Override
@@ -120,6 +84,18 @@ public class MusicPlayerActivity extends AppCompatActivity implements PlaybackSt
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        ((MyTubeApplication) getApplication()).getServiceRepo().seekTo((long)seekBar.getProgress());
+        presenter.seekTo(seekBar.getProgress());
     }
+
+    @Override
+    public void onUpdateSeekBar(int position) {
+        overlay.setProgress(position);
+    }
+
+    @Override
+    public void onInitializeUi(YouTubeSong youTubeSong) {
+        overlay.setTitle(youTubeSong.getTitle());
+        overlay.setMaxProgress(youTubeSong.getDuration());
+    }
+
 }

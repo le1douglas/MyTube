@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 /**
  * Created by leone on 06/10/17.
@@ -22,7 +21,6 @@ public class MediaReceiver extends BroadcastReceiver {
                 Log.w("MEDIARECIEVER", "event is null");
             }
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                Toast.makeText(context, "aleale", Toast.LENGTH_SHORT).show();
                 dispatchKeyEvent(context.getApplicationContext(), event);
             }
         }

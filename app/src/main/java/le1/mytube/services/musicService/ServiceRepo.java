@@ -1,10 +1,11 @@
 package le1.mytube.services.musicService;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
-import le1.mytube.listeners.PlaybackStateCallback;
+import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
@@ -29,9 +30,13 @@ public interface ServiceRepo {
 
     void seekTo(long position);
 
-    void setCallback(PlaybackStateCallback playbackStateCallback);
+    void addListener(PlaybackStateListener playbackStateCallback);
 
     void setView(SimpleExoPlayerView exoPlayerView);
 
     int getPlaybackState();
+
+    @Nullable
+    YouTubeSong getCurrentSong();
+
 }

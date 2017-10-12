@@ -66,7 +66,7 @@ public class MusicNotification {
                         .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
                 break;
             case PlaybackStateCompat.STATE_NONE:
-                setButtonsEnabled(true, context);
+                setButtonsEnabled(false, context);
                 builder.setContentTitle("no song playing")
                         .setContentText("choose a song to play")
                         .setSubText("no song playing")

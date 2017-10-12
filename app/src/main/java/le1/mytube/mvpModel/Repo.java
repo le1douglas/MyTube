@@ -1,11 +1,9 @@
 package le1.mytube.mvpModel;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,19 +33,13 @@ public class Repo {
     private AutocompleteTask autocompleteTask;
     private OnExecuteTaskCallback onExecuteTaskCallback;
 
-    private MediaBrowserCompat mediaBrowser;
-    private MediaBrowserCompat.ConnectionCallback mConnectionCallback;
-    private MediaControllerCompat mediaControllerCompat;
+    private SharedPreferences sharedPreferences;
 
     public Repo(Context context) {
         this.context = context;
         database = Database.getDatabase(this.context);
         playlistDatabase = PlaylistDatabaseImpl.getDatabase(this.context);
-    }
-
-
-    private void log(String message) {
-        Log.d("LE1_DEBUG REPO", message);
+        sharedPreferences = context.getSharedPreferences("le1.mytube.sharedPrefFile", Context.MODE_PRIVATE);
     }
 
     //--------SONG DATABASE
@@ -94,11 +86,9 @@ public class Repo {
         return playlistDatabase.getPlaylistByName(name);
     }
 
-
     public int getAllPlaylistCount() {
         return playlistDatabase.getAllPlaylistCount();
     }
-
 
     public void addPlaylist(String... names) {
         playlistDatabase.addPlaylist(names);
@@ -187,6 +177,7 @@ public class Repo {
     public void setAudioFocus(boolean audioFocus) {
 
     }
+
     
     //TASKS
 

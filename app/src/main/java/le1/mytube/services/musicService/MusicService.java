@@ -25,7 +25,6 @@ import java.util.List;
 
 import le1.mytube.MyTubeApplication;
 import le1.mytube.R;
-import le1.mytube.listeners.PlaybackStateCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.notification.musicNotification.MusicNotification;
 
@@ -51,7 +50,7 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, BUTTON_RECEIVER_REQUEST_CODE, mediaButtonIntent, 0);
         mediaSession.setMediaButtonReceiver(pendingIntent);
         setSessionToken(mediaSession.getSessionToken());
 
@@ -100,7 +99,7 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         result.sendResult(null);
     }
 
-    public void setMetadata(YouTubeSong youTubeSong, PlaybackStateCallback callback) {
+    public void setMetadata(YouTubeSong youTubeSong) {
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, youTubeSong.getTitle())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getId())
@@ -109,11 +108,10 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
 
         if (youTubeSong.getImage() != null)
             metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImage().toString());
-        if (youTubeSong.getDuration() != null)
+        if (youTubeSong.getDuration() != 0)
             metadata.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, youTubeSong.getDuration());
 
         mediaSession.setMetadata(metadata.build());
-        callback.onMetadataChanged(metadata.build());
     }
 
 
@@ -150,7 +148,9 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
     }
 
     public int getPlaybackState() {
+        if (mediaSession.getController().getPlaybackState()!=null)
         return mediaSession.getController().getPlaybackState().getState();
+        else return PlaybackStateCompat.STATE_NONE;
     }
 
     @Override
