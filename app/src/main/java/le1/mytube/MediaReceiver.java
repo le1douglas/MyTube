@@ -51,7 +51,7 @@ public class MediaReceiver extends BroadcastReceiver {
         }else  if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP){
             Log.d("MEDIARECIEVER", "KEYCODE_MEDIA_STOP");
 
-            ((MyTubeApplication) application).getServiceRepo().stop();
+            ((MyTubeApplication) application).getServiceRepo().stopService();
         }
     }
 

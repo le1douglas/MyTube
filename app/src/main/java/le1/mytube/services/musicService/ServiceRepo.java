@@ -26,6 +26,8 @@ public interface ServiceRepo {
 
     void seekTo(long position);
 
+    void stopService();
+
     void addListener(PlaybackStateListener playbackStateCallback);
 
     void setView(SimpleExoPlayerView exoPlayerView);

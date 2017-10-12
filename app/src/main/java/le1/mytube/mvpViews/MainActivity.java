@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import le1.mytube.MyTubeApplication;
 import le1.mytube.R;
 import le1.mytube.listeners.OnCheckValidPlaylistNameListener;
 import le1.mytube.listeners.OnLoadAudioFocusListener;
@@ -35,6 +36,7 @@ import le1.mytube.listeners.OnRequestPlaylistDialogListener;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpPresenters.MainPresenter;
+import le1.mytube.services.musicService.MusicService;
 
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadPlaylistListener, OnLoadAudioFocusListener, OnRequestPlaylistDialogListener, OnCheckValidPlaylistNameListener {
@@ -60,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (!MyTubeApplication.isMyServiceRunning(this, MusicService.class)) ;
+
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
         tb.setTitle(R.string.app_name);
         tb.setTitleTextColor(Color.WHITE);
@@ -76,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         listView.setOnItemLongClickListener(this);
 
         presenter.loadPlaylists(this);
-
 
 
     }
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     @Override
     public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
-        presenter.onItemLongClick(new Playlist(0,parent.getItemAtPosition(position).toString(), null, 0, 0), position, this);
+        presenter.onItemLongClick(new Playlist(0, parent.getItemAtPosition(position).toString(), null, 0, 0), position, this);
         return true;
     }
 
@@ -150,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     @Override
     public void onNoPlaylistLoaded() {
-        Toast.makeText(this, "No playlist to load", Toast.LENGTH_SHORT).show();
     }
 
     @Override

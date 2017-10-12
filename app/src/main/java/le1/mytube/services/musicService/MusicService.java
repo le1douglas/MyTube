@@ -70,11 +70,11 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand");
-        KeyEvent keyEvent =MediaButtonReceiver.handleIntent(mediaSession, intent);
+        KeyEvent keyEvent = MediaButtonReceiver.handleIntent(mediaSession, intent);
 
-        if (keyEvent!=null)
-        Log.d(TAG, keyEvent.toString());
-        Log.d(TAG, "mediasession active = "+mediaSession.isActive());
+        if (keyEvent != null)
+            Log.d(TAG, keyEvent.toString());
+        Log.d(TAG, "mediasession active = " + mediaSession.isActive());
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -148,8 +148,8 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
     }
 
     public int getPlaybackState() {
-        if (mediaSession.getController().getPlaybackState()!=null)
-        return mediaSession.getController().getPlaybackState().getState();
+        if (mediaSession.getController().getPlaybackState() != null)
+            return mediaSession.getController().getPlaybackState().getState();
         else return PlaybackStateCompat.STATE_NONE;
     }
 
@@ -175,6 +175,7 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
                 break;
         }
     }
+
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
 
         @Override
@@ -201,9 +202,19 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
     @Override
     public void onDestroy() {
         super.onDestroy();
-        service=null;
+        service = null;
         mediaSession.release();
     }
 
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        if (((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState()
+                == PlaybackStateCompat.STATE_STOPPED
+                || ((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState()
+                == PlaybackStateCompat.STATE_PAUSED) {
+            ((MyTubeApplication) service.getApplication()).getServiceRepo().stopService();
+        }
+    }
 }

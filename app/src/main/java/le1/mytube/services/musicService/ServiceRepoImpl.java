@@ -2,7 +2,6 @@ package le1.mytube.services.musicService;
 
 import android.app.Application;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
@@ -47,7 +46,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
     private MediaBrowserCompat mediaBrowser;
     private MusicService service;
-    private Context context;
+    private Application context;
     private SimpleExoPlayer player;
 
     private PlaybackStateCompositeListener listener = new PlaybackStateCompositeListener();
@@ -82,6 +81,7 @@ public class ServiceRepoImpl implements ServiceRepo {
     }
 
     private void init() {
+        Toast.makeText(context, "start service", Toast.LENGTH_SHORT).show();
         service = new MusicService();
         player = ExoPlayerFactory.newSimpleInstance(context, new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter())));
         player.addListener(new PlayerListener());
@@ -106,8 +106,10 @@ public class ServiceRepoImpl implements ServiceRepo {
         mediaBrowser.connect();
     }
 
-
-    private void stopService() {
+    @Override
+    public void stopService() {
+        if (getPlaybackState()!=PlaybackStateCompat.STATE_STOPPED) stop();
+        Toast.makeText(context, "stopService", Toast.LENGTH_SHORT).show();
         service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
         player.release();
         context.stopService(new Intent(context.getApplicationContext(), MusicService.class));
