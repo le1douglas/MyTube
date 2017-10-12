@@ -195,7 +195,7 @@ public class ServiceRepoImpl implements ServiceRepo {
         service.setMediaSessionActive(false);
         service.abandonAudioFocus();
         listener.onStopped();
-        stopService();
+       // stopService();
     }
 
     @Override

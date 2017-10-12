@@ -32,6 +32,8 @@ import le1.mytube.mvpPresenters.SearchResultPresenter;
 import static le1.mytube.mvpViews.MainActivity.changeStatusBarColor;
 
 public class SearchResultActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnTouchListener, OnExecuteTaskCallback {
+    private static final int PLAYER_ACTIVITY_REQUEST_CODE = 33;
+
     ListView videoResultListView;
     ProgressBar loadingIcon;
     VideoResultAdapter videoResultAdapter;
@@ -76,7 +78,7 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
         YouTubeSong youTubeSong = new YouTubeSong.Builder(idView.getText().toString(), videoTitle.getText().toString()).build();
         Intent i =new Intent(this, MusicPlayerActivity.class);
         i.putExtra(MyTubeApplication.KEY_SONG, youTubeSong);
-        this.startActivity(i);
+        this.startActivityForResult(i,PLAYER_ACTIVITY_REQUEST_CODE);
     }
 
     @Override

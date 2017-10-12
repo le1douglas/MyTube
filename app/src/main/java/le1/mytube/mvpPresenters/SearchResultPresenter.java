@@ -2,14 +2,11 @@ package le1.mytube.mvpPresenters;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.content.Intent;
 import android.widget.Toast;
 
-import le1.mytube.MyTubeApplication;
 import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
-import le1.mytube.mvpViews.MusicPlayerActivity;
 
 /**
  * Created by Leone on 05/09/17.
@@ -24,13 +21,6 @@ public class SearchResultPresenter extends AndroidViewModel{
         repo=new Repo(application);
         this.application = application;
     }
-
-   public void startSong(YouTubeSong youTubeSong){
-       Intent i =new Intent(application, MusicPlayerActivity.class);
-       i.putExtra(MyTubeApplication.KEY_SONG, youTubeSong);
-       application.startActivity(i);
-   }
-
    public void getSearchResults(String query, OnExecuteTaskCallback onExecuteTaskCallback){
        repo.loadYouTubeSearchResult(query, onExecuteTaskCallback);
    }

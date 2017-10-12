@@ -8,10 +8,6 @@ import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
-/**
- * Created by leone on 05/10/17.
- */
-
 public interface ServiceRepo {
 
     void prepareStreaming(@NonNull YouTubeSong youTubeSong);

@@ -11,4 +11,6 @@ public interface MusicPlayerCallback {
     void onUpdateSeekBar(int position);
 
     void onInitializeUi(YouTubeSong youTubeSong);
+
+    void onCloseActivity();
 }

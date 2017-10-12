@@ -5,7 +5,12 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.OnLifecycleEvent;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
@@ -14,6 +19,8 @@ import le1.mytube.MyTubeApplication;
 import le1.mytube.listeners.MusicPlayerCallback;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.mvpViews.MusicPlayerActivity;
+import le1.mytube.mvpViews.SearchResultActivity;
 
 public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackStateListener, LifecycleObserver {
     private static final String TAG = ("LE1_" + MusicPlayerPresenter.class.getSimpleName());
@@ -28,9 +35,10 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResume() {
-        if ( ((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong()!=null){
-        listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong());
-        listener.onUpdateSeekBar((int) playerView.getPlayer().getCurrentPosition());}
+        if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong() != null) {
+            listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong());
+            listener.onUpdateSeekBar((int) playerView.getPlayer().getCurrentPosition());
+        }
     }
 
 
@@ -51,7 +59,7 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
 
     @Override
     public void onStopped() {
-        
+        listener.onCloseActivity();
     }
 
     @Override
@@ -94,6 +102,23 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
 
     public void seekTo(int progress) {
         ((MyTubeApplication) getApplication()).getServiceRepo().seekTo((long) progress);
+    }
+
+    /**
+     * activity can be opened either by {@link MusicPlayerActivity}
+     * or by Notification
+     * <p>
+     * if opened by activity start new song, otherwise just open the player in it's current state
+     */
+
+    public void startSongIfNecessary(@NonNull Intent intent, @Nullable ComponentName callingActivity) {
+        Log.d(TAG, "startSongIfNecessary called with intent=" + intent+" and callingActivity=" + callingActivity);
+        if (callingActivity != null) {
+            if (callingActivity.getClassName().equals(SearchResultActivity.class.getName())) {
+                YouTubeSong youTubeSong = intent.getParcelableExtra(MyTubeApplication.KEY_SONG);
+                ((MyTubeApplication) getApplication()).getServiceRepo().prepareStreaming(youTubeSong);
+            }
+        }
     }
 }
 

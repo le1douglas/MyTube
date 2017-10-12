@@ -5,16 +5,13 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.SeekBar;
-import android.widget.Toast;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
-import le1.mytube.MyTubeApplication;
 import le1.mytube.PlayerOverlayView;
 import le1.mytube.R;
 import le1.mytube.listeners.MusicPlayerCallback;
@@ -33,6 +30,7 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
         super.onCreate(savedInstanceState);
         makeFullScreenIfLandscape();
         setContentView(R.layout.activity_music_player);
+
         playerView = findViewById(R.id.exo_player);
         overlay = findViewById(R.id.overlay);
 
@@ -48,14 +46,10 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
             }
         });
-
-        if (getIntent()!=null)   Toast.makeText(this, "new Intent", Toast.LENGTH_SHORT).show();
-        youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
-
         presenter.linkPlayerToView(playerView);
-        presenter.startSong(youTubeSong);
-
-
+        if (savedInstanceState == null) {
+            presenter.startSongIfNecessary(getIntent(), getCallingActivity());
+        }
     }
 
     private void makeFullScreenIfLandscape() {
@@ -66,11 +60,6 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
-    }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -98,4 +87,8 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
         overlay.setMaxProgress(youTubeSong.getDuration());
     }
 
+    @Override
+    public void onCloseActivity() {
+        this.finish();
+    }
 }
