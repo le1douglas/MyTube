@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import java.util.ArrayList;
 
-import le1.mytube.MyTubeApplication;
+import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.OnLoadSongInPlaylistListener;
 import le1.mytube.listeners.OnRequestSongDialogListener;
 import le1.mytube.mvpModel.Repo;

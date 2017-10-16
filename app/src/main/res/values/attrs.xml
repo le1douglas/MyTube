@@ -2,7 +2,6 @@
 <resources>
     <declare-styleable name="PlayerOverlayView">
         <attr name="title" format="string"/>
-        <attr name="onButtonClick" format="reference"/>
-
+        <attr name="titleTextColor" format="color"/>
     </declare-styleable>
 </resources>

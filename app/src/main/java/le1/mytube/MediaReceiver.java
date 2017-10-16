@@ -1,11 +1,15 @@
 package le1.mytube;
 
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.ProcessLifecycleOwner;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.KeyEvent;
+
+import le1.mytube.application.MyTubeApplication;
 
 /**
  * Created by leone on 06/10/17.
@@ -19,8 +23,7 @@ public class MediaReceiver extends BroadcastReceiver {
             KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             if (event == null) {
                 Log.w("MEDIARECIEVER", "event is null");
-            }
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            } else if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 dispatchKeyEvent(context.getApplicationContext(), event);
             }
         }
@@ -49,8 +52,7 @@ public class MediaReceiver extends BroadcastReceiver {
 
             }
         }else  if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP){
-            Log.d("MEDIARECIEVER", "KEYCODE_MEDIA_STOP");
-
+            if (!ProcessLifecycleOwner.get().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED))
             ((MyTubeApplication) application).getServiceRepo().stopService();
         }
     }

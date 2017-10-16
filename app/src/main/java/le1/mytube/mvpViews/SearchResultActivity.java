@@ -22,9 +22,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import le1.mytube.MyTubeApplication;
 import le1.mytube.R;
 import le1.mytube.adapters.VideoResultAdapter;
+import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpPresenters.SearchResultPresenter;

@@ -15,7 +15,7 @@ import android.widget.Toast;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
-import le1.mytube.MyTubeApplication;
+import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.MusicPlayerCallback;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
@@ -120,5 +120,6 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
             }
         }
     }
+
 }
 

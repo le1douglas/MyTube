@@ -27,7 +27,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import le1.mytube.MyTubeApplication;
 import le1.mytube.R;
 import le1.mytube.listeners.OnCheckValidPlaylistNameListener;
 import le1.mytube.listeners.OnLoadAudioFocusListener;
@@ -36,7 +35,6 @@ import le1.mytube.listeners.OnRequestPlaylistDialogListener;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpPresenters.MainPresenter;
-import le1.mytube.services.musicService.MusicService;
 
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadPlaylistListener, OnLoadAudioFocusListener, OnRequestPlaylistDialogListener, OnCheckValidPlaylistNameListener {
@@ -61,9 +59,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if (!MyTubeApplication.isMyServiceRunning(this, MusicService.class)) ;
-
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
         tb.setTitle(R.string.app_name);
         tb.setTitleTextColor(Color.WHITE);

@@ -15,6 +15,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
@@ -97,6 +98,8 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         }
         String title = a.getString(R.styleable.PlayerOverlayView_title);
         titleView.setText(title);
+        int color = a.getColor(R.styleable.PlayerOverlayView_titleTextColor, defStyleAttr);
+        titleView.setTextColor(color);
         a.recycle();
     }
 

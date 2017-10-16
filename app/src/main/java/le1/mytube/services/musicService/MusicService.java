@@ -23,8 +23,8 @@ import android.widget.Toast;
 
 import java.util.List;
 
-import le1.mytube.MyTubeApplication;
 import le1.mytube.R;
+import le1.mytube.application.MyTubeApplication;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.notification.musicNotification.MusicNotification;
 
@@ -139,9 +139,8 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
     }
 
     public void setPlaybackState(int state, long playerCurrentPosition) {
-        Log.d(TAG, "setPlaybackState with state=" + playbackState.build().toString());
-
         playbackState.setState(state, playerCurrentPosition, PLAYBACK_SPEED_NORMAL);
+        Log.d(TAG, "setPlaybackState with state=" + playbackState.build().toString());
         mediaSession.setPlaybackState(playbackState.build());
 
         MusicNotification.updateNotification(service.getApplicationContext(), service, mediaSession, state);
@@ -213,7 +212,9 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         if (((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState()
                 == PlaybackStateCompat.STATE_STOPPED
                 || ((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState()
-                == PlaybackStateCompat.STATE_PAUSED) {
+                == PlaybackStateCompat.STATE_PAUSED
+                || ((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState()
+                == PlaybackStateCompat.STATE_NONE) {
             ((MyTubeApplication) service.getApplication()).getServiceRepo().stopService();
         }
     }
