@@ -15,6 +15,8 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.util.List;
+
 import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
@@ -50,7 +52,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     }
 
     @Override
-    public void onPlaying(YouTubeSong currentSong) {
+    public void onPlaying(YouTubeSong currentSong, List<String> resol) {
         setState(ViewState.CONTROLS_VISIBLE);
 
     }

@@ -14,4 +14,5 @@ public class Converters {
     public static String stringFromUri(Uri value) {
         return value == null ? null : value.toString();
     }
+
 }

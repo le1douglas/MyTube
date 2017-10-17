@@ -5,12 +5,18 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+
+import java.util.List;
 
 import le1.mytube.PlayerOverlayView;
 import le1.mytube.R;
@@ -19,12 +25,13 @@ import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpPresenters.MusicPlayerPresenter;
 
 
-public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.OnSeekBarChangeListener, MusicPlayerCallback, LifecycleOwner{
+public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.OnSeekBarChangeListener, MusicPlayerCallback, LifecycleOwner, AdapterView.OnItemSelectedListener {
     private static final String TAG = ("LE1_" + MusicPlayerActivity.class.getSimpleName());
     SimpleExoPlayerView playerView;
-    YouTubeSong youTubeSong;
     PlayerOverlayView overlay;
     MusicPlayerPresenter presenter;
+    Spinner spinner;
+    ArrayAdapter<String> adapter;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +40,12 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
         playerView = findViewById(R.id.exo_player);
         overlay = findViewById(R.id.overlay);
+        spinner = findViewById(R.id.spinner);
+
+
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(this);
 
         presenter = ViewModelProviders.of(this).get(MusicPlayerPresenter.class);
         presenter.setListener(this);
@@ -76,19 +89,41 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
         presenter.seekTo(seekBar.getProgress());
     }
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        adapter.clear();
+    }
+
     @Override
     public void onUpdateSeekBar(int position) {
         overlay.setProgress(position);
     }
 
     @Override
-    public void onInitializeUi(YouTubeSong youTubeSong) {
+    public void onInitializeUi(@NonNull YouTubeSong youTubeSong, List<String> resolutions) {
         overlay.setTitle(youTubeSong.getTitle());
         overlay.setMaxProgress(youTubeSong.getDuration());
+        if (resolutions!=null) {
+            adapter.addAll(resolutions);
+            adapter.notifyDataSetChanged();
+        }
     }
 
     @Override
     public void onCloseActivity() {
         this.finish();
+    }
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }

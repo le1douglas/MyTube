@@ -1,5 +1,7 @@
 package le1.mytube.listeners;
 
+import java.util.List;
+
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
@@ -10,7 +12,9 @@ public interface MusicPlayerCallback {
 
     void onUpdateSeekBar(int position);
 
-    void onInitializeUi(YouTubeSong youTubeSong);
+    void onInitializeUi(YouTubeSong youTubeSong, List<String> resolutions);
 
     void onCloseActivity();
+
+
 }

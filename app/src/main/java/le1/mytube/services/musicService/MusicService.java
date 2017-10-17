@@ -19,7 +19,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -103,11 +102,17 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, youTubeSong.getTitle())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getId())
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId())
-                .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, BitmapFactory.decodeResource(service.getApplicationContext().getResources(), R.mipmap.ic_launcher));
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId());
+        if (youTubeSong.getImageBitmap() == null) {
+            metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, BitmapFactory.decodeResource(service.getApplicationContext().getResources(), R.mipmap.ic_launcher));
+        } else {
+            metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, youTubeSong.getImageBitmap());
+            MusicNotification.updateNotification(service.getApplicationContext(), service, mediaSession,  ((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState());
 
-        if (youTubeSong.getImage() != null)
-            metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImage().toString());
+        }
+        if (youTubeSong.getImageUri() != null)
+            metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImageUri().toString());
+
         if (youTubeSong.getDuration() != 0)
             metadata.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, youTubeSong.getDuration());
 
@@ -155,17 +160,21 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
     @Override
     public void onAudioFocusChange(int focusChange) {
         Log.d(TAG, "onAudioFocusChange with focusChange=" + focusChange);
+        boolean wasPlaying = false;
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
                 return;
             case AudioManager.AUDIOFOCUS_LOSS:
-                Toast.makeText(this, "AUDIOFOCUS_LOST", Toast.LENGTH_SHORT).show();
+                if (((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState() == PlaybackStateCompat.STATE_PLAYING)
+                    wasPlaying = true;
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
                 return;
             case AudioManager.AUDIOFOCUS_GAIN:
-                //if (ServiceController.getInstance(this).getPlaybackState()== PlaybackStateCompat.STATE_PAUSED)
-                ((MyTubeApplication) service.getApplication()).getServiceRepo().play();
+                if (wasPlaying) {
+                    ((MyTubeApplication) service.getApplication()).getServiceRepo().play();
+                    wasPlaying=false;
+                }
                 return;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().duck();

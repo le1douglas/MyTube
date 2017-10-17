@@ -2,8 +2,10 @@ package le1.mytube.mvpModel.database.song;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcel;
@@ -45,7 +47,10 @@ public class YouTubeSong implements Parcelable{
     private String path;
 
     @ColumnInfo
-    private Uri image;
+    private Uri imageUri;
+
+    @Ignore
+    private Bitmap imageBitmap;
 
     @ColumnInfo
     private int start;
@@ -56,11 +61,25 @@ public class YouTubeSong implements Parcelable{
     @ColumnInfo
     private int duration;
 
-    public YouTubeSong(String id, String title, String path, Uri image, int start, int end, int duration) {
+
+
+    public YouTubeSong(String id, String title, String path, Uri imageUri, int start, int end, int duration) {
         this.title = title;
         this.id = id;
         this.path = path;
-        this.image = image;
+        this.imageUri = imageUri;
+        this.start = start;
+        this.end = end;
+        this.duration = duration;
+    }
+
+
+    private YouTubeSong(String id, String title, String path, Uri imageUri,Bitmap imageBitmap, int start, int end, int duration) {
+        this.title = title;
+        this.id = id;
+        this.path = path;
+        this.imageUri = imageUri;
+        this.imageBitmap = imageBitmap;
         this.start = start;
         this.end = end;
         this.duration = duration;
@@ -75,8 +94,8 @@ public class YouTubeSong implements Parcelable{
         this.id = parcel.readString();
         this.title = parcel.readString();
         this.path = parcel.readString();
-        if (parcel.readString()!=null) this.image = Uri.parse(parcel.readString());
-        else this.image= null;
+        if (parcel.readString()!=null) this.imageUri = Uri.parse(parcel.readString());
+        else this.imageUri = null;
         this.start = parcel.readInt();
         this.end = parcel.readInt();
     }
@@ -87,7 +106,7 @@ public class YouTubeSong implements Parcelable{
         parcel.writeString(this.title);
         if (this.path!=null) parcel.writeString(this.path);
         else parcel.writeString(null);
-        if (this.image!=null) parcel.writeString(this.image.toString());
+        if (this.imageUri !=null) parcel.writeString(this.imageUri.toString());
         else parcel.writeString(null);
         parcel.writeInt(start);
         parcel.writeInt(end);
@@ -124,8 +143,8 @@ public class YouTubeSong implements Parcelable{
         return this.end;
     }
 
-    public Uri getImage() {
-        return image;
+    public Uri getImageUri() {
+        return imageUri;
     }
 
     public int getDuration() {
@@ -136,8 +155,8 @@ public class YouTubeSong implements Parcelable{
         this.duration = duration;
     }
 
-    public void setImage(Uri imageUri) {
-        this.image = imageUri;
+    public void setImageUri(Uri imageUri) {
+        this.imageUri = imageUri;
     }
 
     public void setTitle(String title) {
@@ -166,7 +185,7 @@ public class YouTubeSong implements Parcelable{
                 this.title + "," +
                 this.id + "," +
                 this.path + "," +
-                this.image + "," +
+                this.imageUri + "," +
                 this.start + "," +
                 this.end + "," +
                 this.duration + "}";
@@ -249,13 +268,22 @@ public class YouTubeSong implements Parcelable{
 
     }
 
+    public Bitmap getImageBitmap() {
+        return imageBitmap;
+    }
+
+    public void setImageBitmap(Bitmap imageBitmap) {
+        this.imageBitmap = imageBitmap;
+    }
+
     public static class Builder {
         private final String id;
         private final String title;
         private String path;
         private int start;
         private int end;
-        private Uri image;
+        private Uri imageUri;
+        private Bitmap imageBitmap;
         private int duration;
 
         public Builder(String id, String title) {
@@ -278,8 +306,13 @@ public class YouTubeSong implements Parcelable{
             return this;
         }
 
-        public Builder image(Uri image){
-            this.image = image;
+        public Builder imageUri(Uri image){
+            this.imageUri = image;
+            return this;
+        }
+
+        public Builder imageBitmap(Bitmap image){
+            this.imageBitmap = image;
             return this;
         }
 
@@ -290,7 +323,7 @@ public class YouTubeSong implements Parcelable{
 
         public YouTubeSong build(){
             if (this.end<this.start) throw new IllegalArgumentException("end ("+String.valueOf(this.end)+") must be grater han start("+String.valueOf(this.start)+")");
-            else return new YouTubeSong(this.id, this.title, this.path, this.image, this.start, this.end, this.duration);
+            else return new YouTubeSong(this.id, this.title, this.path, this.imageUri, this.imageBitmap,this.start, this.end, this.duration);
         }
     }
 }

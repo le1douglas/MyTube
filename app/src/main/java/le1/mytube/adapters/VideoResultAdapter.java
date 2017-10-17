@@ -48,11 +48,11 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.row_video, parent, false);
         }
 
-        TextView titleView = (TextView) convertView.findViewById(R.id.title);
-        TextView idView = (TextView) convertView.findViewById(R.id.id);
-        ImageButton download = (ImageButton) convertView.findViewById(R.id.download);
-        ImageButton addToQueue = (ImageButton) convertView.findViewById(R.id.queue_add);
-        ImageView thumb = (ImageView) convertView.findViewById(R.id.thumb);
+        TextView titleView = convertView.findViewById(R.id.title);
+        TextView idView = convertView.findViewById(R.id.id);
+        ImageButton download = convertView.findViewById(R.id.download);
+        ImageButton addToQueue = convertView.findViewById(R.id.queue_add);
+        ImageView thumb = convertView.findViewById(R.id.thumb);
 
 
         titleView.setText(youTubeSong.getTitle());
@@ -74,7 +74,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
             }
         });
 
-        Picasso.with(context).load(youTubeSong.getImage()).into(thumb);
+        Picasso.with(context).load(youTubeSong.getImageUri()).into(thumb);
         return convertView;
     }
 }

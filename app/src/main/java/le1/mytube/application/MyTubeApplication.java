@@ -4,7 +4,6 @@ import android.app.ActivityManager;
 import android.app.Application;
 import android.arch.lifecycle.ProcessLifecycleOwner;
 import android.content.Context;
-import android.widget.Toast;
 
 import le1.mytube.services.musicService.MusicService;
 import le1.mytube.services.musicService.ServiceRepo;
@@ -16,7 +15,6 @@ public class MyTubeApplication extends Application {
     private ServiceRepo serviceRepo;
 
     public void onCreate() {
-        Toast.makeText(this, "ApplicationOnCreate", Toast.LENGTH_SHORT).show();
         super.onCreate();
         serviceRepo = new ServiceRepoImpl(this);
         ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver(this));

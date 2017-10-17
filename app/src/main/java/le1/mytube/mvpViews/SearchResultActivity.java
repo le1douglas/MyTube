@@ -124,7 +124,7 @@ public class SearchResultActivity extends AppCompatActivity implements AdapterVi
                         String titleString = snippet.getString("title");
 
                         youTubeSongArray.add(new YouTubeSong.Builder(idString, titleString)
-                                .image(Uri.parse(imageString))
+                                .imageUri(Uri.parse(imageString))
                                 .build());
                         videoResultAdapter.add("WITHOUT THIS IT DOESN'T WORK AND I DON'T KNOW WHY");
                     }

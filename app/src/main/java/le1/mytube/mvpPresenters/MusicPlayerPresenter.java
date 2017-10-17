@@ -9,11 +9,12 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+
+import java.util.List;
 
 import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.MusicPlayerCallback;
@@ -26,6 +27,7 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
     private static final String TAG = ("LE1_" + MusicPlayerPresenter.class.getSimpleName());
     private MusicPlayerCallback listener;
     private SimpleExoPlayerView playerView;
+    private List<String> resolutions;
 
 
     public MusicPlayerPresenter(Application application) {
@@ -34,17 +36,19 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    public void onResume() {
-        if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong() != null) {
-            listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong());
+    void onResume() {
+        if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong() != null && resolutions != null) {
+            if (resolutions.size()>0) listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong(), null);
+            else listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong(), resolutions);
             listener.onUpdateSeekBar((int) playerView.getPlayer().getCurrentPosition());
         }
     }
 
 
     @Override
-    public void onPlaying(YouTubeSong currentSong) {
-        listener.onInitializeUi(currentSong);
+    public void onPlaying(YouTubeSong currentSong, List<String> resolutions) {
+        this.resolutions = resolutions;
+        listener.onInitializeUi(currentSong, resolutions);
     }
 
     @Override
@@ -64,8 +68,10 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
 
     @Override
     public void onError(String message) {
+        if (message == null || message.equals("")) message = "an error occured";
         Toast.makeText(this.getApplication(), message, Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     public void onPaused() {
@@ -92,13 +98,6 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
             ((MyTubeApplication) getApplication()).getServiceRepo().setView(playerView);
     }
 
-    public void startSong(YouTubeSong youTubeSong) {
-        if (youTubeSong != null &&
-                ((MyTubeApplication) getApplication()).getServiceRepo().getPlaybackState()
-                        == PlaybackStateCompat.STATE_NONE) {
-            ((MyTubeApplication) getApplication()).getServiceRepo().prepareStreaming(youTubeSong);
-        }
-    }
 
     public void seekTo(int progress) {
         ((MyTubeApplication) getApplication()).getServiceRepo().seekTo((long) progress);
@@ -112,7 +111,7 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
      */
 
     public void startSongIfNecessary(@NonNull Intent intent, @Nullable ComponentName callingActivity) {
-        Log.d(TAG, "startSongIfNecessary called with intent=" + intent+" and callingActivity=" + callingActivity);
+        Log.d(TAG, "startSongIfNecessary called with intent=" + intent + " and callingActivity=" + callingActivity);
         if (callingActivity != null) {
             if (callingActivity.getClassName().equals(SearchResultActivity.class.getName())) {
                 YouTubeSong youTubeSong = intent.getParcelableExtra(MyTubeApplication.KEY_SONG);

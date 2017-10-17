@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat.Action;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -42,14 +43,14 @@ public class MusicNotification {
                 builder.setContentTitle(description.getTitle())
                         .setContentText(description.getSubtitle())
                         .setSubText(description.getMediaId())
-                        .setLargeIcon(description.getIconBitmap());
+                        .setLargeIcon(mediaSession.getController().getMetadata().getBitmap(MediaMetadataCompat.METADATA_KEY_ART));
                 break;
             case PlaybackStateCompat.STATE_PLAYING:
                 setButtonsEnabled(true, context);
                 builder.setContentTitle(description.getTitle())
                         .setContentText(description.getSubtitle())
                         .setSubText(description.getMediaId())
-                        .setLargeIcon(description.getIconBitmap());
+                        .setLargeIcon(mediaSession.getController().getMetadata().getBitmap(MediaMetadataCompat.METADATA_KEY_ART));
                 break;
             case PlaybackStateCompat.STATE_BUFFERING:
                 setButtonsEnabled(false, context);

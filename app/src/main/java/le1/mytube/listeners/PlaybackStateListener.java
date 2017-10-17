@@ -1,5 +1,7 @@
 package le1.mytube.listeners;
 
+import java.util.List;
+
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 public interface PlaybackStateListener {
@@ -11,7 +13,7 @@ public interface PlaybackStateListener {
 
     void onPaused();
 
-    void onPlaying(YouTubeSong currentSong);
+    void onPlaying(YouTubeSong currentSong, List<String> resolutions);
 
     void onStopped();
 

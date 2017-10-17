@@ -48,9 +48,9 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onPlaying(YouTubeSong currentSong) {
+    public void onPlaying(YouTubeSong currentSong, List<String> resolutions) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onPlaying(currentSong);
+            l.onPlaying(currentSong, resolutions);
         }
     }
 
@@ -67,4 +67,5 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
             l.onError(message);
         }
     }
+
 }
