@@ -26,29 +26,31 @@ import le1.mytube.mvpViews.SearchResultActivity;
 public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackStateListener, LifecycleObserver {
     private static final String TAG = ("LE1_" + MusicPlayerPresenter.class.getSimpleName());
     private MusicPlayerCallback listener;
-    private SimpleExoPlayerView playerView;
-    private List<String> resolutions;
-
 
     public MusicPlayerPresenter(Application application) {
         super(application);
-        ((MyTubeApplication) getApplication()).getServiceRepo().addListener(this);
+        ((MyTubeApplication) application).getServiceRepo().addListener(this);
     }
 
+
+    /**
+     *  getCurrentSongs() may be empty but not null, because it's initialized along with
+     *   the service
+     */
+    @SuppressWarnings("ConstantConditions")
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     void onResume() {
-        if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong() != null && resolutions != null) {
-            if (resolutions.size()>0) listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong(), null);
-            else listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSong(), resolutions);
-            listener.onUpdateSeekBar((int) playerView.getPlayer().getCurrentPosition());
+        if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs().size()>0) {
+            listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs());
+            listener.onUpdateSeekBar(((MyTubeApplication) getApplication()).getServiceRepo().getPlaybackPosition());
         }
+
     }
 
 
     @Override
-    public void onPlaying(YouTubeSong currentSong, List<String> resolutions) {
-        this.resolutions = resolutions;
-        listener.onInitializeUi(currentSong, resolutions);
+    public void onPlaying(List<YouTubeSong> currentSongs) {
+        listener.onInitializeUi(currentSongs);
     }
 
     @Override
@@ -79,8 +81,8 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
     }
 
     @Override
-    public void onPositionChanged(long currentTimeInMill) {
-        listener.onUpdateSeekBar((int) currentTimeInMill);
+    public void onPositionChanged(int currentTimeInSec) {
+        listener.onUpdateSeekBar(currentTimeInSec);
 
     }
 
@@ -93,14 +95,13 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
     }
 
     public void linkPlayerToView(SimpleExoPlayerView playerView) {
-        this.playerView = playerView;
         if (playerView.getPlayer() == null)
             ((MyTubeApplication) getApplication()).getServiceRepo().setView(playerView);
     }
 
 
     public void seekTo(int progress) {
-        ((MyTubeApplication) getApplication()).getServiceRepo().seekTo((long) progress);
+        ((MyTubeApplication) getApplication()).getServiceRepo().seekTo(progress);
     }
 
     /**

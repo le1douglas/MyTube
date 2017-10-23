@@ -139,7 +139,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     @Override
     public void onPlaylistLoaded(ArrayList<Playlist> playlists) {
-        Toast.makeText(this, "Displaying playlists", Toast.LENGTH_SHORT).show();
         for (Playlist p : playlists) {
             displayedList.add(p.getName());
         }

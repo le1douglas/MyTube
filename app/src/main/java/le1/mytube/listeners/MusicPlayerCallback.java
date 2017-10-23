@@ -12,7 +12,7 @@ public interface MusicPlayerCallback {
 
     void onUpdateSeekBar(int position);
 
-    void onInitializeUi(YouTubeSong youTubeSong, List<String> resolutions);
+    void onInitializeUi(List<YouTubeSong> youTubeSongs);
 
     void onCloseActivity();
 

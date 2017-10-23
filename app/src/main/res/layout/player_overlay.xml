@@ -27,4 +27,13 @@
         android:layout_height="wrap_content"
         android:text="title"
         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dialog"
+        android:layout_above="@+id/seekBar"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

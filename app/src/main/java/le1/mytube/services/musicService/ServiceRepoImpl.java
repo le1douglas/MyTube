@@ -57,12 +57,10 @@ public class ServiceRepoImpl implements ServiceRepo {
 
 
     private SimpleExoPlayer player;
-    private static final DefaultBandwidthMeter BANDWIDTH_METER =
-            new DefaultBandwidthMeter();
 
     private PlaybackStateCompositeListener listener = new PlaybackStateCompositeListener();
 
-    private YouTubeSong currentSong;
+    private List<YouTubeSong> currentSongs = new ArrayList<>();
     private boolean postProgressUpdate = false;
 
     private class ConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
@@ -102,7 +100,8 @@ public class ServiceRepoImpl implements ServiceRepo {
             public void run() {
                 handler.postDelayed(this, 1000);
                 if (postProgressUpdate) {
-                    listener.onPositionChanged(player.getCurrentPosition());
+                    //convert from milliseconds to second
+                    listener.onPositionChanged((int) player.getCurrentPosition() / 1000);
                 }
             }
         }, 1000);
@@ -127,68 +126,87 @@ public class ServiceRepoImpl implements ServiceRepo {
     }
 
 
-    List<String> resol = new ArrayList<>();
-
     @Override
     public void prepareStreaming(@NonNull final YouTubeSong youTubeSong) {
         Log.d(TAG, "prepareStreaming");
-        currentSong = youTubeSong;
+        currentSongs.clear();
         service.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, player.getCurrentPosition());
         new YouTubeExtractor(context) {
             @Override
             protected void onExtractionComplete(SparseArray<YtFile> itags, VideoMeta videoMeta) {
+                if (videoMeta.isLiveStream()) {
+                    Toast.makeText(context, "live streaming are not supported yet", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (itags != null) {
                     Log.d(TAG, "onExtractionComplete");
-                    Target target = new Target() {
-                        @Override
-                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                            Toast.makeText(context, "bitmap loaded", Toast.LENGTH_SHORT).show();
-                            currentSong.setImageBitmap(bitmap);
-                            service.setMetadata(youTubeSong);
-                        }
+                    loadImage(youTubeSong);
 
-                        @Override
-                        public void onBitmapFailed(Drawable errorDrawable) {
-                        }
-
-                        @Override
-                        public void onPrepareLoad(Drawable placeHolderDrawable) {
-                        }
-                    };
-
-                    currentSong.setImageUri(Uri.parse(videoMeta.getHqImageUrl()));
-                    Picasso.with(context).load(currentSong.getImageUri()).into(target);
-
-                    int key;
                     for (int i = 0; i < itags.size(); i++) {
-                        key = itags.keyAt(i);
+                        int key = itags.keyAt(i);
                         Log.d(TAG, "(" + i + ")itag at " + key + " = " + (itags.get(key)).getUrl());
-                        resol.add("(" + key + ") res info WIP");
-                    }
-                    try {
-                        Uri audioUri = Uri.parse((itags.get(140)).getUrl());
-                        Uri videoUri = Uri.parse((itags.get(134)).getUrl());
 
-                        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
+                        //one of the youtube song that will arrive to the ui
+                        YouTubeSong yts2add= new YouTubeSong.Builder(videoMeta.getVideoId(), videoMeta.getTitle())
+                                .duration((int) videoMeta.getVideoLength())
+                                .format((itags.get(key)).getFormat())
+                                .imageUri(Uri.parse(videoMeta.getHqImageUrl()))
+                                .streamingUri(Uri.parse(itags.get(key).getUrl()))
+                                .build();
 
-                        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-                        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
-                        MediaSource audioSource = new ExtractorMediaSource(audioUri, dataSourceFactory, extractorsFactory, null, null);
-                        MediaSource videoSource = new ExtractorMediaSource(videoUri, dataSourceFactory, extractorsFactory, null, null);
-                        MediaSource compositeSource = new MergingMediaSource(audioSource, videoSource);
-                        player.prepare(compositeSource);
-                        service.setMetadata(currentSong);
-                        play();
-
-                    } catch (Exception e) {
-                        listener.onError(e.getMessage());
+                        currentSongs.add(yts2add);
                     }
 
-                }else {
+                    Uri audioUri = Uri.parse((itags.get(140)).getUrl());
+                    Uri videoUri = Uri.parse((itags.get(134)).getUrl());
+                    player.prepare(buildMediaSource(videoUri, audioUri));
+                    service.updateMetadata(youTubeSong);
+                    play();
+
+                } else {
                     listener.onError("ytfile are null");
                 }
             }
-        }.extract("http://youtube.com/watch?v=" + currentSong.getId(), true, false);
+        }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), true, true);
+    }
+
+    private void loadImage(final YouTubeSong youTubeSong) {
+        if (youTubeSong.getImageUri() == null) {
+            Log.w(TAG, "loadImage called without valid uri");
+            return;
+        }
+        Picasso.with(context).load(youTubeSong.getImageUri()).into(new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                youTubeSong.setImageBitmap(bitmap);
+                service.updateMetadata(youTubeSong);
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+            }
+        });
+    }
+
+    private MediaSource buildMediaSource(Uri videoUri, Uri audioUri) {
+        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
+        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
+        MediaSource audioSource = new ExtractorMediaSource(audioUri, dataSourceFactory, extractorsFactory, null, null);
+        MediaSource videoSource = new ExtractorMediaSource(videoUri, dataSourceFactory, extractorsFactory, null, null);
+        return new MergingMediaSource(audioSource, videoSource);
+
+    }
+
+    private void getMostAppropriateResolution(List<YouTubeSong> youTubeSongList) {
+        for (YouTubeSong yts : youTubeSongList) {
+
+        }
     }
 
     @Override
@@ -248,13 +266,12 @@ public class ServiceRepoImpl implements ServiceRepo {
         player.setPlayWhenReady(false);
         service.setConnectedToNoisyReceiver(false);
         postProgressUpdate = false;
-        currentSong = null;
+        currentSongs = null;
         service.setPlaybackState(PlaybackStateCompat.STATE_STOPPED, player.getCurrentPosition());
         player.stop();
         service.setMediaSessionActive(false);
         service.abandonAudioFocus();
         listener.onStopped();
-        // stopService();
     }
 
     @Override
@@ -264,9 +281,10 @@ public class ServiceRepoImpl implements ServiceRepo {
     }
 
     @Override
-    public void seekTo(long position) {
-        Log.d(TAG, "seekTo");
-        player.seekTo(position);
+    public void seekTo(int position) {
+        //convert from seconds to milliseconds
+        Log.d(TAG, "seekTo pos=" + position * 1000);
+        player.seekTo(position * 1000);
     }
 
     @Override
@@ -285,10 +303,14 @@ public class ServiceRepoImpl implements ServiceRepo {
         return service.getPlaybackState();
     }
 
-    @Nullable
     @Override
-    public YouTubeSong getCurrentSong() {
-        return currentSong;
+    public int getPlaybackPosition() {
+        return (int) player.getCurrentPosition() / 1000;
+    }
+
+    @Nullable
+    public List<YouTubeSong> getCurrentSongs() {
+        return currentSongs;
     }
 
     private class PlayerListener implements Player.EventListener {
@@ -314,9 +336,7 @@ public class ServiceRepoImpl implements ServiceRepo {
             switch (playbackState) {
                 case Player.STATE_READY:
                     if (playWhenReady) {
-                        currentSong.setDuration((int) player.getDuration());
-                        service.setMetadata(currentSong);
-                        listener.onPlaying(currentSong, resol);
+                        listener.onPlaying(currentSongs);
                     } else {
                         listener.onPaused();
                     }
@@ -326,7 +346,7 @@ public class ServiceRepoImpl implements ServiceRepo {
                 case Player.STATE_ENDED:
                     service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
                     listener.onStopped();
-                    currentSong = null;
+                    currentSongs.clear();
                     break;
             }
         }

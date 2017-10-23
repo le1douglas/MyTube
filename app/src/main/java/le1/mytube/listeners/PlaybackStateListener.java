@@ -9,11 +9,11 @@ public interface PlaybackStateListener {
 
     void onLoadingFinished();
 
-    void onPositionChanged(long currentTimeInMill);
+    void onPositionChanged(int currentTimeInSec);
 
     void onPaused();
 
-    void onPlaying(YouTubeSong currentSong, List<String> resolutions);
+    void onPlaying(List<YouTubeSong> currentSongs);
 
     void onStopped();
 

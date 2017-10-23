@@ -10,9 +10,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
@@ -30,8 +28,6 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
     SimpleExoPlayerView playerView;
     PlayerOverlayView overlay;
     MusicPlayerPresenter presenter;
-    Spinner spinner;
-    ArrayAdapter<String> adapter;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,17 +36,16 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
         playerView = findViewById(R.id.exo_player);
         overlay = findViewById(R.id.overlay);
-        spinner = findViewById(R.id.spinner);
 
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(this);
 
         presenter = ViewModelProviders.of(this).get(MusicPlayerPresenter.class);
         presenter.setListener(this);
-        this.getLifecycle().addObserver(presenter);
+        presenter.linkPlayerToView(playerView);
+        getLifecycle().addObserver(presenter);
 
+
+        overlay.setSpinnerOnItemSelected(this);
         overlay.setOnSeekBarChangeListener(this);
         overlay.setButtonOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,7 +54,8 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
             }
         });
-        presenter.linkPlayerToView(playerView);
+
+        //activity just created, instead of rotated
         if (savedInstanceState == null) {
             presenter.startSongIfNecessary(getIntent(), getCallingActivity());
         }
@@ -93,7 +89,6 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        adapter.clear();
     }
 
     @Override
@@ -102,19 +97,17 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
     }
 
     @Override
-    public void onInitializeUi(@NonNull YouTubeSong youTubeSong, List<String> resolutions) {
-        overlay.setTitle(youTubeSong.getTitle());
-        overlay.setMaxProgress(youTubeSong.getDuration());
-        if (resolutions!=null) {
-            adapter.addAll(resolutions);
-            adapter.notifyDataSetChanged();
-        }
+    public void onInitializeUi(@NonNull List<YouTubeSong> youTubeSongs) {
+        overlay.setTitle(youTubeSongs.get(0).getTitle());
+        overlay.setMaxProgress(youTubeSongs.get(0).getDuration());
+        overlay.setSpinnerContent(youTubeSongs);
     }
 
     @Override
     public void onCloseActivity() {
         this.finish();
     }
+
 
 
     @Override

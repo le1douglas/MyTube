@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
+import java.util.List;
+
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
@@ -24,7 +26,7 @@ public interface ServiceRepo {
 
     void duck();
 
-    void seekTo(long position);
+    void seekTo(int position);
 
     void startService();
 
@@ -36,7 +38,9 @@ public interface ServiceRepo {
 
     int getPlaybackState();
 
+    int getPlaybackPosition();
+
     @Nullable
-    YouTubeSong getCurrentSong();
+    List<YouTubeSong> getCurrentSongs();
 
 }

@@ -34,9 +34,9 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onPositionChanged(long currentTimeInMill) {
+    public void onPositionChanged(int currentTimeInSec) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onPositionChanged(currentTimeInMill);
+            l.onPositionChanged(currentTimeInSec);
         }
     }
 
@@ -48,9 +48,9 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onPlaying(YouTubeSong currentSong, List<String> resolutions) {
+    public void onPlaying(List<YouTubeSong> currentSongs) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onPlaying(currentSong, resolutions);
+            l.onPlaying(currentSongs);
         }
     }
 

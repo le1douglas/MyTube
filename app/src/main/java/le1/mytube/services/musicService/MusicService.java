@@ -98,7 +98,7 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         result.sendResult(null);
     }
 
-    public void setMetadata(YouTubeSong youTubeSong) {
+    public void updateMetadata(YouTubeSong youTubeSong) {
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, youTubeSong.getTitle())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getId())
@@ -164,23 +164,23 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
-                return;
+                break;
             case AudioManager.AUDIOFOCUS_LOSS:
                 if (((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState() == PlaybackStateCompat.STATE_PLAYING)
                     wasPlaying = true;
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();
-                return;
+                break;
             case AudioManager.AUDIOFOCUS_GAIN:
                 if (wasPlaying) {
                     ((MyTubeApplication) service.getApplication()).getServiceRepo().play();
                     wasPlaying=false;
                 }
-                return;
+                break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().duck();
-                return;
-            default:
                 break;
+            default:
+                return;
         }
     }
 

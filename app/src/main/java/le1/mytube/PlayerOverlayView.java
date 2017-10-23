@@ -10,9 +10,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.List;
@@ -22,13 +24,16 @@ import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 public class PlayerOverlayView extends RelativeLayout implements PlaybackStateListener {
-    TextView titleView;
-    SeekBar seekbar;
-    ImageButton playPause;
-    TypedArray a;
-    ViewState state;
-    Context context;
+    private Spinner spinner;
+    private TextView titleView;
+    private SeekBar seekbar;
+    private ImageButton playPause;
+    private TypedArray a;
+    private ViewState state;
+    private Context context;
     private OnClickListener clientListener;
+
+    private ArrayAdapter<String> spinnerAdapter;
 
     @Override
     public void onLoadingStarted() {
@@ -41,7 +46,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     }
 
     @Override
-    public void onPositionChanged(long currentTimeInMill) {
+    public void onPositionChanged(int currentTimeInSec) {
 
     }
 
@@ -52,7 +57,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     }
 
     @Override
-    public void onPlaying(YouTubeSong currentSong, List<String> resol) {
+    public void onPlaying(List<YouTubeSong> currentSongs) {
         setState(ViewState.CONTROLS_VISIBLE);
 
     }
@@ -68,6 +73,46 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
     }
 
+    public void setSpinnerOnItemSelected(Spinner.OnItemSelectedListener listener) {
+        spinner.setOnItemSelectedListener(listener);
+    }
+
+    public void setSpinnerContent(List<YouTubeSong> spinnerContent) {
+        spinnerAdapter.clear();
+        for (YouTubeSong yts :
+                spinnerContent) {
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("(")
+                    .append(yts.getFormat().getItag())
+                    .append(") ");
+            if (yts.getFormat().getHeight() == -1) {
+                sb.append("[Audio Only] ")
+                        .append("NULL")
+                        .append(" | ")
+                        .append(yts.getFormat().getAudioBitrate())
+                        .append(" kbit/s");
+            } else if (yts.getFormat().getAudioBitrate() == -1) {
+                sb.append("[Video Only] ")
+                        .append(yts.getFormat().getHeight())
+                        .append("p | ")
+                        .append("NO AUDIO");
+            } else {
+                sb.append("[Audio Video] ")
+                        .append(yts.getFormat().getHeight())
+                        .append("p | ")
+                        .append(yts.getFormat().getAudioBitrate())
+                        .append(" kbit/s");
+
+            }
+
+            sb.append(" | ")
+                    .append(yts.getFormat().getExt());
+            spinnerAdapter.add(sb.toString());
+        }
+        spinnerAdapter.notifyDataSetChanged();
+    }
+
     private enum ViewState {
         CONTROLS_HIDDEN,
         CONTROLS_VISIBLE
@@ -81,6 +126,12 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         titleView = view.findViewById(R.id.title);
         seekbar = view.findViewById(R.id.seekBar);
         playPause = view.findViewById(R.id.playpause);
+        spinner = view.findViewById(R.id.spinner);
+
+        spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
+
+        spinner.setAdapter(spinnerAdapter);
+
 
         playPause.setOnClickListener(new OnClickListener() {
             @Override
@@ -174,4 +225,5 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 break;
         }
     }
+
 }
