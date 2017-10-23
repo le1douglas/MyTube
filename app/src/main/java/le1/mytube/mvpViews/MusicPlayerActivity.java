@@ -3,7 +3,6 @@ package le1.mytube.mvpViews;
 import android.arch.lifecycle.LifecycleActivity;
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
@@ -31,12 +30,11 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        makeFullScreenIfLandscape();
+        makeFullScreen();
         setContentView(R.layout.activity_music_player);
 
         playerView = findViewById(R.id.exo_player);
         overlay = findViewById(R.id.overlay);
-
 
 
         presenter = ViewModelProviders.of(this).get(MusicPlayerPresenter.class);
@@ -61,12 +59,10 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
         }
     }
 
-    private void makeFullScreenIfLandscape() {
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
+    private void makeFullScreen() {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
 
@@ -102,12 +98,6 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
         overlay.setMaxProgress(youTubeSongs.get(0).getDuration());
         overlay.setSpinnerContent(youTubeSongs);
     }
-
-    @Override
-    public void onCloseActivity() {
-        this.finish();
-    }
-
 
 
     @Override

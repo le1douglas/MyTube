@@ -2,6 +2,7 @@ package le1.mytube;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -28,12 +29,20 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     private TextView titleView;
     private SeekBar seekbar;
     private ImageButton playPause;
+    private TextView duration;
+    private TextView current;
+
+    private OnClickListener clientListener;
+    private ArrayAdapter<String> spinnerAdapter;
+
     private TypedArray a;
     private ViewState state;
     private Context context;
-    private OnClickListener clientListener;
 
-    private ArrayAdapter<String> spinnerAdapter;
+    private enum ViewState {
+        CONTROLS_HIDDEN,
+        CONTROLS_VISIBLE
+    }
 
     @Override
     public void onLoadingStarted() {
@@ -47,7 +56,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
     @Override
     public void onPositionChanged(int currentTimeInSec) {
-
+        current.setText(formatSeconds(currentTimeInSec));
     }
 
     @Override
@@ -113,10 +122,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         spinnerAdapter.notifyDataSetChanged();
     }
 
-    private enum ViewState {
-        CONTROLS_HIDDEN,
-        CONTROLS_VISIBLE
-    }
 
     void init(Context context, AttributeSet attributeSet, int defStyleAttr) {
         this.context = context;
@@ -127,6 +132,8 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         seekbar = view.findViewById(R.id.seekBar);
         playPause = view.findViewById(R.id.playpause);
         spinner = view.findViewById(R.id.spinner);
+        duration = view.findViewById(R.id.duration);
+        current = view.findViewById(R.id.current);
 
         spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
 
@@ -193,6 +200,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
     public void setMaxProgress(int max) {
         seekbar.setMax(max);
+        duration.setText(formatSeconds(max));
     }
 
     public void setProgress(int progress) {
@@ -204,6 +212,15 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         playPause.setOnClickListener(onClick);
     }
 
+    private String formatSeconds(int time) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            return String.format(context.getResources().getConfiguration().getLocales().get(0), "%02d:%02d", time / 60, time % 60);
+        } else{
+            //noinspection deprecation
+            return String.format(context.getResources().getConfiguration().locale, "%02d:%02d", time / 60, time % 60);
+        }
+    }
+
     private void setState(ViewState state) {
         switch (state) {
             case CONTROLS_HIDDEN:
@@ -211,12 +228,18 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 titleView.setVisibility(GONE);
                 seekbar.setVisibility(GONE);
                 playPause.setVisibility(GONE);
+                spinner.setVisibility(GONE);
+                duration.setVisibility(GONE);
+                current.setVisibility(GONE);
                 break;
             case CONTROLS_VISIBLE:
                 this.state = ViewState.CONTROLS_VISIBLE;
                 titleView.setVisibility(VISIBLE);
                 seekbar.setVisibility(VISIBLE);
                 playPause.setVisibility(VISIBLE);
+                spinner.setVisibility(VISIBLE);
+                duration.setVisibility(VISIBLE);
+                current.setVisibility(VISIBLE);
                 if (((MyTubeApplication) context.getApplicationContext()).getServiceRepo().getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
                     playPause.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.exo_controls_pause));
                 } else {

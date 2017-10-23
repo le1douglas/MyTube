@@ -65,7 +65,6 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
 
     @Override
     public void onStopped() {
-        listener.onCloseActivity();
     }
 
     @Override

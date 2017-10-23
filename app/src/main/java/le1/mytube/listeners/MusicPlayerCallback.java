@@ -14,7 +14,5 @@ public interface MusicPlayerCallback {
 
     void onInitializeUi(List<YouTubeSong> youTubeSongs);
 
-    void onCloseActivity();
-
 
 }
