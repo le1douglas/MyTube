@@ -1,8 +1,13 @@
 package le1.mytube.mvpPresenters;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -17,19 +22,23 @@ import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 
-/**
- * Created by Leone on 02/07/17.
- */
-
 public class MainPresenter extends AndroidViewModel{
     private Repo repository;
     public MainPresenter(Application application) {
         super(application);
         this.repository = new Repo(application);
     }
+     /**
+     * @param permission should be one of  Manifest.permission.X
+     * @return true if permission is granted, false otherwise*/
+    private boolean isPermissionGranted(String permission){
+        return ContextCompat.checkSelfPermission(this.getApplication(), permission)
+                == PackageManager.PERMISSION_GRANTED;
+    }
 
-   public void loadPlaylists(OnLoadPlaylistListener onLoadPlaylistListener) {
-       try {
+
+    public void loadPlaylists(OnLoadPlaylistListener onLoadPlaylistListener) {
+        try {
            ArrayList<Playlist> list = (ArrayList<Playlist>) repository.getAllPlaylists();
             if (list.size()>0){
                 onLoadPlaylistListener.onPlaylistLoaded(list);

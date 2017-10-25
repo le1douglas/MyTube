@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -36,8 +39,13 @@ import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpPresenters.MainPresenter;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadPlaylistListener, OnLoadAudioFocusListener, OnRequestPlaylistDialogListener, OnCheckValidPlaylistNameListener {
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
+
     private static ArrayList<String> displayedList;
     private static ArrayAdapter<String> adapter;
 
@@ -74,21 +82,18 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
 
-        presenter.loadPlaylists(this);
-
-
+        loadPlaylistsAfterPermission();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         MenuItem handleAudioFocusItem = menu.findItem(R.id.handleAudioFocus);
-        audioFocusSwitch = (CompoundButton) MenuItemCompat.getActionView(handleAudioFocusItem);
+        audioFocusSwitch = (CompoundButton) handleAudioFocusItem.getActionView();
         audioFocusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 presenter.setHandleAudioFocus(isChecked);
-
             }
         });
         presenter.loadSharedPreferences(this);
@@ -152,6 +157,33 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     @Override
     public void onPlaylistLoadingError() {
         Toast.makeText(this, "Error loading playlists", Toast.LENGTH_SHORT).show();
+    }
+
+    public void loadPlaylistsAfterPermission() {
+        if (ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED&&
+                ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED ) return;
+         ActivityCompat.requestPermissions(this,
+                new String[]{WRITE_EXTERNAL_STORAGE},
+                 STORAGE_PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case STORAGE_PERMISSION_REQUEST_CODE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    presenter.loadPlaylists(this);
+                } else {
+                    Toast.makeText(this, "Storage permission is required to display playlists", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            }
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     @Override
