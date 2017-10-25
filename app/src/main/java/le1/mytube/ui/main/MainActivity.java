@@ -1,4 +1,4 @@
-package le1.mytube.mvpViews;
+package le1.mytube.ui.main;
 
 import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
@@ -31,19 +31,15 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import le1.mytube.R;
-import le1.mytube.listeners.OnCheckValidPlaylistNameListener;
-import le1.mytube.listeners.OnLoadAudioFocusListener;
-import le1.mytube.listeners.OnLoadPlaylistListener;
-import le1.mytube.listeners.OnRequestPlaylistDialogListener;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpPresenters.MainPresenter;
+import le1.mytube.mvpViews.PlaylistActivity;
+import le1.mytube.mvpViews.SearchActivity;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-
-public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadPlaylistListener, OnLoadAudioFocusListener, OnRequestPlaylistDialogListener, OnCheckValidPlaylistNameListener {
+public class MainActivity extends AppCompatActivity implements MainContract.View, ListView.OnItemClickListener, ListView.OnItemLongClickListener {
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
 
     private static ArrayList<String> displayedList;
@@ -73,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         setSupportActionBar(tb);
 
         presenter = ViewModelProviders.of(this).get(MainPresenter.class);
+        presenter.setContract(this);
 
         ListView listView = (ListView) findViewById(R.id.playlistList);
         displayedList = new ArrayList<>();
@@ -96,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                 presenter.setHandleAudioFocus(isChecked);
             }
         });
-        presenter.loadSharedPreferences(this);
+        presenter.loadSharedPreferences();
         return true;
     }
 
@@ -124,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     }
 
     public void Add(View view) {
-        presenter.onNewPlaylistButtonCLick(this);
+        newPlaylistDialog();
     }
 
     @Override
@@ -138,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     @Override
     public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
-        presenter.onItemLongClick(new Playlist(0, parent.getItemAtPosition(position).toString(), null, 0, 0), position, this);
+        presenter.showDeleteDialog(new Playlist(0, parent.getItemAtPosition(position).toString(), null, 0, 0), position);
         return true;
     }
 
@@ -161,12 +158,15 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
     public void loadPlaylistsAfterPermission() {
         if (ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED&&
+                == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE)
-                        == PackageManager.PERMISSION_GRANTED ) return;
-         ActivityCompat.requestPermissions(this,
-                new String[]{WRITE_EXTERNAL_STORAGE},
-                 STORAGE_PERMISSION_REQUEST_CODE);
+                        == PackageManager.PERMISSION_GRANTED) {
+            presenter.loadPlaylists();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{WRITE_EXTERNAL_STORAGE},
+                    STORAGE_PERMISSION_REQUEST_CODE);
+        }
     }
 
     @Override
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         switch (requestCode) {
             case STORAGE_PERMISSION_REQUEST_CODE: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    presenter.loadPlaylists(this);
+                    presenter.loadPlaylists();
                 } else {
                     Toast.makeText(this, "Storage permission is required to display playlists", Toast.LENGTH_SHORT).show();
                 }
@@ -205,18 +205,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         audioFocusSwitch.setEnabled(false);
     }
 
-    @Override
-    public void onPlaylistNameValid() {
-        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-    }
-
-    @Override
-    public void onPlaylistNameInvalid() {
-        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-    }
-
-    @Override
-    public void onNewPlaylistDialog() {
+    public void newPlaylistDialog() {
         final View layout = getLayoutInflater().inflate(R.layout.dialog_new_playlist, null);
         final EditText input = layout.findViewById(R.id.dialogEditText);
 
@@ -247,7 +236,10 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         alertDialog.show();
 
-        presenter.checkValidPlaylistName(input.getText().toString(), MainActivity.this);
+        //should return false as the string is empty at this stage
+        if (presenter.isPlaylistNameValid(input.getText().toString()))
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+        else alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 
         input.addTextChangedListener(new TextWatcher() {
             @Override
@@ -257,12 +249,13 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                presenter.checkValidPlaylistName(input.getText().toString(), MainActivity.this);
+                if (presenter.isPlaylistNameValid(input.getText().toString()))
+                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                else alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-
             }
 
         });
@@ -303,6 +296,11 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                     }
                 });
         alertDialogBuilder.show();
+
+    }
+
+    @Override
+    public void methodInAllViews() {
 
     }
 }

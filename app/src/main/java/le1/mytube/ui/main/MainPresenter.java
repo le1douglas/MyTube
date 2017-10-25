@@ -1,29 +1,25 @@
-package le1.mytube.mvpPresenters;
+package le1.mytube.ui.main;
 
-import android.Manifest;
-import android.app.Activity;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import le1.mytube.listeners.OnCheckValidPlaylistNameListener;
-import le1.mytube.listeners.OnLoadAudioFocusListener;
-import le1.mytube.listeners.OnLoadPlaylistListener;
-import le1.mytube.listeners.OnRequestPlaylistDialogListener;
+import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 
-public class MainPresenter extends AndroidViewModel{
+class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
     private Repo repository;
+    private MainContract.View contractView;
+
+
     public MainPresenter(Application application) {
         super(application);
         this.repository = new Repo(application);
@@ -36,32 +32,32 @@ public class MainPresenter extends AndroidViewModel{
                 == PackageManager.PERMISSION_GRANTED;
     }
 
-
-    public void loadPlaylists(OnLoadPlaylistListener onLoadPlaylistListener) {
+    @Override
+    public void loadPlaylists() {
         try {
            ArrayList<Playlist> list = (ArrayList<Playlist>) repository.getAllPlaylists();
             if (list.size()>0){
-                onLoadPlaylistListener.onPlaylistLoaded(list);
+                contractView.onPlaylistLoaded(list);
             }else {
-                onLoadPlaylistListener.onNoPlaylistLoaded();
+                contractView.onNoPlaylistLoaded();
             }
        }catch (Exception e){
-           onLoadPlaylistListener.onPlaylistLoadingError();
+            contractView.onPlaylistLoadingError();
        }
 
     }
 
-    public void loadSharedPreferences(OnLoadAudioFocusListener onLoadAudioFocusListener) {
+    @Override
+    public void loadSharedPreferences() {
         try {
             if (repository.getAudioFocus()) {
-                onLoadAudioFocusListener.onAudioFocusTrue();
+                contractView.onAudioFocusTrue();
             } else {
-                onLoadAudioFocusListener.onAudioFocusFalse();
+                contractView.onAudioFocusFalse();
             }
         }catch (Exception e){
-            onLoadAudioFocusListener.onAudioFocusLoadingError();
+            contractView.onAudioFocusLoadingError();
         }
-
     }
 
 
@@ -71,6 +67,8 @@ public class MainPresenter extends AndroidViewModel{
         repository.onDestroy();
     }
 
+
+    @Override
     public String logDatabase() {
         List<String> playlists = repository.getAllPlaylistsName();
         for (int i = 0; i < playlists.size(); i++) {
@@ -85,46 +83,44 @@ public class MainPresenter extends AndroidViewModel{
 
     }
 
+    @Override
     public void clearDatabase() {
         repository.deleteAllSongs();
         repository.deleteAllPlaylists();
     }
 
+    @Override
     public void addPlaylist(String playlistName) {
         repository.addPlaylist(playlistName);
     }
 
-    public void checkValidPlaylistName(String playlistName, OnCheckValidPlaylistNameListener onCheckValidPlaylistNameListener) {
-        if (playlistName.equals("") || repository.getAllPlaylistsName().contains(playlistName.trim().toLowerCase())) {
-            onCheckValidPlaylistNameListener.onPlaylistNameInvalid();
-        } else {
-            onCheckValidPlaylistNameListener.onPlaylistNameValid();
-        }
+
+    @Override
+    public boolean isPlaylistNameValid(String playlistName) {
+        return !(playlistName.equals("") || repository.getAllPlaylistsName().contains(playlistName.trim().toLowerCase()));
     }
 
+    @Override
     public void deletePlaylist(String playlistName) {
         repository.deletePlaylist(playlistName);
     }
 
-
-    public void onNewPlaylistButtonCLick(OnRequestPlaylistDialogListener onRequestDialogListener) {
-       onRequestDialogListener.onNewPlaylistDialog();
-    }
-
-    public void onItemLongClick(Playlist playlist, int position, OnRequestPlaylistDialogListener onRequestDialogListener) {
+    @Override
+    public void showDeleteDialog(Playlist playlist, int position) {
         if (playlist.getName().equals(DatabaseConstants.TB_NAME)){
-            onRequestDialogListener.onOfflineDeletePlaylistDialog();
+            contractView.onOfflineDeletePlaylistDialog();
         }else {
-            onRequestDialogListener.onStandardDeletePlaylistDialog(playlist, position);
+            contractView.onStandardDeletePlaylistDialog(playlist, position);
         }
     }
 
+    @Override
     public void setHandleAudioFocus(boolean handleAudioFocus) {
        repository.setAudioFocus(handleAudioFocus);
     }
 
-    public void startMusicService(Activity activity) {
-     //  repository.connectToMusicService(activity);
+    @Override
+    public void setContract(BaseContract.View contract) {
+        contractView = (MainContract.View) contract;
     }
-
 }

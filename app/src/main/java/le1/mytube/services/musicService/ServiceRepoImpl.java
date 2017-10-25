@@ -146,7 +146,7 @@ public class ServiceRepoImpl implements ServiceRepo {
                         int key = itags.keyAt(i);
                         Log.d(TAG, "(" + i + ")itag at " + key + " = " + (itags.get(key)).getUrl());
 
-                        //one of the youtube song that will arrive to the ui
+                        //one of the youtube song that will arrive to the le1.mytube.ui
                         YouTubeSong yts2add= new YouTubeSong.Builder(videoMeta.getVideoId(), videoMeta.getTitle())
                                 .duration((int) videoMeta.getVideoLength())
                                 .format((itags.get(key)).getFormat())
@@ -205,7 +205,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
     private void getMostAppropriateResolution(List<YouTubeSong> youTubeSongList) {
         for (YouTubeSong yts : youTubeSongList) {
-
+            //TODO
         }
     }
 

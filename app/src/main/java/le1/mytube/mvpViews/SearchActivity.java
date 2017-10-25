@@ -26,7 +26,7 @@ import le1.mytube.adapters.AutocompleteAdapter;
 import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpPresenters.SearchPresenter;
 
-import static le1.mytube.mvpViews.MainActivity.changeStatusBarColor;
+import static le1.mytube.ui.main.MainActivity.changeStatusBarColor;
 
 public class SearchActivity extends AppCompatActivity implements TextWatcher, AdapterView.OnItemClickListener, TextView.OnEditorActionListener, OnExecuteTaskCallback {
     ArrayList<String> arrayOfResults;
@@ -87,7 +87,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Intent i = new Intent(SearchActivity.this, SearchResultActivity.class);
-        TextView textView= (TextView) view.findViewById(R.id.text);
+        TextView textView= view.findViewById(R.id.text);
         i.putExtra("QUERY", textView.getText().toString());
         startActivity(i);
     }

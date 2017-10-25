@@ -29,7 +29,7 @@ import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpPresenters.SearchResultPresenter;
 
-import static le1.mytube.mvpViews.MainActivity.changeStatusBarColor;
+import static le1.mytube.ui.main.MainActivity.changeStatusBarColor;
 
 public class SearchResultActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnTouchListener, OnExecuteTaskCallback {
     private static final int PLAYER_ACTIVITY_REQUEST_CODE = 33;

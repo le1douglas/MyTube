@@ -2,16 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="le1.mytube">
 
-    <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="26" />
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <meta-data
-        android:name="android.support.VERSION"
-        android:value="26.0.0-alpha1" />
+
     <application
         android:name="le1.mytube.application.MyTubeApplication"
         android:allowBackup="true"
@@ -41,7 +35,7 @@
             android:value="598.0dip" />
 
         <activity
-            android:name="le1.mytube.mvpViews.MainActivity"
+            android:name="le1.mytube.ui.main.MainActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -75,16 +69,16 @@
 
         <activity
             android:name="le1.mytube.mvpViews.PlaylistActivity"
-            android:parentActivityName="le1.mytube.mvpViews.MainActivity" />
+            android:parentActivityName="le1.mytube.ui.main.MainActivity" />
         <activity
             android:name="le1.mytube.mvpViews.SearchActivity"
             android:launchMode="singleTask"
-            android:parentActivityName="le1.mytube.mvpViews.MainActivity"
+            android:parentActivityName="le1.mytube.ui.main.MainActivity"
             android:windowSoftInputMode="stateAlwaysVisible" />
         <activity
             android:name="le1.mytube.mvpViews.SearchResultActivity"
             android:launchMode="singleTask"
-            android:parentActivityName="le1.mytube.mvpViews.MainActivity"
+            android:parentActivityName="le1.mytube.ui.main.MainActivity"
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
 
         <activity android:name="le1.mytube.mvpViews.MusicPlayerActivity"
