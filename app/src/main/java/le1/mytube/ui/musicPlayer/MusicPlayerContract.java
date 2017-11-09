@@ -15,7 +15,7 @@ import le1.mytube.mvpModel.database.song.YouTubeSong;
 public interface MusicPlayerContract extends BaseContract {
 
     interface View extends BaseContract.View {
-        void onInitializeUi(List<YouTubeSong> youTubeSongs);
+        void onResolutionAvailable(List<YouTubeSong> youTubeSongs);
         void onInitializeUi(YouTubeSong youTubeSongs);
         void onUpdateSeekBar(int position);
     }

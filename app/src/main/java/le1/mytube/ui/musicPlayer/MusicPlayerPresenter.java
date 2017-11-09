@@ -39,7 +39,7 @@ public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlaye
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     void onResume() {
         if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs().size()>0) {
-            contractView.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs());
+            contractView.onResolutionAvailable(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs());
             contractView.onUpdateSeekBar(((MyTubeApplication) getApplication()).getServiceRepo().getPlaybackPosition());
         }
     }
@@ -47,11 +47,17 @@ public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlaye
 
     @Override
     public void onPlaying(List<YouTubeSong> currentSongs) {
-        contractView.onInitializeUi(currentSongs);
+        contractView.onResolutionAvailable(currentSongs);
     }
 
     @Override
-    public void onLoadingStarted(YouTubeSong currentSong) {
+    public void onPreparing(YouTubeSong currentSong) {
+        //only some metadata is availble at ths point
+        contractView.onInitializeUi(currentSong);
+    }
+
+    @Override
+    public void onLoading(YouTubeSong currentSong) {
         contractView.onInitializeUi(currentSong);
     }
 

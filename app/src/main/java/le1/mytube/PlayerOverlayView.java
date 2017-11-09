@@ -47,7 +47,12 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     }
 
     @Override
-    public void onLoadingStarted(YouTubeSong currentSong) {
+    public void onPreparing(YouTubeSong currentSong) {
+        setState(ViewState.LOADING);
+    }
+
+    @Override
+    public void onLoading(YouTubeSong currentSong) {
         setState(ViewState.BUFFERING);
     }
 
@@ -226,6 +231,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 this.state = ViewState.CONTROLS_HIDDEN;
                 titleView.setVisibility(GONE);
                 seekbar.setVisibility(GONE);
+                seekbar.setEnabled(true);
                 playPause.setVisibility(GONE);
                 spinner.setVisibility(GONE);
                 duration.setVisibility(GONE);
@@ -236,6 +242,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 this.state = ViewState.CONTROLS_VISIBLE;
                 titleView.setVisibility(VISIBLE);
                 seekbar.setVisibility(VISIBLE);
+                seekbar.setEnabled(true);
                 playPause.setVisibility(VISIBLE);
                 spinner.setVisibility(VISIBLE);
                 duration.setVisibility(VISIBLE);
@@ -250,10 +257,10 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 break;
             case LOADING:
                 this.state = ViewState.LOADING;
-                titleView.setVisibility(GONE);
+                titleView.setVisibility(VISIBLE);
                 seekbar.setVisibility(GONE);
                 playPause.setVisibility(GONE);
-                spinner.setVisibility(VISIBLE);
+                spinner.setVisibility(GONE);
                 duration.setVisibility(GONE);
                 currentTime.setVisibility(GONE);
                 loadingIcon.setVisibility(VISIBLE);
@@ -263,12 +270,12 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 this.state = ViewState.BUFFERING;
                 titleView.setVisibility(VISIBLE);
                 seekbar.setVisibility(VISIBLE);
+                seekbar.setEnabled(false);
                 playPause.setVisibility(GONE);
                 spinner.setVisibility(VISIBLE);
                 duration.setVisibility(VISIBLE);
                 currentTime.setVisibility(VISIBLE);
                 loadingIcon.setVisibility(VISIBLE);
-
                 break;
         }
     }

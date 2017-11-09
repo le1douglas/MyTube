@@ -132,7 +132,7 @@ public class ServiceRepoImpl implements ServiceRepo {
         service.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, player.getCurrentPosition());
         currentSongs.clear();
         player.setPlayWhenReady(false);
-        listener.onLoadingStarted(youTubeSong);
+        listener.onPreparing(youTubeSong);
 
         new YouTubeExtractor(context) {
             @Override
@@ -158,6 +158,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
                         currentSongs.add(yts2add);
                     }
+                    listener.onLoading(currentSongs.get(0));
 
                     Uri audioUri = Uri.parse((itags.get(140)).getUrl());
                     Uri videoUri = Uri.parse((itags.get(134)).getUrl());
@@ -330,7 +331,6 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onLoadingChanged(boolean isLoading) {
-            if (isLoading) listener.onLoadingStarted(currentSongs.get(0));
         }
 
         @Override
@@ -365,7 +365,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onPositionDiscontinuity() {
-
+            listener.onLoading(currentSongs.get(0));
         }
 
         @Override

@@ -70,7 +70,7 @@ public class MusicPlayerActivity extends LifecycleActivity implements MusicPlaye
     }
 
     @Override
-    public void onInitializeUi(@NonNull List<YouTubeSong> youTubeSongs) {
+    public void onResolutionAvailable(@NonNull List<YouTubeSong> youTubeSongs) {
         overlay.setSpinnerContent(youTubeSongs);
     }
 
