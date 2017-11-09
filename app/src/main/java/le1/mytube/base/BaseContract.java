@@ -1,12 +1,11 @@
 package le1.mytube.base;
 
 public interface BaseContract {
-    interface View{
-        void methodInAllViews();
+    interface View {
     }
 
     interface ViewModel<SS extends View>{
-        void setContract(SS contract);
+        void setContractView(SS contractView);
     }
 
 }

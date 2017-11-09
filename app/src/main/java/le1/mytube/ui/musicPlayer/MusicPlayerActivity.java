@@ -1,4 +1,4 @@
-package le1.mytube.mvpViews;
+package le1.mytube.ui.musicPlayer;
 
 import android.arch.lifecycle.LifecycleActivity;
 import android.arch.lifecycle.LifecycleOwner;
@@ -17,12 +17,10 @@ import java.util.List;
 
 import le1.mytube.PlayerOverlayView;
 import le1.mytube.R;
-import le1.mytube.listeners.MusicPlayerCallback;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
-import le1.mytube.mvpPresenters.MusicPlayerPresenter;
 
 
-public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.OnSeekBarChangeListener, MusicPlayerCallback, LifecycleOwner, AdapterView.OnItemSelectedListener {
+public class MusicPlayerActivity extends LifecycleActivity implements MusicPlayerContract.View, SeekBar.OnSeekBarChangeListener, LifecycleOwner, AdapterView.OnItemSelectedListener {
     private static final String TAG = ("LE1_" + MusicPlayerActivity.class.getSimpleName());
     SimpleExoPlayerView playerView;
     PlayerOverlayView overlay;
@@ -38,7 +36,7 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
 
         presenter = ViewModelProviders.of(this).get(MusicPlayerPresenter.class);
-        presenter.setListener(this);
+        presenter.setContractView(this);
         presenter.linkPlayerToView(playerView);
         getLifecycle().addObserver(presenter);
 
@@ -67,6 +65,18 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
 
 
     @Override
+    public void onUpdateSeekBar(int position) {
+        overlay.setProgress(position);
+    }
+
+    @Override
+    public void onInitializeUi(@NonNull List<YouTubeSong> youTubeSongs) {
+        overlay.setTitle(youTubeSongs.get(0).getTitle());
+        overlay.setMaxProgress(youTubeSongs.get(0).getDuration());
+        overlay.setSpinnerContent(youTubeSongs);
+    }
+
+    @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
 
     }
@@ -80,25 +90,6 @@ public class MusicPlayerActivity extends LifecycleActivity implements SeekBar.On
     public void onStopTrackingTouch(SeekBar seekBar) {
         presenter.seekTo(seekBar.getProgress());
     }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public void onUpdateSeekBar(int position) {
-        overlay.setProgress(position);
-    }
-
-    @Override
-    public void onInitializeUi(@NonNull List<YouTubeSong> youTubeSongs) {
-        overlay.setTitle(youTubeSongs.get(0).getTitle());
-        overlay.setMaxProgress(youTubeSongs.get(0).getDuration());
-        overlay.setSpinnerContent(youTubeSongs);
-    }
-
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

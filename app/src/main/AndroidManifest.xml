@@ -71,17 +71,17 @@
             android:name="le1.mytube.mvpViews.PlaylistActivity"
             android:parentActivityName="le1.mytube.ui.main.MainActivity" />
         <activity
-            android:name="le1.mytube.mvpViews.SearchActivity"
+            android:name="le1.mytube.ui.search.SearchActivity"
             android:launchMode="singleTask"
             android:parentActivityName="le1.mytube.ui.main.MainActivity"
             android:windowSoftInputMode="stateAlwaysVisible" />
         <activity
-            android:name="le1.mytube.mvpViews.SearchResultActivity"
+            android:name="le1.mytube.ui.searchResult.SearchResultActivity"
             android:launchMode="singleTask"
             android:parentActivityName="le1.mytube.ui.main.MainActivity"
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
 
-        <activity android:name="le1.mytube.mvpViews.MusicPlayerActivity"
+        <activity android:name="le1.mytube.ui.musicPlayer.MusicPlayerActivity"
             android:launchMode="singleInstance"/>
 
     </application>

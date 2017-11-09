@@ -34,7 +34,7 @@ import le1.mytube.R;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpViews.PlaylistActivity;
-import le1.mytube.mvpViews.SearchActivity;
+import le1.mytube.ui.search.SearchActivity;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         setSupportActionBar(tb);
 
         presenter = ViewModelProviders.of(this).get(MainPresenter.class);
-        presenter.setContract(this);
+        presenter.setContractView(this);
 
         ListView listView = (ListView) findViewById(R.id.playlistList);
         displayedList = new ArrayList<>();
@@ -299,8 +299,4 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     }
 
-    @Override
-    public void methodInAllViews() {
-
-    }
 }

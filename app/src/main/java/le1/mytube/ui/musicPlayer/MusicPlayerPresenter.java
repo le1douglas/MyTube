@@ -1,4 +1,4 @@
-package le1.mytube.mvpPresenters;
+package le1.mytube.ui.musicPlayer;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
@@ -17,40 +17,37 @@ import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import java.util.List;
 
 import le1.mytube.application.MyTubeApplication;
-import le1.mytube.listeners.MusicPlayerCallback;
+import le1.mytube.base.BaseContract;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
-import le1.mytube.mvpViews.MusicPlayerActivity;
-import le1.mytube.mvpViews.SearchResultActivity;
+import le1.mytube.ui.searchResult.SearchResultActivity;
 
-public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackStateListener, LifecycleObserver {
+public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlayerContract.ViewModel, PlaybackStateListener, LifecycleObserver {
     private static final String TAG = ("LE1_" + MusicPlayerPresenter.class.getSimpleName());
-    private MusicPlayerCallback listener;
+    private MusicPlayerContract.View contractView;
 
     public MusicPlayerPresenter(Application application) {
         super(application);
         ((MyTubeApplication) application).getServiceRepo().addListener(this);
     }
 
-
     /**
      *  getCurrentSongs() may be empty but not null, because it's initialized along with
-     *   the service
+     *  the service
      */
     @SuppressWarnings("ConstantConditions")
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     void onResume() {
         if (((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs().size()>0) {
-            listener.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs());
-            listener.onUpdateSeekBar(((MyTubeApplication) getApplication()).getServiceRepo().getPlaybackPosition());
+            contractView.onInitializeUi(((MyTubeApplication) getApplication()).getServiceRepo().getCurrentSongs());
+            contractView.onUpdateSeekBar(((MyTubeApplication) getApplication()).getServiceRepo().getPlaybackPosition());
         }
-
     }
 
 
     @Override
     public void onPlaying(List<YouTubeSong> currentSongs) {
-        listener.onInitializeUi(currentSongs);
+        contractView.onInitializeUi(currentSongs);
     }
 
     @Override
@@ -81,24 +78,17 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
 
     @Override
     public void onPositionChanged(int currentTimeInSec) {
-        listener.onUpdateSeekBar(currentTimeInSec);
-
+        contractView.onUpdateSeekBar(currentTimeInSec);
     }
 
+
+
+    @Override
     public void playOrPause() {
         ((MyTubeApplication) getApplication()).getServiceRepo().playOrPause();
     }
 
-    public void setListener(MusicPlayerCallback listener) {
-        this.listener = listener;
-    }
-
-    public void linkPlayerToView(SimpleExoPlayerView playerView) {
-        if (playerView.getPlayer() == null)
-            ((MyTubeApplication) getApplication()).getServiceRepo().setView(playerView);
-    }
-
-
+    @Override
     public void seekTo(int progress) {
         ((MyTubeApplication) getApplication()).getServiceRepo().seekTo(progress);
     }
@@ -110,6 +100,7 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
      * if opened by activity start new song, otherwise just open the player in it's current state
      */
 
+    @Override
     public void startSongIfNecessary(@NonNull Intent intent, @Nullable ComponentName callingActivity) {
         Log.d(TAG, "startSongIfNecessary called with intent=" + intent + " and callingActivity=" + callingActivity);
         if (callingActivity != null) {
@@ -118,6 +109,17 @@ public class MusicPlayerPresenter extends AndroidViewModel implements PlaybackSt
                 ((MyTubeApplication) getApplication()).getServiceRepo().prepareStreaming(youTubeSong);
             }
         }
+    }
+
+    @Override
+    public void linkPlayerToView(SimpleExoPlayerView playerView) {
+        if (playerView.getPlayer() == null)
+            ((MyTubeApplication) getApplication()).getServiceRepo().setView(playerView);
+    }
+
+    @Override
+    public void setContractView(BaseContract.View contractView) {
+        this.contractView = (MusicPlayerContract.View) contractView;
     }
 
 }

@@ -13,7 +13,7 @@ import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpViews.MusicPlayerActivity;
+import le1.mytube.ui.musicPlayer.MusicPlayerActivity;
 
 public class PlaylistPresenter extends AndroidViewModel {
 

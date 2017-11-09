@@ -1,4 +1,4 @@
-package le1.mytube.mvpViews;
+package le1.mytube.ui.search;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -15,24 +15,23 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import org.json.JSONArray;
-import org.json.JSONException;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import le1.mytube.R;
 import le1.mytube.adapters.AutocompleteAdapter;
-import le1.mytube.listeners.OnExecuteTaskCallback;
-import le1.mytube.mvpPresenters.SearchPresenter;
+import le1.mytube.ui.searchResult.SearchResultActivity;
 
 import static le1.mytube.ui.main.MainActivity.changeStatusBarColor;
 
-public class SearchActivity extends AppCompatActivity implements TextWatcher, AdapterView.OnItemClickListener, TextView.OnEditorActionListener, OnExecuteTaskCallback {
+public class SearchActivity extends AppCompatActivity implements SearchContract.View, TextWatcher, AdapterView.OnItemClickListener, TextView.OnEditorActionListener {
     ArrayList<String> arrayOfResults;
     AutocompleteAdapter autocompleteAdapter;
     EditText searchEditText;
     SearchPresenter presenter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +44,8 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        presenter= ViewModelProviders.of(this).get(SearchPresenter.class);
+        presenter = ViewModelProviders.of(this).get(SearchPresenter.class);
+        presenter.setContractView(this);
 
         searchEditText = (EditText) findViewById(R.id.SearchEditText);
         searchEditText.addTextChangedListener(this);
@@ -63,7 +63,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.getStringExtra("QUERY")!=null){
+        if (intent.getStringExtra("QUERY") != null) {
             searchEditText.setText(intent.getStringExtra("QUERY"));
             searchEditText.setSelection(searchEditText.length());
         }
@@ -76,7 +76,7 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        presenter.getAutocompleteSuggestions(s.toString(), this);
+        presenter.loadAutocompleteSuggestions(s.toString());
     }
 
     @Override
@@ -86,50 +86,35 @@ public class SearchActivity extends AppCompatActivity implements TextWatcher, Ad
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Intent i = new Intent(SearchActivity.this, SearchResultActivity.class);
-        TextView textView= view.findViewById(R.id.text);
-        i.putExtra("QUERY", textView.getText().toString());
-        startActivity(i);
+        TextView textView = view.findViewById(R.id.text);
+        startSearchResultActivity(textView.getText().toString());
     }
 
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            Intent i = new Intent(SearchActivity.this, SearchResultActivity.class);
-            i.putExtra("QUERY", v.getText().toString());
-            startActivity(i);
+            startSearchResultActivity(v.getText().toString());
             return true;
         }
         return false;
     }
 
-
-    @Override
-    public void onBeforeExecutingTask() {
-
-    }
-
-    @Override
-    public void onDuringExecutingTask() {
+    private void startSearchResultActivity(String query) {
+        Intent i = new Intent(SearchActivity.this, SearchResultActivity.class);
+        i.putExtra("QUERY", query);
+        startActivity(i);
 
     }
 
     @Override
-    public void onAfterExecutingTask(Object result) {
+    public void onSearchResultLoaded(List<String> suggestions) {
         autocompleteAdapter.clear();
-        if (!(result == null || result.equals(""))) {
-            try {
-                JSONArray root = new JSONArray((String) result);
-                JSONArray suggestionArray = root.getJSONArray(1);
-                for (int i = 0; i < suggestionArray.length(); i++) {
-                    String suggestion = suggestionArray.getString(i);
-                    autocompleteAdapter.add(suggestion);
-                }
-                autocompleteAdapter.notifyDataSetChanged();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        autocompleteAdapter.addAll(suggestions);
+        autocompleteAdapter.notifyDataSetChanged();
+    }
 
-        }
+    @Override
+    public void onSearchResultError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

@@ -199,13 +199,13 @@ public class Repo {
 
         @Override
         protected void onPreExecute() {
-            onExecuteTaskCallback.onBeforeExecutingTask();
+            onExecuteTaskCallback.onBeforeTask();
             super.onPreExecute();
         }
 
         @Override
         protected String doInBackground(String... params) {
-            onExecuteTaskCallback.onDuringExecutingTask();
+            onExecuteTaskCallback.onDuringTask();
             Thread.currentThread().setName("le1.mytube.AutocompleteTask");
             try {
                 if (!params[0].trim().equals("")) {
@@ -234,7 +234,7 @@ public class Repo {
 
         @Override
         protected void onPostExecute(String result) {
-            onExecuteTaskCallback.onAfterExecutingTask(result);
+            onExecuteTaskCallback.onAfterTask(result);
         }
 
 
@@ -246,14 +246,14 @@ public class Repo {
 
         @Override
         protected void onPreExecute() {
-            onExecuteTaskCallback.onBeforeExecutingTask();
+            onExecuteTaskCallback.onBeforeTask();
 
             super.onPreExecute();
         }
 
         @Override
         protected String doInBackground(String... params) {
-            onExecuteTaskCallback.onDuringExecutingTask();
+            onExecuteTaskCallback.onDuringTask();
             Thread.currentThread().setName("le1.mytube.SearchTask");
             HttpURLConnection urlConnection;
 
@@ -299,7 +299,7 @@ public class Repo {
 
         @Override
         protected void onPostExecute(String result) {
-            onExecuteTaskCallback.onAfterExecutingTask(result);
+            onExecuteTaskCallback.onAfterTask(result);
 
         }
     }

@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 import le1.mytube.R;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
-import le1.mytube.mvpPresenters.SearchResultPresenter;
+import le1.mytube.ui.searchResult.SearchResultPresenter;
 
 
 public class VideoResultAdapter extends ArrayAdapter<String> {
@@ -41,6 +41,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
         this.notifyDataSetChanged();
     }
 
+    @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         final YouTubeSong youTubeSong = youTubeSongs.get(position);

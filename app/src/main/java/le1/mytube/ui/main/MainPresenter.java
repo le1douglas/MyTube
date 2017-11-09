@@ -2,8 +2,6 @@ package le1.mytube.ui.main;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.content.pm.PackageManager;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -15,7 +13,7 @@ import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 
-class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
+public class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
     private Repo repository;
     private MainContract.View contractView;
 
@@ -23,13 +21,6 @@ class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
     public MainPresenter(Application application) {
         super(application);
         this.repository = new Repo(application);
-    }
-     /**
-     * @param permission should be one of  Manifest.permission.X
-     * @return true if permission is granted, false otherwise*/
-    private boolean isPermissionGranted(String permission){
-        return ContextCompat.checkSelfPermission(this.getApplication(), permission)
-                == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -120,7 +111,7 @@ class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
     }
 
     @Override
-    public void setContract(BaseContract.View contract) {
-        contractView = (MainContract.View) contract;
+    public void setContractView(BaseContract.View contractView) {
+        this.contractView = (MainContract.View) contractView;
     }
 }

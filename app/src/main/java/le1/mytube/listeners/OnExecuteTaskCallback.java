@@ -1,14 +1,10 @@
 package le1.mytube.listeners;
 
-/**
- * Created by Leone on 05/09/17.
- */
-
 public interface OnExecuteTaskCallback {
 
-    void onBeforeExecutingTask();
+    void onBeforeTask();
 
-    void onDuringExecutingTask();
+    void onDuringTask();
 
-    void onAfterExecutingTask(Object result);
+    void onAfterTask(Object result);
 }

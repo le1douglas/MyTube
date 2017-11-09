@@ -23,7 +23,7 @@ interface MainContract extends BaseContract {
 
     interface ViewModel extends BaseContract.ViewModel {
         @Override
-        void setContract(BaseContract.View contract);
+        void setContractView(BaseContract.View contractView);
 
         void loadPlaylists();
         void loadSharedPreferences();

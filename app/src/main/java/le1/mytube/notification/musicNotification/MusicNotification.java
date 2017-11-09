@@ -17,7 +17,7 @@ import android.support.v7.app.NotificationCompat.MediaStyle;
 import android.util.Log;
 
 import le1.mytube.R;
-import le1.mytube.mvpViews.MusicPlayerActivity;
+import le1.mytube.ui.musicPlayer.MusicPlayerActivity;
 
 public class MusicNotification {
     private static final int ID = 666;

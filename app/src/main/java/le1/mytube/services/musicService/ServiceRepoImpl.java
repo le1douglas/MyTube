@@ -140,14 +140,13 @@ public class ServiceRepoImpl implements ServiceRepo {
                 }
                 if (itags != null) {
                     Log.d(TAG, "onExtractionComplete");
-                    loadImage(youTubeSong);
 
                     for (int i = 0; i < itags.size(); i++) {
                         int key = itags.keyAt(i);
                         Log.d(TAG, "(" + i + ")itag at " + key + " = " + (itags.get(key)).getUrl());
 
                         //one of the youtube song that will arrive to the le1.mytube.ui
-                        YouTubeSong yts2add= new YouTubeSong.Builder(videoMeta.getVideoId(), videoMeta.getTitle())
+                        YouTubeSong yts2add = new YouTubeSong.Builder(videoMeta.getVideoId(), videoMeta.getTitle())
                                 .duration((int) videoMeta.getVideoLength())
                                 .format((itags.get(key)).getFormat())
                                 .imageUri(Uri.parse(videoMeta.getHqImageUrl()))
@@ -160,7 +159,8 @@ public class ServiceRepoImpl implements ServiceRepo {
                     Uri audioUri = Uri.parse((itags.get(140)).getUrl());
                     Uri videoUri = Uri.parse((itags.get(134)).getUrl());
                     player.prepare(buildMediaSource(videoUri, audioUri));
-                    service.updateMetadata(youTubeSong);
+                    service.updateMetadata(currentSongs.get(0));
+                    loadImage(currentSongs.get(0));
                     play();
 
                 } else {
@@ -170,21 +170,21 @@ public class ServiceRepoImpl implements ServiceRepo {
         }.extract("http://youtube.com/watch?v=" + youTubeSong.getId(), true, true);
     }
 
-    private void loadImage(final YouTubeSong youTubeSong) {
-        if (youTubeSong.getImageUri() == null) {
+    private void loadImage(final YouTubeSong yts) {
+        if (yts.getImageUri() == null) {
             Log.w(TAG, "loadImage called without valid uri");
             return;
         }
-        Picasso.with(context).load(youTubeSong.getImageUri()).into(new Target() {
+        Picasso.with(context).load(yts.getImageUri()).into(new Target() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                youTubeSong.setImageBitmap(bitmap);
-                service.updateMetadata(youTubeSong);
+                yts.setImageBitmap(bitmap);
+                service.updateMetadata(yts);
             }
 
             @Override
             public void onBitmapFailed(Drawable errorDrawable) {
-
+                Toast.makeText(service, "onBitmapFailed", Toast.LENGTH_SHORT).show();
             }
 
             @Override

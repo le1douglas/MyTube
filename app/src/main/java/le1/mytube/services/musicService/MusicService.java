@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -103,12 +102,9 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, youTubeSong.getTitle())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getId())
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId());
-        if (youTubeSong.getImageBitmap() == null) {
-            metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, BitmapFactory.decodeResource(service.getApplicationContext().getResources(), R.mipmap.ic_launcher));
-        } else {
+        if (youTubeSong.getImageBitmap() != null) {
             metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, youTubeSong.getImageBitmap());
             MusicNotification.updateNotification(service.getApplicationContext(), service, mediaSession,  ((MyTubeApplication) service.getApplication()).getServiceRepo().getPlaybackState());
-
         }
         if (youTubeSong.getImageUri() != null)
             metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImageUri().toString());
