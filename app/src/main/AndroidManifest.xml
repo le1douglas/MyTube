@@ -68,7 +68,7 @@
         </service>
 
         <activity
-            android:name="le1.mytube.mvpViews.PlaylistActivity"
+            android:name="le1.mytube.ui.playlist.PlaylistActivity"
             android:parentActivityName="le1.mytube.ui.main.MainActivity" />
         <activity
             android:name="le1.mytube.ui.search.SearchActivity"

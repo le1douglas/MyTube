@@ -1,4 +1,4 @@
-package le1.mytube.mvpPresenters;
+package le1.mytube.ui.playlist;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;

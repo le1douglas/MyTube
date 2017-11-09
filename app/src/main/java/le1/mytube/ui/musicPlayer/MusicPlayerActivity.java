@@ -71,9 +71,13 @@ public class MusicPlayerActivity extends LifecycleActivity implements MusicPlaye
 
     @Override
     public void onInitializeUi(@NonNull List<YouTubeSong> youTubeSongs) {
-        overlay.setTitle(youTubeSongs.get(0).getTitle());
-        overlay.setMaxProgress(youTubeSongs.get(0).getDuration());
         overlay.setSpinnerContent(youTubeSongs);
+    }
+
+    @Override
+    public void onInitializeUi(YouTubeSong youTubeSong) {
+        overlay.setTitle(youTubeSong.getTitle());
+        overlay.setMaxProgress(youTubeSong.getDuration());
     }
 
     @Override

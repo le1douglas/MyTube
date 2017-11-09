@@ -129,8 +129,11 @@ public class ServiceRepoImpl implements ServiceRepo {
     @Override
     public void prepareStreaming(@NonNull final YouTubeSong youTubeSong) {
         Log.d(TAG, "prepareStreaming");
-        currentSongs.clear();
         service.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, player.getCurrentPosition());
+        currentSongs.clear();
+        player.setPlayWhenReady(false);
+        listener.onLoadingStarted(youTubeSong);
+
         new YouTubeExtractor(context) {
             @Override
             protected void onExtractionComplete(SparseArray<YtFile> itags, VideoMeta videoMeta) {
@@ -145,7 +148,7 @@ public class ServiceRepoImpl implements ServiceRepo {
                         int key = itags.keyAt(i);
                         Log.d(TAG, "(" + i + ")itag at " + key + " = " + (itags.get(key)).getUrl());
 
-                        //one of the youtube song that will arrive to the le1.mytube.ui
+                        //one of the youtube song that will arrive to the ui
                         YouTubeSong yts2add = new YouTubeSong.Builder(videoMeta.getVideoId(), videoMeta.getTitle())
                                 .duration((int) videoMeta.getVideoLength())
                                 .format((itags.get(key)).getFormat())
@@ -327,8 +330,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onLoadingChanged(boolean isLoading) {
-            if (isLoading) listener.onLoadingStarted();
-            else listener.onLoadingFinished();
+            if (isLoading) listener.onLoadingStarted(currentSongs.get(0));
         }
 
         @Override

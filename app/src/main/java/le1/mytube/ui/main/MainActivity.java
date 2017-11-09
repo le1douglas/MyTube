@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import le1.mytube.R;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpViews.PlaylistActivity;
+import le1.mytube.ui.playlist.PlaylistActivity;
 import le1.mytube.ui.search.SearchActivity;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;

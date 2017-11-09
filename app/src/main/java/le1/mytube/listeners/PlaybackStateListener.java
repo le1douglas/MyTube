@@ -5,9 +5,7 @@ import java.util.List;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 public interface PlaybackStateListener {
-    void onLoadingStarted();
-
-    void onLoadingFinished();
+    void onLoadingStarted(YouTubeSong currentSong);
 
     void onPositionChanged(int currentTimeInSec);
 

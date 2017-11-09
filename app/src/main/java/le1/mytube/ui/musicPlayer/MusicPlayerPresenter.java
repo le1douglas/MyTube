@@ -51,14 +51,10 @@ public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlaye
     }
 
     @Override
-    public void onLoadingStarted() {
-
+    public void onLoadingStarted(YouTubeSong currentSong) {
+        contractView.onInitializeUi(currentSong);
     }
 
-    @Override
-    public void onLoadingFinished() {
-
-    }
 
     @Override
     public void onStopped() {

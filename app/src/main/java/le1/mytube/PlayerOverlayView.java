@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -30,7 +31,8 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     private SeekBar seekbar;
     private ImageButton playPause;
     private TextView duration;
-    private TextView current;
+    private TextView currentTime;
+    private ProgressBar loadingIcon;
 
     private OnClickListener clientListener;
     private ArrayAdapter<String> spinnerAdapter;
@@ -41,22 +43,18 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
     private enum ViewState {
         CONTROLS_HIDDEN,
-        CONTROLS_VISIBLE
+        LOADING, BUFFERING, CONTROLS_VISIBLE
     }
 
     @Override
-    public void onLoadingStarted() {
-
+    public void onLoadingStarted(YouTubeSong currentSong) {
+        setState(ViewState.BUFFERING);
     }
 
-    @Override
-    public void onLoadingFinished() {
-
-    }
 
     @Override
     public void onPositionChanged(int currentTimeInSec) {
-        current.setText(formatSeconds(currentTimeInSec));
+        currentTime.setText(formatSeconds(currentTimeInSec));
     }
 
     @Override
@@ -133,7 +131,8 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         playPause = view.findViewById(R.id.playpause);
         spinner = view.findViewById(R.id.spinner);
         duration = view.findViewById(R.id.duration);
-        current = view.findViewById(R.id.current);
+        currentTime = view.findViewById(R.id.current);
+        loadingIcon = view.findViewById(R.id.loadingIcon);
 
         spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
 
@@ -230,7 +229,8 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 playPause.setVisibility(GONE);
                 spinner.setVisibility(GONE);
                 duration.setVisibility(GONE);
-                current.setVisibility(GONE);
+                currentTime.setVisibility(GONE);
+                loadingIcon.setVisibility(GONE);
                 break;
             case CONTROLS_VISIBLE:
                 this.state = ViewState.CONTROLS_VISIBLE;
@@ -239,12 +239,36 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 playPause.setVisibility(VISIBLE);
                 spinner.setVisibility(VISIBLE);
                 duration.setVisibility(VISIBLE);
-                current.setVisibility(VISIBLE);
+                currentTime.setVisibility(VISIBLE);
+                loadingIcon.setVisibility(GONE);
+
                 if (((MyTubeApplication) context.getApplicationContext()).getServiceRepo().getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
                     playPause.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.exo_controls_pause));
                 } else {
                     playPause.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.exo_controls_play));
                 }
+                break;
+            case LOADING:
+                this.state = ViewState.LOADING;
+                titleView.setVisibility(GONE);
+                seekbar.setVisibility(GONE);
+                playPause.setVisibility(GONE);
+                spinner.setVisibility(VISIBLE);
+                duration.setVisibility(GONE);
+                currentTime.setVisibility(GONE);
+                loadingIcon.setVisibility(VISIBLE);
+
+                break;
+            case BUFFERING:
+                this.state = ViewState.BUFFERING;
+                titleView.setVisibility(VISIBLE);
+                seekbar.setVisibility(VISIBLE);
+                playPause.setVisibility(GONE);
+                spinner.setVisibility(VISIBLE);
+                duration.setVisibility(VISIBLE);
+                currentTime.setVisibility(VISIBLE);
+                loadingIcon.setVisibility(VISIBLE);
+
                 break;
         }
     }

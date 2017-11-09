@@ -1,4 +1,4 @@
-package le1.mytube.mvpViews;
+package le1.mytube.ui.playlist;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
@@ -21,7 +21,6 @@ import le1.mytube.listeners.OnLoadSongInPlaylistListener;
 import le1.mytube.listeners.OnRequestSongDialogListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
-import le1.mytube.mvpPresenters.PlaylistPresenter;
 
 
 public class PlaylistActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadSongInPlaylistListener, OnRequestSongDialogListener {

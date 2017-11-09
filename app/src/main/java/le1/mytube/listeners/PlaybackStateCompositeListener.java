@@ -20,18 +20,12 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onLoadingStarted() {
+    public void onLoadingStarted(YouTubeSong currentSong) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onLoadingStarted();
+            l.onLoadingStarted(currentSong);
         }
     }
 
-    @Override
-    public void onLoadingFinished() {
-        for (PlaybackStateListener l: playbackStateListeners){
-            l.onLoadingFinished();
-        }
-    }
 
     @Override
     public void onPositionChanged(int currentTimeInSec) {
