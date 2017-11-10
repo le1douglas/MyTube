@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -37,7 +36,6 @@ import com.google.android.exoplayer2.util.Util;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import at.huber.youtubeExtractor.VideoMeta;
@@ -60,7 +58,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
     private PlaybackStateCompositeListener listener = new PlaybackStateCompositeListener();
 
-    private List<YouTubeSong> currentSongs = new ArrayList<>();
+   // private List<YouTubeSong> currentSongs = new ArrayList<>();
     private boolean postProgressUpdate = false;
 
     private class ConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
@@ -130,7 +128,7 @@ public class ServiceRepoImpl implements ServiceRepo {
     public void prepareStreaming(@NonNull final YouTubeSong youTubeSong) {
         Log.d(TAG, "prepareStreaming");
         service.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, player.getCurrentPosition());
-        currentSongs.clear();
+        YouTubeSongResolutionsUtil.clearResolutionsList();
         player.setPlayWhenReady(false);
         listener.onPreparing(youTubeSong);
 
@@ -143,28 +141,14 @@ public class ServiceRepoImpl implements ServiceRepo {
                 }
                 if (itags != null) {
                     Log.d(TAG, "onExtractionComplete");
-
-                    for (int i = 0; i < itags.size(); i++) {
-                        int key = itags.keyAt(i);
-                        Log.d(TAG, "(" + i + ")itag at " + key + " = " + (itags.get(key)).getUrl());
-
-                        //one of the youtube song that will arrive to the ui
-                        YouTubeSong yts2add = new YouTubeSong.Builder(videoMeta.getVideoId(), videoMeta.getTitle())
-                                .duration((int) videoMeta.getVideoLength())
-                                .format((itags.get(key)).getFormat())
-                                .imageUri(Uri.parse(videoMeta.getHqImageUrl()))
-                                .streamingUri(Uri.parse(itags.get(key).getUrl()))
-                                .build();
-
-                        currentSongs.add(yts2add);
-                    }
-                    listener.onLoading(currentSongs.get(0));
+                    YouTubeSongResolutionsUtil.buildResolutionsList(itags, videoMeta);
+                    listener.onLoading(YouTubeSongResolutionsUtil.getMasterYouTubeSong());
 
                     Uri audioUri = Uri.parse((itags.get(140)).getUrl());
                     Uri videoUri = Uri.parse((itags.get(134)).getUrl());
                     player.prepare(buildMediaSource(videoUri, audioUri));
-                    service.updateMetadata(currentSongs.get(0));
-                    loadImage(currentSongs.get(0));
+                    service.updateMetadata(youTubeSong);
+                    loadImage(youTubeSong);
                     play();
 
                 } else {
@@ -207,11 +191,6 @@ public class ServiceRepoImpl implements ServiceRepo {
 
     }
 
-    private void getMostAppropriateResolution(List<YouTubeSong> youTubeSongList) {
-        for (YouTubeSong yts : youTubeSongList) {
-            //TODO
-        }
-    }
 
     @Override
     public void prepareLocal(@NonNull YouTubeSong youTubeSong) {
@@ -270,7 +249,6 @@ public class ServiceRepoImpl implements ServiceRepo {
         player.setPlayWhenReady(false);
         service.setConnectedToNoisyReceiver(false);
         postProgressUpdate = false;
-        currentSongs = null;
         service.setPlaybackState(PlaybackStateCompat.STATE_STOPPED, player.getCurrentPosition());
         player.stop();
         service.setMediaSessionActive(false);
@@ -312,9 +290,9 @@ public class ServiceRepoImpl implements ServiceRepo {
         return (int) player.getCurrentPosition() / 1000;
     }
 
-    @Nullable
+
     public List<YouTubeSong> getCurrentSongs() {
-        return currentSongs;
+        return YouTubeSongResolutionsUtil.getResolutionsList();
     }
 
     private class PlayerListener implements Player.EventListener {
@@ -338,7 +316,7 @@ public class ServiceRepoImpl implements ServiceRepo {
             switch (playbackState) {
                 case Player.STATE_READY:
                     if (playWhenReady) {
-                        listener.onPlaying(currentSongs);
+                        listener.onPlaying(YouTubeSongResolutionsUtil.getResolutionsList());
                     } else {
                         listener.onPaused();
                     }
@@ -348,7 +326,7 @@ public class ServiceRepoImpl implements ServiceRepo {
                 case Player.STATE_ENDED:
                     service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
                     listener.onStopped();
-                    currentSongs.clear();
+                    YouTubeSongResolutionsUtil.clearResolutionsList();
                     break;
             }
         }
@@ -365,7 +343,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onPositionDiscontinuity() {
-            listener.onLoading(currentSongs.get(0));
+            listener.onLoading(YouTubeSongResolutionsUtil.getMasterYouTubeSong());
         }
 
         @Override

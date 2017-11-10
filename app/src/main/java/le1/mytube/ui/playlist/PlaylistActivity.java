@@ -14,16 +14,15 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import le1.mytube.R;
 import le1.mytube.adapters.PlaylistAdapter;
-import le1.mytube.listeners.OnLoadSongInPlaylistListener;
-import le1.mytube.listeners.OnRequestSongDialogListener;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 
 
-public class PlaylistActivity extends AppCompatActivity implements ListView.OnItemClickListener, ListView.OnItemLongClickListener, OnLoadSongInPlaylistListener, OnRequestSongDialogListener {
+public class PlaylistActivity extends AppCompatActivity implements PlaylistContract.View, ListView.OnItemClickListener, ListView.OnItemLongClickListener{
 
     private BaseAdapter adapter;
     private PlaylistPresenter presenter;
@@ -53,7 +52,7 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
 
 
         presenter = ViewModelProviders.of(this).get(PlaylistPresenter.class);
-        presenter.loadSongsInPlaylist(getIntent().getStringExtra("TITLE"), this);
+        presenter.loadSongsInPlaylist(getIntent().getStringExtra("TITLE"));
 
     }
 
@@ -64,12 +63,12 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-        presenter.onListLongItemClick(playlist,(YouTubeSong) adapter.getItem(position), position, this);
+        presenter.onListLongItemClick(playlist,(YouTubeSong) adapter.getItem(position), position);
         return true;
     }
 
     @Override
-    public void onSongLoaded(ArrayList<YouTubeSong> songsInPlaylist) {
+    public void onSongLoaded(List<YouTubeSong> songsInPlaylist) {
         this.songList.addAll(songsInPlaylist);
         adapter.notifyDataSetChanged();
     }
@@ -86,7 +85,7 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
     }
 
     @Override
-    public void onOfflineDeleteSongDialog(final YouTubeSong youTubeSong, final int position) {
+    public void showOfflineDeleteSongDialog(final YouTubeSong youTubeSong, final int position) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Remove \"" + youTubeSong.getTitle() + "\" ?");
         alertDialogBuilder.setMessage("You won't be able to listen to this song offline anymore. You can remove the song from the playlist without deleting it");
@@ -103,7 +102,7 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
         alertDialogBuilder.setPositiveButton("Delete",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        presenter.deleteSong(youTubeSong, PlaylistActivity.this);
+                        presenter.deleteSong(youTubeSong);
                         songList.remove(position);
                         adapter.notifyDataSetChanged();
                     }
@@ -122,14 +121,14 @@ public class PlaylistActivity extends AppCompatActivity implements ListView.OnIt
     }
 
     @Override
-    public void onStandardDeleteSongDialog(final YouTubeSong youTubeSong, final int position) {
+    public void showStandardDeleteSongDialog(final YouTubeSong youTubeSong, final int position) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Remove \"" + youTubeSong.getTitle() + "\" ?");
         alertDialogBuilder.setMessage("You won't be able to listen to this song offline anymore");
         alertDialogBuilder.setPositiveButton("Delete",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        presenter.deleteSong(youTubeSong, PlaylistActivity.this);
+                        presenter.deleteSong(youTubeSong);
                         songList.remove(position);
                         adapter.notifyDataSetChanged();
                     }

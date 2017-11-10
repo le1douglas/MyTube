@@ -7,18 +7,18 @@ import android.content.Intent;
 import java.util.ArrayList;
 
 import le1.mytube.application.MyTubeApplication;
-import le1.mytube.listeners.OnLoadSongInPlaylistListener;
-import le1.mytube.listeners.OnRequestSongDialogListener;
+import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.ui.musicPlayer.MusicPlayerActivity;
 
-public class PlaylistPresenter extends AndroidViewModel {
+public class PlaylistPresenter extends AndroidViewModel implements PlaylistContract.ViewModel {
 
     private Repo repository;
     private Application application;
+    private PlaylistContract.View contractView;
 
     public PlaylistPresenter(Application application) {
         super(application);
@@ -26,7 +26,13 @@ public class PlaylistPresenter extends AndroidViewModel {
         this.application = application;
     }
 
-    public void loadSongsInPlaylist(String playlistName, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
+    @Override
+    public void setContractView(BaseContract.View contractView) {
+        this.contractView = (PlaylistContract.View) contractView;
+    }
+
+    @Override
+    public void loadSongsInPlaylist(String playlistName) {
         try {
             ArrayList<YouTubeSong> youTubeSongs;
             if (playlistName.equals(DatabaseConstants.TB_NAME)) {
@@ -36,28 +42,29 @@ public class PlaylistPresenter extends AndroidViewModel {
             }
 
             if (youTubeSongs.size() > 0) {
-                onLoadSongInPlaylistListener.onSongLoaded(youTubeSongs);
+                contractView.onSongLoaded(youTubeSongs);
             } else {
-                onLoadSongInPlaylistListener.onNoSongLoaded();
+                contractView.onNoSongLoaded();
 
             }
         } catch (Exception e) {
-            onLoadSongInPlaylistListener.onSongLoadingError();
+            contractView.onSongLoadingError();
             e.printStackTrace();
         }
 
     }
 
-
-    public void deleteSong(YouTubeSong youtubeSong, OnLoadSongInPlaylistListener onLoadSongInPlaylistListener) {
+    @Override
+    public void deleteSong(YouTubeSong youtubeSong) {
         repository.deleteSong(youtubeSong);
         //TODO make getallsongsCount
         if (repository.getAllSongs().size() == 0) {
-           onLoadSongInPlaylistListener.onNoSongLoaded();
+           contractView.onNoSongLoaded();
         }
 
     }
 
+    @Override
     public void removeSongFromPlaylist(Playlist playlist, YouTubeSong youTubeSong) {
        /* repository.removeSongFromPlaylist(youTubeSong, playlistName);
         //TODO think about a more lightweight method to get a playlist size
@@ -68,14 +75,16 @@ public class PlaylistPresenter extends AndroidViewModel {
     }
 
 
-    public void onListLongItemClick(Playlist playlist, YouTubeSong youtubeSong, int position, OnRequestSongDialogListener onRequestSongDialogListener) {
+    @Override
+    public void onListLongItemClick(Playlist playlist, YouTubeSong youtubeSong, int position) {
         if (playlist.getName().equals(DatabaseConstants.TB_NAME)) {
-            onRequestSongDialogListener.onOfflineDeleteSongDialog(youtubeSong, position);
+            contractView.showOfflineDeleteSongDialog(youtubeSong, position);
         } else {
-            onRequestSongDialogListener.onStandardDeleteSongDialog(youtubeSong, position);
+            contractView.showStandardDeleteSongDialog(youtubeSong, position);
         }
     }
 
+    @Override
     public void onListItemClick(YouTubeSong youtubeSong) {
         Intent i =new Intent(application, MusicPlayerActivity.class);
         i.putExtra(MyTubeApplication.KEY_SONG, youtubeSong);

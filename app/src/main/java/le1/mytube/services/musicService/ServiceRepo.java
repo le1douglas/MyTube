@@ -1,7 +1,6 @@
 package le1.mytube.services.musicService;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
@@ -40,7 +39,6 @@ public interface ServiceRepo {
 
     int getPlaybackPosition();
 
-    @Nullable
     List<YouTubeSong> getCurrentSongs();
 
 }
