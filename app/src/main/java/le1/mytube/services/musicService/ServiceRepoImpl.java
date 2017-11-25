@@ -128,7 +128,7 @@ public class ServiceRepoImpl implements ServiceRepo {
     public void prepareStreaming(@NonNull final YouTubeSong youTubeSong) {
         Log.d(TAG, "prepareStreaming");
         service.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, player.getCurrentPosition());
-        YouTubeSongResolutionsUtil.clearResolutionsList();
+        ResolutionsManager.clearResolutionsList();
         player.setPlayWhenReady(false);
         listener.onPreparing(youTubeSong);
 
@@ -141,11 +141,11 @@ public class ServiceRepoImpl implements ServiceRepo {
                 }
                 if (itags != null) {
                     Log.d(TAG, "onExtractionComplete");
-                    YouTubeSongResolutionsUtil.buildResolutionsList(itags, videoMeta);
-                    listener.onLoading(YouTubeSongResolutionsUtil.getMasterYouTubeSong());
-
+                    ResolutionsManager.buildResolutionsList(itags, videoMeta);
+                    listener.onLoading(ResolutionsManager.getMasterYouTubeSong());
                     Uri audioUri = Uri.parse((itags.get(140)).getUrl());
-                    Uri videoUri = Uri.parse((itags.get(134)).getUrl());
+                    Uri videoUri = Uri.parse((itags.get(160)).getUrl());
+                   // Uri videoUri = ResolutionsManager.getResolutionsList().get(1).getStreamingUri();
                     player.prepare(buildMediaSource(videoUri, audioUri));
                     service.updateMetadata(youTubeSong);
                     loadImage(youTubeSong);
@@ -292,7 +292,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
 
     public List<YouTubeSong> getCurrentSongs() {
-        return YouTubeSongResolutionsUtil.getResolutionsList();
+        return ResolutionsManager.getResolutionsList();
     }
 
     private class PlayerListener implements Player.EventListener {
@@ -316,7 +316,7 @@ public class ServiceRepoImpl implements ServiceRepo {
             switch (playbackState) {
                 case Player.STATE_READY:
                     if (playWhenReady) {
-                        listener.onPlaying(YouTubeSongResolutionsUtil.getResolutionsList());
+                        listener.onPlaying(ResolutionsManager.getResolutionsList());
                     } else {
                         listener.onPaused();
                     }
@@ -326,7 +326,7 @@ public class ServiceRepoImpl implements ServiceRepo {
                 case Player.STATE_ENDED:
                     service.setPlaybackState(PlaybackStateCompat.STATE_NONE, player.getCurrentPosition());
                     listener.onStopped();
-                    YouTubeSongResolutionsUtil.clearResolutionsList();
+                    ResolutionsManager.clearResolutionsList();
                     break;
             }
         }
@@ -343,7 +343,7 @@ public class ServiceRepoImpl implements ServiceRepo {
 
         @Override
         public void onPositionDiscontinuity() {
-            listener.onLoading(YouTubeSongResolutionsUtil.getMasterYouTubeSong());
+            listener.onLoading(ResolutionsManager.getMasterYouTubeSong());
         }
 
         @Override

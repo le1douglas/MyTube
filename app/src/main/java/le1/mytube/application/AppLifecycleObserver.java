@@ -5,7 +5,7 @@ import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 
 
-public class AppLifecycleObserver implements LifecycleObserver {
+class AppLifecycleObserver implements LifecycleObserver {
 
     private Context context;
 
@@ -14,7 +14,7 @@ public class AppLifecycleObserver implements LifecycleObserver {
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    public void onForeground() {
+    public void onStart() {
         if (!MyTubeApplication.isMusicServiceRunning(context)){
             ((MyTubeApplication) context.getApplicationContext()).getServiceRepo().startService();
         }

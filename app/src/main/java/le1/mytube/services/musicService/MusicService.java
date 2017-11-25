@@ -152,11 +152,10 @@ public class MusicService extends MediaBrowserServiceCompat implements AudioMana
             return mediaSession.getController().getPlaybackState().getState();
         else return PlaybackStateCompat.STATE_NONE;
     }
-
+    boolean wasPlaying = false;
     @Override
     public void onAudioFocusChange(int focusChange) {
         Log.d(TAG, "onAudioFocusChange with focusChange=" + focusChange);
-        boolean wasPlaying = false;
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 ((MyTubeApplication) service.getApplication()).getServiceRepo().pause();

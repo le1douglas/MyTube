@@ -17,8 +17,8 @@ import le1.mytube.mvpModel.database.song.YouTubeSong;
  * Created by leone on 10/11/17.
  */
 
-public class YouTubeSongResolutionsUtil {
-    private static final String TAG = ("LE1_" + YouTubeSongResolutionsUtil.class.getSimpleName());
+public class ResolutionsManager {
+    private static final String TAG = ("LE1_" + ResolutionsManager.class.getSimpleName());
     private static List<YouTubeSong> songList = new ArrayList<>();
 
     /**
