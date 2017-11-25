@@ -10,7 +10,7 @@ import le1.mytube.mvpModel.playlists.Playlist;
  * Created by leone on 09/11/17.
  */
 
-public interface PlaylistContract extends BaseContract {
+interface PlaylistContract extends BaseContract {
 
     interface View extends BaseContract.View {
         void onSongLoaded(List<YouTubeSong> youTubeSongs);

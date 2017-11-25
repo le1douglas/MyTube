@@ -36,39 +36,39 @@ import io.reactivex.schedulers.Schedulers;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 
 @Entity(tableName = DatabaseConstants.TB_NAME)
-public class YouTubeSong implements Parcelable{
+public class YouTubeSong implements Parcelable {
 
+    public static final Parcelable.Creator<YouTubeSong> CREATOR = new Parcelable.Creator<YouTubeSong>() {
+
+        public YouTubeSong createFromParcel(Parcel in) {
+            return new YouTubeSong(in);
+        }
+
+        public YouTubeSong[] newArray(int size) {
+            return new YouTubeSong[size];
+        }
+    };
     @PrimaryKey
     private String id;
-
     @ColumnInfo
     private String title;
-
     @ColumnInfo
     private String path;
-
     @ColumnInfo
     private Uri streamingUri;
-
     @ColumnInfo
     private Uri imageUri;
-
     @Ignore
     private Bitmap imageBitmap;
-
     //we store only one resolution to disk
     @Ignore
     private Format format;
-
     @ColumnInfo
     private int start;
-
     @ColumnInfo
     private int end;
-
     @ColumnInfo
     private int duration;
-
 
 
     public YouTubeSong(String id, String title, String path, Uri streamingUri, Uri imageUri, int start, int end, int duration) {
@@ -82,8 +82,7 @@ public class YouTubeSong implements Parcelable{
         this.duration = duration;
     }
 
-
-    private YouTubeSong(String id, String title, String path, Uri streamingUri, Uri imageUri,Bitmap imageBitmap, Format format ,int start, int end, int duration) {
+    private YouTubeSong(String id, String title, String path, Uri streamingUri, Uri imageUri, Bitmap imageBitmap, Format format, int start, int end, int duration) {
         this.title = title;
         this.id = id;
         this.path = path;
@@ -96,66 +95,79 @@ public class YouTubeSong implements Parcelable{
         this.duration = duration;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
     protected YouTubeSong(Parcel parcel) {
         this.id = parcel.readString();
         this.title = parcel.readString();
         this.path = parcel.readString();
-        if (parcel.readString()!=null) this.imageUri = Uri.parse(parcel.readString());
+        if (parcel.readString() != null) this.imageUri = Uri.parse(parcel.readString());
         else this.imageUri = null;
         this.start = parcel.readInt();
         this.end = parcel.readInt();
     }
 
     @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(this.id);
         parcel.writeString(this.title);
-        if (this.path!=null) parcel.writeString(this.path);
+        if (this.path != null) parcel.writeString(this.path);
         else parcel.writeString(null);
-        if (this.imageUri !=null) parcel.writeString(this.imageUri.toString());
+        if (this.imageUri != null) parcel.writeString(this.imageUri.toString());
         else parcel.writeString(null);
         parcel.writeInt(start);
         parcel.writeInt(end);
     }
 
-    public static final Parcelable.Creator<YouTubeSong> CREATOR = new Parcelable.Creator<YouTubeSong>() {
-
-        public YouTubeSong createFromParcel(Parcel in) {
-            return new YouTubeSong(in);
-        }
-
-        public YouTubeSong[] newArray(int size) {
-            return new YouTubeSong[size];
-        }
-    };
-
     public String getTitle() {
         return this.title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getId() {
         return this.id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getPath() {
         return this.path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public Integer getStart() {
         return this.start;
     }
 
+    public void setStart(Integer start) {
+        this.start = start;
+    }
+
     public Integer getEnd() {
         return this.end;
     }
 
+    public void setEnd(Integer end) {
+        this.end = end;
+    }
+
     public Uri getImageUri() {
         return imageUri;
+    }
+
+    public void setImageUri(Uri imageUri) {
+        this.imageUri = imageUri;
     }
 
     public int getDuration() {
@@ -164,30 +176,6 @@ public class YouTubeSong implements Parcelable{
 
     public void setDuration(int duration) {
         this.duration = duration;
-    }
-
-    public void setImageUri(Uri imageUri) {
-        this.imageUri = imageUri;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public void setStart(Integer start) {
-        this.start = start;
-    }
-
-    public void setEnd(Integer end) {
-        this.end = end;
     }
 
     public Format getFormat() {
@@ -335,35 +323,37 @@ public class YouTubeSong implements Parcelable{
             return this;
         }
 
-        public Builder imageUri(Uri image){
+        public Builder imageUri(Uri image) {
             this.imageUri = image;
             return this;
         }
 
-        public Builder streamingUri(Uri link){
+        public Builder streamingUri(Uri link) {
             this.streamingUri = streamingUri;
             return this;
         }
 
-        public Builder imageBitmap(Bitmap image){
+        public Builder imageBitmap(Bitmap image) {
             this.imageBitmap = image;
             return this;
         }
 
-        public Builder duration(int duration){
+        public Builder duration(int duration) {
             this.duration = duration;
             return this;
         }
 
 
-        public Builder format(Format format){
+        public Builder format(Format format) {
             this.format = format;
             return this;
         }
 
-        public YouTubeSong build(){
-            if (this.end<this.start) throw new IllegalArgumentException("end ("+String.valueOf(this.end)+") must be grater han start("+String.valueOf(this.start)+")");
-            else return new YouTubeSong(this.id, this.title, this.path, this.streamingUri,this.imageUri, this.imageBitmap, this.format,this.start, this.end, this.duration);
+        public YouTubeSong build() {
+            if (this.end < this.start)
+                throw new IllegalArgumentException("end (" + String.valueOf(this.end) + ") must be grater han start(" + String.valueOf(this.start) + ")");
+            else
+                return new YouTubeSong(this.id, this.title, this.path, this.streamingUri, this.imageUri, this.imageBitmap, this.format, this.start, this.end, this.duration);
         }
     }
 }

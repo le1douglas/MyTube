@@ -52,6 +52,7 @@ public class PlaylistActivity extends AppCompatActivity implements PlaylistContr
 
 
         presenter = ViewModelProviders.of(this).get(PlaylistPresenter.class);
+        presenter.setContractView(this);
         presenter.loadSongsInPlaylist(getIntent().getStringExtra("TITLE"));
 
     }

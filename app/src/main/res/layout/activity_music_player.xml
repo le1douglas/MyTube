@@ -15,14 +15,5 @@
 
     </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
 
-    <le1.mytube.PlayerOverlayView
-        android:id="@+id/overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:title="title"
-        app:titleTextColor="@android:color/white"
-        >
-
-    </le1.mytube.PlayerOverlayView>
 
 </RelativeLayout>

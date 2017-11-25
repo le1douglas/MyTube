@@ -51,21 +51,6 @@
             </intent-filter>
         </receiver>-->
 
-        <receiver android:name=".MediaReceiver" >
-            <intent-filter android:priority="10000">
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
-
-
-        <service
-            android:name="le1.mytube.services.musicService.MusicService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserServiceCompat" />
-                <!--<action android:name="android.intent.action.MEDIA_BUTTON" />-->
-            </intent-filter>
-        </service>
 
         <activity
             android:name="le1.mytube.ui.playlist.PlaylistActivity"

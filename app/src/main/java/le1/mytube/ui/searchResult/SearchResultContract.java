@@ -5,7 +5,7 @@ import java.util.List;
 import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
-public interface SearchResultContract extends BaseContract {
+interface SearchResultContract extends BaseContract {
 
     interface View extends BaseContract.View {
 

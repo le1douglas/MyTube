@@ -12,15 +12,19 @@ import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.mvpModel.sharedPref.SharedPrefRepo;
+import le1.mytube.mvpModel.sharedPref.SharedPrefRepoImpl;
 
 public class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
     private Repo repository;
+    private SharedPrefRepo sharedPrefRepo;
     private MainContract.View contractView;
 
 
     public MainPresenter(Application application) {
         super(application);
         this.repository = new Repo(application);
+        sharedPrefRepo = new SharedPrefRepoImpl();
     }
 
     @Override
@@ -41,7 +45,7 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
     @Override
     public void loadSharedPreferences() {
         try {
-            if (repository.getAudioFocus()) {
+            if (sharedPrefRepo.getAudioFocus()) {
                 contractView.onAudioFocusTrue();
             } else {
                 contractView.onAudioFocusFalse();
@@ -107,7 +111,7 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
 
     @Override
     public void setHandleAudioFocus(boolean handleAudioFocus) {
-       repository.setAudioFocus(handleAudioFocus);
+       sharedPrefRepo.setAudioFocus(handleAudioFocus);
     }
 
     @Override
