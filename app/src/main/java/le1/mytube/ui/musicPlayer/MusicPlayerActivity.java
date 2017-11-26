@@ -5,10 +5,13 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 import le1.mytube.R;
+import le1.mytube.application.MyTubeApplication;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 
 public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerContract.View{
@@ -21,9 +24,17 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         makeFullScreen();
         setContentView(R.layout.activity_music_player);
 
-        playerView = (SimpleExoPlayerView) findViewById(R.id.exo_player);
+        playerView = findViewById(R.id.exo_player);
         presenter = ViewModelProviders.of(this).get(MusicPlayerPresenter.class);
         presenter.setContractView(this);
+
+        YouTubeSong youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
+        boolean shouldStart = getIntent().getBooleanExtra(MyTubeApplication.KEY_SHOULD_PLAY, false);
+        if (shouldStart) {
+            if (youTubeSong==null)
+                Toast.makeText(this, "youTubeSongIsNull", Toast.LENGTH_SHORT).show();
+            presenter.startSongIfItsDifferent(youTubeSong);
+        }
 
     }
 
@@ -35,7 +46,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
 
     @Override
-    public void onSetPlayerView(SimpleExoPlayerView exoPlayerView) {
-        presenter.linkPlayerToView(exoPlayerView);
+    protected void onResume() {
+        super.onResume();
+        presenter.linkPlayerToView(playerView);
     }
 }

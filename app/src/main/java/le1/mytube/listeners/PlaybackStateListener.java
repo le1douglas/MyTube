@@ -1,48 +1,59 @@
 package le1.mytube.listeners;
 
-import java.util.List;
+import android.support.v4.media.MediaMetadataCompat;
 
-import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.mvpModel.MusicControl;
 
+
+/**
+ * User friendly listener of the player changes in state.
+ * Remember to call {@link MusicControl#addListener(PlaybackStateListener)} when you use this listener
+ */
 public interface PlaybackStateListener {
 
     /**
-     * called when the player first start preparing a song
-     * @param currentSong current song (only some metadata is available at this point)
+     * Called when the metadata loads, can be called multiple times.
+     *
+     * @param metadata the {@link MediaMetadataCompat} of the current song.
+     *
+     * @see MusicControl#getMetadata()
      */
-    void onPreparing(YouTubeSong currentSong);
+    void onMetadataLoaded(MediaMetadataCompat metadata);
 
     /**
-     * called every time it starts loading after {@link #onPreparing(YouTubeSong)}
-     * @param currentSong current song (most metadata is available at this point)
+     * Called when the player starts loading either after
+     * {@link MusicControl#prepareAndPlay(le1.mytube.mvpModel.database.song.YouTubeSong)} or {@link MusicControl#seekTo(int)}
      */
-    void onLoading(YouTubeSong currentSong);
+    void onLoading();
+
 
     /**
-     * called every time changes playback position (mainly every second and after {@link le1.mytube.services.musicService.ServiceRepo#seekTo(int)})
-     * @param currentTimeInSec current position is seconds
+     * Called when the player starts playing
+     *
+     * @see MusicControl#play()
      */
-    void onPositionChanged(int currentTimeInSec);
+    void onPlaying();
 
     /**
-     * called every time it pauses
+     * Called when player pauses, usually after {@link #onPlaying()}
+     *
+     * @see MusicControl#pause()
      */
     void onPaused();
 
-    /**
-     * called every time it starts playing
-     * @param currentSongs list of youtube songs at different resolutions (some of them may be only audio or video)
-     *                     all of matadata is available at this point
-     */
-    void onPlaying(List<YouTubeSong> currentSongs);
 
     /**
-     * called at the end of the playback
+     * Called when player finishes playing a media and has no other media in queue
+     *
+     * @see MusicControl#stop()
      */
     void onStopped();
 
+
     /**
-     * called if any error happens during playback
+     * Called if something goes wrong during playback
+     *
+     * @param error A user friendly error message
      */
-    void onError(String message);
+    void onError(String error);
 }

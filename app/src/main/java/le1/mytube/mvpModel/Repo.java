@@ -1,7 +1,6 @@
 package le1.mytube.mvpModel;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -25,7 +24,6 @@ import le1.mytube.mvpModel.playlists.PlaylistDatabase;
 import le1.mytube.mvpModel.playlists.PlaylistDatabaseImpl;
 
 public class Repo {
-    private static final String TAG = "LE1_" + Repo.class.getSimpleName();
 
     private Database database;
     private PlaylistDatabase playlistDatabase;
@@ -33,13 +31,10 @@ public class Repo {
     private AutocompleteTask autocompleteTask;
     private OnExecuteTaskCallback onExecuteTaskCallback;
 
-    private SharedPreferences sharedPreferences;
-
     public Repo(Context context) {
         this.context = context;
         database = Database.getDatabase(this.context);
         playlistDatabase = PlaylistDatabaseImpl.getDatabase(this.context);
-        sharedPreferences = context.getSharedPreferences("le1.mytube.sharedPrefFile", Context.MODE_PRIVATE);
     }
 
     //--------SONG DATABASE
@@ -144,7 +139,7 @@ public class Repo {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                     StringBuilder stringBuilder = new StringBuilder();
                     while ((JSON_string = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(JSON_string + "\r\n");
+                        stringBuilder.append(JSON_string).append("\r\n");
                     }
 
                     bufferedReader.close();

@@ -1,17 +1,24 @@
 package le1.mytube.listeners;
 
+import android.support.v4.media.MediaMetadataCompat;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import le1.mytube.mvpModel.database.song.YouTubeSong;
-
 /**
- * Created by leone on 12/10/17.
+ * A collection of every {@link PlaybackStateListener}.
+ * A composite listener is necessary if more than one listener wants to subscribe to a listener
+ *
+ * @see PlaybackStateListener
  */
-
 public class PlaybackStateCompositeListener implements PlaybackStateListener {
+
     private List<PlaybackStateListener> playbackStateListeners = new ArrayList<>();
 
+    /**
+     * Add a listener to notify
+     * @param playbackStateListener the listener that wants to subscribe
+     */
     public void addListener(PlaybackStateListener playbackStateListener){
         playbackStateListeners.add(playbackStateListener);
     }
@@ -20,24 +27,16 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onPreparing(YouTubeSong currentSong) {
+    public void onMetadataLoaded(MediaMetadataCompat metadata) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onPreparing(currentSong);
+            l.onMetadataLoaded(metadata);
         }
     }
 
     @Override
-    public void onLoading(YouTubeSong currentSong) {
+    public void onLoading() {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onLoading(currentSong);
-        }
-    }
-
-
-    @Override
-    public void onPositionChanged(int currentTimeInSec) {
-        for (PlaybackStateListener l: playbackStateListeners){
-            l.onPositionChanged(currentTimeInSec);
+            l.onLoading();
         }
     }
 
@@ -49,9 +48,9 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onPlaying(List<YouTubeSong> currentSongs) {
+    public void onPlaying() {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onPlaying(currentSongs);
+            l.onPlaying();
         }
     }
 
@@ -63,10 +62,9 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onError(String message) {
+    public void onError(String error) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onError(message);
+            l.onError(error);
         }
     }
-
 }

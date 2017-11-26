@@ -28,21 +28,19 @@ import le1.mytube.ui.search.SearchActivity;
 import static le1.mytube.ui.main.MainActivity.changeStatusBarColor;
 
 public class SearchResultActivity extends AppCompatActivity implements SearchResultContract.View, AdapterView.OnItemClickListener, View.OnTouchListener {
-    private static final int PLAYER_ACTIVITY_REQUEST_CODE = 33;
-
-    ListView videoResultListView;
-    ProgressBar loadingIcon;
-    VideoResultAdapter videoResultAdapter;
-    ArrayList<YouTubeSong> youTubeSongArray;
-    EditText searchEditText;
-    SearchResultPresenter presenter;
+    private ListView videoResultListView;
+    private ProgressBar loadingIcon;
+    private VideoResultAdapter videoResultAdapter;
+    private ArrayList<YouTubeSong> youTubeSongArray;
+    private EditText searchEditText;
+    private SearchResultPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarSearch);
+        Toolbar toolbar = findViewById(R.id.toolbarSearch);
         changeStatusBarColor("#DBDBDB", this);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
@@ -52,16 +50,16 @@ public class SearchResultActivity extends AppCompatActivity implements SearchRes
         presenter = ViewModelProviders.of(this).get(SearchResultPresenter.class);
         presenter.setContractView(this);
 
-        loadingIcon = (ProgressBar) findViewById(R.id.loadingIcon);
+        loadingIcon = findViewById(R.id.loadingIcon);
 
-        videoResultListView = (ListView) findViewById(R.id.videoResult);
+        videoResultListView = findViewById(R.id.videoResult);
         youTubeSongArray = new ArrayList<>();
         videoResultAdapter = new VideoResultAdapter(this, presenter, youTubeSongArray);
         videoResultAdapter.setNotifyOnChange(true);
         videoResultListView.setAdapter(videoResultAdapter);
         videoResultListView.setOnItemClickListener(this);
 
-        searchEditText = (EditText) findViewById(R.id.SearchEditText);
+        searchEditText = findViewById(R.id.SearchEditText);
         searchEditText.setOnTouchListener(this);
 
         searchEditText.setText(getIntent().getStringExtra("QUERY"));
@@ -77,7 +75,8 @@ public class SearchResultActivity extends AppCompatActivity implements SearchRes
         YouTubeSong youTubeSong = new YouTubeSong.Builder(idView.getText().toString(), videoTitle.getText().toString()).build();
         Intent i = new Intent(this, MusicPlayerActivity.class);
         i.putExtra(MyTubeApplication.KEY_SONG, youTubeSong);
-        this.startActivityForResult(i, PLAYER_ACTIVITY_REQUEST_CODE);
+        i.putExtra(MyTubeApplication.KEY_SHOULD_PLAY, true);
+        this.startActivity(i);
     }
 
     @Override

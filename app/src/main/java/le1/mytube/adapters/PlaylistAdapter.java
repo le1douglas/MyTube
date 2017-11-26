@@ -12,10 +12,6 @@ import java.util.ArrayList;
 import le1.mytube.R;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
-/**
- * Created by Leone on 23/06/17.
- */
-
 public class PlaylistAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<YouTubeSong> arrayList;
@@ -51,7 +47,7 @@ public class PlaylistAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(context).inflate(R.layout.row_playlist, parent, false);
         }
 
-        TextView title = (TextView) convertView.findViewById(R.id.playlistSongTitle);
+        TextView title = convertView.findViewById(R.id.playlistSongTitle);
         title.setText(arrayList.get(position).getTitle());
         return convertView;
     }

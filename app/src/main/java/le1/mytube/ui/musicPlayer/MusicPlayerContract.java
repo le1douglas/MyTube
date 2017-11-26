@@ -5,11 +5,11 @@ import android.support.annotation.NonNull;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 import le1.mytube.base.BaseContract;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 public interface MusicPlayerContract extends BaseContract {
 
     interface View extends BaseContract.View {
-        void onSetPlayerView(SimpleExoPlayerView exoPlayerView);
     }
 
     interface ViewModel extends BaseContract.ViewModel {
@@ -17,5 +17,12 @@ public interface MusicPlayerContract extends BaseContract {
         void setContractView(BaseContract.View contractView);
 
         void linkPlayerToView(@NonNull SimpleExoPlayerView playerView);
+
+        /**
+         * Starts song if it's not already in the player
+         * @param youTubeSong The {@link YouTubeSong} to play
+         * @return true if song is being started, false otherwise
+         */
+        boolean startSongIfItsDifferent(YouTubeSong youTubeSong);
     }
 }
