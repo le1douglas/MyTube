@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -38,6 +39,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
     private ProgressBar loadingIcon;
     private SeekBar seekbar;
     private ImageButton playPauseButton;
+    private Button retryButton;
 
     private MusicControl musicControl;
     private boolean isUiVisible;
@@ -85,26 +87,33 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         currentTimeView = view.findViewById(R.id.current_time);
         totalTimeView = view.findViewById(R.id.total_time);
         seekbar = view.findViewById(R.id.seek_bar);
+        retryButton= view.findViewById(R.id.retry_button);
+        playPauseButton = view.findViewById(R.id.play_pause);
 
         seekbar.setOnSeekBarChangeListener(this);
 
-        playPauseButton = view.findViewById(R.id.play_pause);
         playPauseButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (musicControl.getPlaybackState() == PlaybackStateCompat.STATE_STOPPED) {
-                    YouTubeSong youTubeSong = new YouTubeSong.Builder(
-                            musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID),
-                            musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE))
-                            .build();
-
-                    musicControl.prepareAndPlay(youTubeSong);
+                    retryButton.callOnClick();
                 } else {
                     musicControl.playOrPause();
                 }
             }
         });
 
+        retryButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                YouTubeSong youTubeSong = new YouTubeSong.Builder(
+                        musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID),
+                        musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE))
+                        .build();
+
+                musicControl.prepareAndPlay(youTubeSong);
+            }
+        });
 
         final Handler handler = new Handler();
         handler.postDelayed(
@@ -133,6 +142,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
      */
     public void updateUi(int playbackState, MediaMetadataCompat metadata) {
         isUiVisible = true;
+
         if (metadata != null) {
             titleView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
             seekbar.setMax((int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
@@ -149,6 +159,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 seekbar.setVisibility(VISIBLE);
                 currentTimeView.setVisibility(VISIBLE);
                 totalTimeView.setVisibility(VISIBLE);
+                retryButton.setVisibility(GONE);
 
                 if (titleView.getText().toString().equals("")) titleView.setText("Loading");
                 seekbar.setActivated(true);
@@ -160,6 +171,12 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 seekbar.setVisibility(VISIBLE);
                 currentTimeView.setVisibility(VISIBLE);
                 totalTimeView.setVisibility(VISIBLE);
+                retryButton.setVisibility(GONE);
+
+                // If the handler it's already started, stop it and restart it,
+                // so that the runnable it's called only after the last call to this method
+                autoHideHandler.removeCallbacks(autoHideRunnable);
+                autoHideHandler.postDelayed(autoHideRunnable, autoHideMs);
 
                 seekbar.setActivated(true);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_pause));
@@ -171,6 +188,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 seekbar.setVisibility(VISIBLE);
                 currentTimeView.setVisibility(VISIBLE);
                 totalTimeView.setVisibility(VISIBLE);
+                retryButton.setVisibility(GONE);
 
                 seekbar.setActivated(true);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_play));
@@ -183,6 +201,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 seekbar.setVisibility(GONE);
                 currentTimeView.setVisibility(GONE);
                 totalTimeView.setVisibility(GONE);
+                retryButton.setVisibility(GONE);
 
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_play));
                 seekbar.setActivated(false);
@@ -194,6 +213,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 seekbar.setVisibility(GONE);
                 currentTimeView.setVisibility(GONE);
                 totalTimeView.setVisibility(GONE);
+                retryButton.setVisibility(VISIBLE);
 
                 titleView.setText("Error");
                 seekbar.setActivated(false);
@@ -202,11 +222,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 break;
 
         }
-
-        // If the handler it's already started, stop it and restart it,
-        // so that the runnable it's called only after the last call to this method
-        autoHideHandler.removeCallbacks(autoHideRunnable);
-        autoHideHandler.postDelayed(autoHideRunnable, autoHideMs);
     }
 
     /**
@@ -221,6 +236,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         seekbar.setVisibility(GONE);
         currentTimeView.setVisibility(GONE);
         totalTimeView.setVisibility(GONE);
+        retryButton.setVisibility(GONE);
     }
 
 

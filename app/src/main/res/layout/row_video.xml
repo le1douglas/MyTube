@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
+    android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants">
 
 
@@ -31,6 +31,7 @@
         android:layout_toEndOf="@+id/thumb" />
 
     <ImageButton
+        android:visibility="gone"
         android:focusableInTouchMode="true"
         android:id="@+id/download"
         android:layout_width="wrap_content"
@@ -41,6 +42,7 @@
         android:layout_alignTop="@+id/queue_add" />
 
     <ImageButton
+        android:visibility="gone"
         android:id="@+id/queue_add"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

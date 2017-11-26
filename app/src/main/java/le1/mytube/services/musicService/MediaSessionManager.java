@@ -76,7 +76,8 @@ public class MediaSessionManager {
     }
 
     public String getErrorMessage() {
-        return mediaSession.getController().getPlaybackState().getErrorMessage().toString();
+        if (mediaSession.getController().getPlaybackState().getErrorMessage()==null) return "unknown error";
+        else return mediaSession.getController().getPlaybackState().getErrorMessage().toString();
     }
     /**
      * Set metadata of notification, wear etc
