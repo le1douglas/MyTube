@@ -103,6 +103,7 @@ public class MusicService extends MediaBrowserServiceCompat {
             if (mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
                 ((MyTubeApplication) getApplicationContext()).getMusicControl().stop();
             }
+            mediaSession.setMetadata(null, youTubeId, null, null, null, 0);
 
             //we set the playback state to STATE_BUFFERING before extracting the youtube song
             mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1, null);

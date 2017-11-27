@@ -108,7 +108,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
             public void onClick(View v) {
                 YouTubeSong youTubeSong = new YouTubeSong.Builder(
                         musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID),
-                        musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE))
+                        null)
                         .build();
 
                 musicControl.prepareAndPlay(youTubeSong);

@@ -76,6 +76,7 @@ public class SearchResultActivity extends AppCompatActivity implements SearchRes
         Intent i = new Intent(this, MusicPlayerActivity.class);
         i.putExtra(MyTubeApplication.KEY_SONG, youTubeSong);
         i.putExtra(MyTubeApplication.KEY_SHOULD_PLAY, true);
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         this.startActivity(i);
     }
 

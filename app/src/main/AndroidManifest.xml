@@ -60,8 +60,7 @@
             android:parentActivityName="le1.mytube.ui.main.MainActivity"
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
 
-        <activity android:name="le1.mytube.ui.musicPlayer.MusicPlayerActivity"
-            android:launchMode="singleInstance"/>
+        <activity android:name="le1.mytube.ui.musicPlayer.MusicPlayerActivity" />
 
         <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
             <intent-filter>
