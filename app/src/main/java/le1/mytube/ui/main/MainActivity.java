@@ -63,15 +63,16 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar tb = findViewById(R.id.toolbar);
         tb.setTitle(R.string.app_name);
         tb.setTitleTextColor(Color.WHITE);
         setSupportActionBar(tb);
 
         presenter = ViewModelProviders.of(this).get(MainPresenter.class);
         presenter.setContractView(this);
+        presenter.initializeEdge(this);
 
-        ListView listView = (ListView) findViewById(R.id.playlistList);
+        ListView listView = findViewById(R.id.playlistList);
         displayedList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, displayedList);
 
@@ -296,6 +297,17 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                     }
                 });
         alertDialogBuilder.show();
+
+    }
+
+    @Override
+    public void onEdgeSupported() {
+        Toast.makeText(this, "Samsung edge is supported", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onEdgeNotSupported(boolean isSamsungDevice) {
+        Toast.makeText(this, "Samsung edge is not supported", Toast.LENGTH_SHORT).show();
 
     }
 

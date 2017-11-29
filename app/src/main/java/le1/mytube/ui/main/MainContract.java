@@ -1,5 +1,7 @@
 package le1.mytube.ui.main;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 import le1.mytube.base.BaseContract;
@@ -16,9 +18,11 @@ interface MainContract extends BaseContract {
         void onAudioFocusFalse();
         void onAudioFocusLoadingError();
 
-
         void onOfflineDeletePlaylistDialog();
         void onStandardDeletePlaylistDialog(Playlist playlist, int position);
+
+        void onEdgeSupported();
+        void onEdgeNotSupported(boolean isSamsungDevice);
     }
 
     interface ViewModel extends BaseContract.ViewModel {
@@ -39,5 +43,7 @@ interface MainContract extends BaseContract {
         void showDeleteDialog(Playlist playlist, int position);
 
         void setHandleAudioFocus(boolean handleAudioFocus);
+
+        void initializeEdge(Context context);
     }
 }

@@ -2,7 +2,11 @@ package le1.mytube.ui.main;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
+import android.content.Context;
 import android.util.Log;
+
+import com.samsung.android.sdk.SsdkUnsupportedException;
+import com.samsung.android.sdk.look.Slook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +23,7 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
     private Repo repository;
     private SharedPrefRepo sharedPrefRepo;
     private MainContract.View contractView;
-
+    private Slook slook = new Slook();
 
     public MainPresenter(Application application) {
         super(application);
@@ -30,15 +34,15 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
     @Override
     public void loadPlaylists() {
         try {
-           ArrayList<Playlist> list = (ArrayList<Playlist>) repository.getAllPlaylists();
-            if (list.size()>0){
+            ArrayList<Playlist> list = (ArrayList<Playlist>) repository.getAllPlaylists();
+            if (list.size() > 0) {
                 contractView.onPlaylistLoaded(list);
-            }else {
+            } else {
                 contractView.onNoPlaylistLoaded();
             }
-       }catch (Exception e){
+        } catch (Exception e) {
             contractView.onPlaylistLoadingError();
-       }
+        }
 
     }
 
@@ -50,7 +54,7 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
             } else {
                 contractView.onAudioFocusFalse();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             contractView.onAudioFocusLoadingError();
         }
     }
@@ -102,20 +106,39 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
 
     @Override
     public void showDeleteDialog(Playlist playlist, int position) {
-        if (playlist.getName().equals(DatabaseConstants.TB_NAME)){
+        if (playlist.getName().equals(DatabaseConstants.TB_NAME)) {
             contractView.onOfflineDeletePlaylistDialog();
-        }else {
+        } else {
             contractView.onStandardDeletePlaylistDialog(playlist, position);
         }
     }
 
     @Override
     public void setHandleAudioFocus(boolean handleAudioFocus) {
-       sharedPrefRepo.setAudioFocus(handleAudioFocus);
+        sharedPrefRepo.setAudioFocus(handleAudioFocus);
     }
 
     @Override
     public void setContractView(BaseContract.View contractView) {
         this.contractView = (MainContract.View) contractView;
+    }
+
+    @Override
+    public void initializeEdge(Context context) {
+        try {
+            slook.initialize(context);
+            if (slook.isFeatureEnabled(Slook.COCKTAIL_PANEL)) {
+                contractView.onEdgeSupported();
+
+            }else {
+                contractView.onEdgeNotSupported(true);
+            }
+        } catch (SsdkUnsupportedException e) {
+            e.printStackTrace();
+            if (e.getType()==SsdkUnsupportedException.VENDOR_NOT_SUPPORTED)
+                contractView.onEdgeNotSupported(false);
+            else if (e.getType() == SsdkUnsupportedException.DEVICE_NOT_SUPPORTED)
+                contractView.onEdgeNotSupported(true);
+        }
     }
 }

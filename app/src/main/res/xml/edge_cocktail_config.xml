@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cocktail-provider
+    cocktailWidth="550"
+    configure="com.example.edge.EdgeConfigure"
+    decription="@string/edge_desc"
+    label="@string/app_name"
+    launchOnClick="le1.mytube.ui.edge.EdgeSettingsActivity"
+    permitVisibilityChanged="true"
+    previewImage="@drawable/edge_preview"
+    updatePeriodMills="1800000" />
