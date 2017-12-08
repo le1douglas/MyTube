@@ -87,7 +87,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         currentTimeView = view.findViewById(R.id.current_time);
         totalTimeView = view.findViewById(R.id.total_time);
         seekbar = view.findViewById(R.id.seek_bar);
-        retryButton= view.findViewById(R.id.retry_button);
+        retryButton = view.findViewById(R.id.retry_button);
         playPauseButton = view.findViewById(R.id.play_pause);
 
         seekbar.setOnSeekBarChangeListener(this);
@@ -161,6 +161,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 totalTimeView.setVisibility(VISIBLE);
                 retryButton.setVisibility(GONE);
 
+                autoHideHandler.removeCallbacks(autoHideRunnable);
                 if (titleView.getText().toString().equals("")) titleView.setText("Loading");
                 seekbar.setActivated(true);
                 break;
@@ -190,6 +191,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 totalTimeView.setVisibility(VISIBLE);
                 retryButton.setVisibility(GONE);
 
+                autoHideHandler.removeCallbacks(autoHideRunnable);
                 seekbar.setActivated(true);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_play));
 
@@ -203,6 +205,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 totalTimeView.setVisibility(GONE);
                 retryButton.setVisibility(GONE);
 
+                autoHideHandler.removeCallbacks(autoHideRunnable);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_play));
                 seekbar.setActivated(false);
                 break;
@@ -215,6 +218,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 totalTimeView.setVisibility(GONE);
                 retryButton.setVisibility(VISIBLE);
 
+                autoHideHandler.removeCallbacks(autoHideRunnable);
                 titleView.setText("Error");
                 seekbar.setActivated(false);
                 break;
@@ -272,8 +276,10 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (isUiVisible) hideUi();
-        else updateUi(musicControl.getPlaybackState(), musicControl.getMetadata());
+        if (musicControl.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
+            if (isUiVisible) hideUi();
+            else updateUi(musicControl.getPlaybackState(), musicControl.getMetadata());
+        }
         return super.onTouchEvent(event);
     }
 

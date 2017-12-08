@@ -46,6 +46,9 @@ public class MusicService extends MediaBrowserServiceCompat {
     private AudioFocusManager audioFocus;
     private PlayerManager player;
 
+
+    private MusicControl musicControl;
+
     /**
      * Does all the setup and sets the PlaybackState to {@link PlaybackStateCompat#STATE_NONE}
      */
@@ -59,7 +62,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         audioFocus = new AudioFocusManager(this, audioFocusCallback);
         player = PlayerManager.getInstance(this);
         player.addEventListener(playerListener);
-        Toast.makeText(this, "onCreate", Toast.LENGTH_SHORT).show();
+        musicControl =  ((MyTubeApplication) getApplication()).getMusicControl();
     }
 
     /**
@@ -101,13 +104,13 @@ public class MusicService extends MediaBrowserServiceCompat {
 
             //we want a fresh start if music it's already playing
             if (mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
-                ((MyTubeApplication) getApplicationContext()).getMusicControl().stop();
+                musicControl.stop();
             }
             mediaSession.setMetadata(null, youTubeId, null, null, null, 0);
 
             //we set the playback state to STATE_BUFFERING before extracting the youtube song
             mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1, null);
-            MusicNotification.updateNotification(MusicService.this, MusicService.this, mediaSession);
+            MusicNotification.updateNotification(MusicService.this, mediaSession);
 
 
             new YouTubeExtractor(MusicService.this) {
@@ -118,15 +121,15 @@ public class MusicService extends MediaBrowserServiceCompat {
                             Toast.makeText(MusicService.this, "streaming is not supported yet", Toast.LENGTH_SHORT).show();
                             return;
                         }
-                        Log.d(TAG, "onExtractionComplete");
+                        Log.d(TAG, "onExtractionComplete: " + videoMeta.getVideoLength()* 1000);
                         mediaSession.setMetadata(videoMeta.getTitle(), videoMeta.getVideoId(), videoMeta.getChannelId(), null, videoMeta.getMaxResImageUrl(), videoMeta.getVideoLength() * 1000);
                         //actually prepare the player
                         player.prepare(Uri.parse(itags.get(140).getUrl()), Uri.parse(itags.get(160).getUrl()));
                         //after preparing start playing
-                        ((MyTubeApplication) getApplicationContext()).getMusicControl().play();
+                        musicControl.play();
                     } else {
                         mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1, "itags are null");
-                        MusicNotification.updateNotification(MusicService.this, MusicService.this, mediaSession);
+                        MusicNotification.updateNotification(MusicService.this, mediaSession);
                         Toast.makeText(MusicService.this, "itags are null", Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "onExtractionComplete: itags are null");
                     }
@@ -175,20 +178,46 @@ public class MusicService extends MediaBrowserServiceCompat {
             // sometime the notification is swiped while the app is not in the recent task
             // in this case we want to stop the service
             if (!MyTubeApplication.isAppOpen())
-                ((MyTubeApplication) getApplicationContext()).getMusicControl().disconnect();
+                musicControl.disconnect();
 
         }
 
-
         /**
          * Seeks to a different position in the same media
-         * @param pos The position in seconds
+         * @param pos The position in milliseconds
          */
         @Override
         public void onSeekTo(long pos) {
             Log.d(TAG, "onSeekTo: " + (int) pos);
             super.onSeekTo(pos);
             player.seekTo((int) pos);
+        }
+
+
+        @Override
+        public void onRewind() {
+            super.onRewind();
+            musicControl.seekTo(player.getCurrentPosition() - 10_000);
+
+        }
+
+        @Override
+        public void onFastForward() {
+            super.onFastForward();
+            musicControl.seekTo(player.getCurrentPosition() + 10_000);
+
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            super.onSkipToPrevious();
+            musicControl.seekTo(0);
+        }
+
+        @Override
+        public void onSkipToNext() {
+            super.onSkipToNext();
+            Toast.makeText(MusicService.this, "Work in progress", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -233,11 +262,11 @@ public class MusicService extends MediaBrowserServiceCompat {
                 case Player.STATE_ENDED:
                     //when the song ends, stop playback
                     //TODO add queue
-                    ((MyTubeApplication) getApplicationContext()).getMusicControl().stop();
+                    musicControl.stop();
                     break;
             }
 
-            MusicNotification.updateNotification(MusicService.this, MusicService.this, mediaSession);
+            MusicNotification.updateNotification(MusicService.this, mediaSession);
         }
 
         @Override
@@ -248,7 +277,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         @Override
         public void onPlayerError(ExoPlaybackException error) {
             mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1, error.getMessage());
-            MusicNotification.updateNotification(MusicService.this, MusicService.this, mediaSession);
+            MusicNotification.updateNotification(MusicService.this, mediaSession);
         }
 
         @Override
@@ -273,34 +302,34 @@ public class MusicService extends MediaBrowserServiceCompat {
 
         @Override
         public void onAudioFocusGain() {
-            if (wasPlaying) ((MyTubeApplication) getApplicationContext()).getMusicControl().play();
+            if (wasPlaying) musicControl.play();
             wasPlaying = false;
         }
 
         @Override
         public void onAudioFocusLoss() {
-            if (((MyTubeApplication) getApplicationContext()).getMusicControl().getPlaybackState()
+            if (musicControl.getPlaybackState()
                     == PlaybackStateCompat.STATE_PLAYING) wasPlaying = true;
-            ((MyTubeApplication) getApplicationContext()).getMusicControl().pause();
+            musicControl.pause();
         }
 
         @Override
         public void onAudioFocusLossTransient() {
-            if (((MyTubeApplication) getApplicationContext()).getMusicControl().getPlaybackState()
+            if (musicControl.getPlaybackState()
                     == PlaybackStateCompat.STATE_PLAYING) wasPlaying = true;
-            ((MyTubeApplication) getApplicationContext()).getMusicControl().pause();
+            musicControl.pause();
         }
 
         @Override
         public void onAudioFocusLossTransientCanDuck() {
-            if (((MyTubeApplication) getApplicationContext()).getMusicControl().getPlaybackState()
+            if (musicControl.getPlaybackState()
                     == PlaybackStateCompat.STATE_PLAYING) wasPlaying = true;
             player.duck();
         }
 
         @Override
         public void onAudioFocusBecomingNoisy() {
-            ((MyTubeApplication) getApplicationContext()).getMusicControl().pause();
+            musicControl.pause();
         }
     };
 
@@ -319,7 +348,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         //if it's playing or loading don't stop the service
         if (!(mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) &&
                 !(mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_BUFFERING)) {
-            ((MyTubeApplication) getApplicationContext()).getMusicControl().disconnect();
+            musicControl.disconnect();
         }
     }
 
@@ -331,7 +360,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     public void onDestroy() {
         super.onDestroy();
         Toast.makeText(this, "onDestroy", Toast.LENGTH_SHORT).show();
-        ((MyTubeApplication) getApplicationContext()).getMusicControl().stop();
+        musicControl.stop();
         mediaSession.destroy();
         player.destroy();
     }

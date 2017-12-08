@@ -62,10 +62,10 @@ public class PlayerManager {
     }
 
     /**
-     * @return {@link #player}'s current position in seconds
+     * @return {@link #player}'s current position in milliseconds
      */
     public int getCurrentPosition(){
-        return (int) player.getCurrentPosition()/1000;
+        return (int) player.getCurrentPosition();
     }
 
     /**
@@ -118,10 +118,10 @@ public class PlayerManager {
 
     /**
      * Seek to a particular point in time
-     * @param position in seconds
+     * @param position in milliseconds
      */
     void seekTo(int position) {
-        player.seekTo(position * 1000);
+        player.seekTo(position);
     }
 
     /**

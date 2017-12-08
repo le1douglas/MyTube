@@ -67,7 +67,6 @@ public class PlaylistPresenter extends AndroidViewModel implements PlaylistContr
     @Override
     public void removeSongFromPlaylist(Playlist playlist, YouTubeSong youTubeSong) {
        /* repository.removeSongFromPlaylist(youTubeSong, playlistName);
-        //TODO think about a more lightweight method to get a playlist size
         if (repository.getSongsInPlaylist(playlistName).size() == 0) {
             view.displayNoSongs();
         }*/

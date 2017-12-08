@@ -61,7 +61,8 @@
             android:launchMode="singleTask"
             android:parentActivityName=".ui.main.MainActivity"
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
-        <activity android:name=".ui.musicPlayer.MusicPlayerActivity"></activity>
+        <activity android:name=".ui.musicPlayer.MusicPlayerActivity"
+            android:launchMode="singleTop"/>
 
         <receiver android:name=".ui.edge.EdgeProvider">
             <intent-filter>

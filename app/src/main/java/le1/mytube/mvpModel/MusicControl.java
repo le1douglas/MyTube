@@ -70,7 +70,10 @@ public class MusicControl {
                     compositeListener.onStopped();
                     break;
                 case PlaybackStateCompat.STATE_ERROR:
-                    compositeListener.onError(state.getErrorMessage().toString());
+                    if (state.getErrorMessage() == null)
+                        compositeListener.onError("An error occurred");
+                    else
+                        compositeListener.onError(state.getErrorMessage().toString());
             }
         }
 
@@ -164,6 +167,7 @@ public class MusicControl {
 
     /**
      * Prepare playback, load media and then start playing (as if called with {@link #play()})
+     *
      * @param youTubeSong The song to be played. Note that only the id is actually required
      */
     public void prepareAndPlay(YouTubeSong youTubeSong) {
@@ -200,7 +204,7 @@ public class MusicControl {
      * @return the current playback position in milliseconds
      */
     public int getCurrentPosition() {
-        return PlayerManager.getInstance(context).getCurrentPosition() * 1000;
+        return PlayerManager.getInstance(context).getCurrentPosition();
     }
 
     /**
@@ -219,13 +223,14 @@ public class MusicControl {
         return mediaController.getPlaybackState().getState();
     }
 
+
     /**
      * Seek to a new position in time
      *
      * @param progress Number of milliseconds where to start playback from
      */
     public void seekTo(int progress) {
-        mediaController.getTransportControls().seekTo(progress / 1000);
+        mediaController.getTransportControls().seekTo(progress);
     }
 
     /**

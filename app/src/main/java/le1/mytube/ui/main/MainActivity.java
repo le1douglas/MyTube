@@ -195,14 +195,13 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void onAudioFocusFalse() {
-        Toast.makeText(this, "onAudioFocusFalse", Toast.LENGTH_SHORT).show();
-        audioFocusSwitch.setChecked(true);
+        audioFocusSwitch.setChecked(false);
         audioFocusSwitch.setEnabled(true);
     }
 
     @Override
     public void onAudioFocusLoadingError() {
-        Toast.makeText(this, "onAudioFocusERROR", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "onAudioFocus Error", Toast.LENGTH_SHORT).show();
         audioFocusSwitch.setEnabled(false);
     }
 
@@ -302,13 +301,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void onEdgeSupported() {
-        Toast.makeText(this, "Samsung edge is supported", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onEdgeNotSupported(boolean isSamsungDevice) {
-        Toast.makeText(this, "Samsung edge is not supported", Toast.LENGTH_SHORT).show();
-
     }
 
 }

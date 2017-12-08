@@ -1,5 +1,6 @@
 package le1.mytube.notifications;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -17,33 +18,30 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import le1.mytube.R;
 import le1.mytube.services.musicService.MediaSessionManager;
+import le1.mytube.services.musicService.MusicService;
 import le1.mytube.ui.musicPlayer.MusicPlayerActivity;
 
 
+/**
+ * The {@link NotificationCompat} of the {@link MusicService}.
+ * It also handles the {@link Service#startForeground(int, Notification)}
+ * and {@link Service#stopForeground(boolean)}
+ */
 public class MusicNotification {
     private static final int NOTIFICATION_ID = 666;
     private static final String CHANNEL_ID = "music";
     private static final String TAG = ("LE1_" + MusicNotification.class.getSimpleName());
 
-    private static Action fastForwardAction = null;
-    private static Action playPauseAction = null;
-    private static Action rewindAction = null;
-    private static Action skipToNextAction = null;
-    private static Action skipToPreviousAction = null;
-
-    private static int state;
-
     /**
      * Build and Update the notification based on the playback state
      * Should be called after every {@link MediaSessionManager#setPlaybackState(int, long, String)} call.
      *
-     * @param context      Application context
      * @param service      The music service tied to the notification
      * @param mediaSession The {@link MediaSessionManager} tied to the music service
      */
-    public static void updateNotification(Context context, Service service, MediaSessionManager mediaSession) {
-        MusicNotification.state = mediaSession.getPlaybackState();
-        Builder builder = new Builder(context, CHANNEL_ID);
+    public static void updateNotification(Service service, MediaSessionManager mediaSession) {
+        int state = mediaSession.getPlaybackState();
+        Context context = service.getApplicationContext();
 
         Bitmap image = null;
         String title = null;
@@ -51,21 +49,21 @@ public class MusicNotification {
         String mediaId = null;
         if (mediaSession.getMetadata() != null) {
             image = mediaSession.getMetadata().getBitmap(MediaMetadataCompat.METADATA_KEY_ART);
-            if (image==null) image = BitmapFactory.decodeResource(context.getResources(),
+            if (image == null) image = BitmapFactory.decodeResource(context.getResources(),
                     R.mipmap.ic_launcher);
 
-            title =  mediaSession.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
-            if (title==null){
+            title = mediaSession.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+            if (title == null) {
                 title = "error getting title";
             }
 
-            artist =  mediaSession.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
-            if (artist==null){
+            artist = mediaSession.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
+            if (artist == null) {
                 artist = "error getting artist";
             }
 
-            mediaId =  mediaSession.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
-            if (mediaId==null){
+            mediaId = mediaSession.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
+            if (mediaId == null) {
                 mediaId = "error getting id";
             }
         }
@@ -73,91 +71,135 @@ public class MusicNotification {
 
         switch (state) {
             case PlaybackStateCompat.STATE_PAUSED:
-                updateButtons(context, true);
-                builder.setContentTitle(title)
-                        .setContentText(artist)
-                        .setSubText(mediaId);
+                //first we update the notification...
+                service.startForeground(NOTIFICATION_ID,
+                        getPlaybackButtonsNotificationBuilder(context, mediaSession)
+                                .setLargeIcon(image)
+                                .setContentTitle(title)
+                                .setContentText(artist)
+                                .setSubText(mediaId)
+                                .build()
+                );
+                //...and then we make it dismissible
+                service.stopForeground(false);
                 break;
             case PlaybackStateCompat.STATE_PLAYING:
-                updateButtons(context, true);
-                builder.setContentTitle(title)
-                        .setContentText(artist)
-                        .setSubText(mediaId);
+                service.startForeground(NOTIFICATION_ID,
+                        getPlaybackButtonsNotificationBuilder(context, mediaSession)
+                                .setLargeIcon(image)
+                                .setContentTitle(title)
+                                .setContentText(artist)
+                                .setSubText(mediaId)
+                                .build());
                 break;
             case PlaybackStateCompat.STATE_BUFFERING:
-                updateButtons(context, false);
-                builder.setContentTitle("loading")
-                        .setContentText("loading")
-                        .setSubText("loading");
+                service.startForeground(NOTIFICATION_ID,
+                        getCancelButtonNotificationBuilder(context, mediaSession)
+                                .setLargeIcon(image)
+                                .setContentTitle("loading")
+                                .setContentText("loading")
+                                .setSubText("loading")
+                                .build());
                 break;
             case PlaybackStateCompat.STATE_ERROR:
-                updateButtons(context, false);
-                builder.setContentTitle(mediaSession.getErrorMessage())
+                //first we update the notification...
+                service.startForeground(NOTIFICATION_ID,
+                        getCancelButtonNotificationBuilder(context, mediaSession)
+                        .setLargeIcon(image)
+                        .setContentTitle(mediaSession.getErrorMessage())
                         .setContentText("error")
-                        .setSubText("error");
+                        .setSubText("error")
+                        .build());
+                //...and then we make it dismissible
+                service.stopForeground(false);
                 break;
             case PlaybackStateCompat.STATE_NONE:
                 service.stopForeground(true);
-                return;
+                break;
             case PlaybackStateCompat.STATE_STOPPED:
                 service.stopForeground(true);
-                return;
+                break;
             default:
-                return;
+                break;
         }
-
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
-
-        builder.setContentIntent(contentIntent)
-                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setSmallIcon(R.drawable.ic_notification_icon)
-                .setLargeIcon(image)
-                .setColor(ContextCompat.getColor(context, R.color.colorPrimaryDark))
-                .setShowWhen(false)
-                .addAction(rewindAction)
-                .addAction(skipToPreviousAction)
-                .addAction(playPauseAction)
-                .addAction(skipToNextAction)
-                .addAction(fastForwardAction)
-                .setStyle(new MediaStyle()
-                        .setMediaSession(mediaSession
-                                .getToken())
-                        .setShowActionsInCompactView(1, 2, 3)
-                        .setShowCancelButton(true)
-                        .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP)));
-
-        service.startForeground(NOTIFICATION_ID, builder.build());
-
-        // if paused or error we want the notification to be visible but dismissible
-        if (state == PlaybackStateCompat.STATE_PAUSED || state == PlaybackStateCompat.STATE_ERROR)
-            service.stopForeground(false);
     }
 
     /**
-     * Enable or disable notification buttons, and update notification icons accordingly
-     *
-     * @param context Application context
-     * @param enabled Whether the buttons are enabled or not
+     * @param context Application {@link Context}
+     * @param mediaSession The {@link MediaSessionManager} used to build the notification
+     * @return A {@link NotificationCompat.Builder} of a notification with all the playback controls
      */
-    private static void updateButtons(Context context, boolean enabled) {
-        if (enabled) {
-            if (state == PlaybackStateCompat.STATE_PLAYING) {
-                playPauseAction = new Action(R.drawable.ic_pause_black_24dp, "playing", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY_PAUSE));
-            } else {
-                playPauseAction = new Action(R.drawable.ic_play_arrow_black_24dp, "paused", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY_PAUSE));
-            }
-            skipToPreviousAction = new Action(R.drawable.ic_skip_previous_black_24dp, "previous", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
-            skipToNextAction = new Action(R.drawable.ic_skip_next_black_24dp, "next", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
-            rewindAction = new Action(R.drawable.ic_fast_rewind_black_24dp, "rewind", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_REWIND));
-            fastForwardAction = new Action(R.drawable.ic_fast_forward_black_24dp, "fast forward", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_FAST_FORWARD));
-
+    private static Builder getPlaybackButtonsNotificationBuilder(Context context, MediaSessionManager mediaSession) {
+        Action skipToPreviousAction = new Action(R.drawable.ic_skip_previous_black_24dp, "previous", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
+        Action skipToNextAction = new Action(R.drawable.ic_skip_next_black_24dp, "next", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
+        Action rewindAction = new Action(R.drawable.ic_fast_rewind_black_24dp, "rewind", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_REWIND));
+        Action fastForwardAction = new Action(R.drawable.ic_fast_forward_black_24dp, "fast forward", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_FAST_FORWARD));
+        Action playPauseAction;
+        if (mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
+            playPauseAction = new Action(R.drawable.ic_pause_black_24dp, "playing", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY_PAUSE));
         } else {
-            playPauseAction = new Action(R.drawable.ic_play_arrow_disabled_24dp, "play", null);
-            skipToPreviousAction = new Action(R.drawable.ic_skip_previous_disabled_24dp, "previous", null);
-            skipToNextAction = new Action(R.drawable.ic_skip_next_disabled_24dp, "next", null);
-            rewindAction = new Action(R.drawable.ic_fast_rewind_disabled_24dp, "rewind", null);
-            fastForwardAction = new Action(R.drawable.ic_fast_forward_disabled_24dp, "fast forward", null);
+            playPauseAction = new Action(R.drawable.ic_play_arrow_black_24dp, "paused", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY_PAUSE));
         }
+
+        return getCommonNotificationBuilder(context)
+                .addAction(skipToPreviousAction)
+                .addAction(rewindAction)
+                .addAction(playPauseAction)
+                .addAction(fastForwardAction)
+                .addAction(skipToNextAction)
+                .setStyle(getCommonMediaStyle(context, mediaSession)
+                        .setShowActionsInCompactView(0, 2, 4));
+
+    }
+
+    /**
+     * @param context Application {@link Context}
+     * @param mediaSession The {@link MediaSessionManager} used to build the notification
+     * @return A {@link NotificationCompat.Builder} of a notification with only a button to dismiss it
+     */
+    private static Builder getCancelButtonNotificationBuilder(Context context, MediaSessionManager mediaSession) {
+        Action cancelAction = new Action(R.drawable.ic_clear_black_24dp, "cancel", MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP));
+
+        return getCommonNotificationBuilder(context)
+                .addAction(cancelAction)
+                .setStyle(getCommonMediaStyle(context, mediaSession)
+                        .setShowActionsInCompactView(0));
+
+    }
+
+    /**
+     * Do not use this method directly,
+     * instead use {@link #getCancelButtonNotificationBuilder(Context, MediaSessionManager)}
+     * or {@link #getPlaybackButtonsNotificationBuilder(Context, MediaSessionManager)}
+     * @param context Application {@link Context}
+     * @return A potentially incomplete {@link NotificationCompat.Builder} used by every notification type
+     */
+    private static Builder getCommonNotificationBuilder(Context context) {
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent cancelIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP);
+
+        return new Builder(context, CHANNEL_ID)
+                .setContentIntent(contentIntent)
+                .setDeleteIntent(cancelIntent)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setColor(ContextCompat.getColor(context, R.color.colorPrimaryDark))
+                .setShowWhen(false);
+    }
+
+    /**
+     * Do not use this method directly,
+     * instead use {@link #getCancelButtonNotificationBuilder(Context, MediaSessionManager)}
+     * or {@link #getPlaybackButtonsNotificationBuilder(Context, MediaSessionManager)}
+     * @param context Application {@link Context}
+     * @return A potentially incomplete {@link MediaStyle} used by every notification type
+     */
+    private static MediaStyle getCommonMediaStyle(Context context, MediaSessionManager mediaSession) {
+        PendingIntent cancelIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP);
+        return new MediaStyle()
+                .setMediaSession(mediaSession
+                        .getToken())
+                .setShowCancelButton(true)
+                .setCancelButtonIntent(cancelIntent);
     }
 }

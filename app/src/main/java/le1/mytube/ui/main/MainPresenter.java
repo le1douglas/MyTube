@@ -129,7 +129,6 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
             slook.initialize(context);
             if (slook.isFeatureEnabled(Slook.COCKTAIL_PANEL)) {
                 contractView.onEdgeSupported();
-
             }else {
                 contractView.onEdgeNotSupported(true);
             }

@@ -41,6 +41,8 @@ public class MediaSessionManager {
                 PlaybackStateCompat.ACTION_PREPARE |
                 PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
                 PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                PlaybackStateCompat.ACTION_REWIND |
+                PlaybackStateCompat.ACTION_FAST_FORWARD |
                 PlaybackStateCompat.ACTION_STOP);
     }
 
@@ -86,7 +88,7 @@ public class MediaSessionManager {
      * @param artist Author or YouTube channel that uploaded the video
      * @param art Bitmap of the album/video art, keep this image at a maximum of 4000x4000
      * @param artUri Uri of the album/video art, useful to get higher resolution image
-     * @param duration The duration of the track, in seconds
+     * @param duration The duration of the track, in milliseconds
      */
     void setMetadata(String title, String id, String artist, Bitmap art, String artUri, long duration) {
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder()
