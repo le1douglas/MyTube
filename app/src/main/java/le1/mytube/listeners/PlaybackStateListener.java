@@ -1,8 +1,7 @@
 package le1.mytube.listeners;
 
-import android.support.v4.media.MediaMetadataCompat;
-
 import le1.mytube.mvpModel.MusicControl;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 
 /**
@@ -14,11 +13,11 @@ public interface PlaybackStateListener {
     /**
      * Called when the metadata loads, can be called multiple times.
      *
-     * @param metadata the {@link MediaMetadataCompat} of the current song.
+     * @param youTubeSong the current {@link YouTubeSong} encapsulating all of the metadata
      *
-     * @see MusicControl#getMetadata()
+     * @see MusicControl#getCurrentSong()
      */
-    void onMetadataLoaded(MediaMetadataCompat metadata);
+    void onMetadataLoaded(YouTubeSong youTubeSong);
 
     /**
      * Called when the player starts loading either after

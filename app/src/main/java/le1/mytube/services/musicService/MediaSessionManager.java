@@ -3,11 +3,12 @@ package le1.mytube.services.musicService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
  * Manager of {@link MediaSessionCompat}.
@@ -23,16 +24,17 @@ public class MediaSessionManager {
 
     /**
      * Build {@link #mediaSession} instance
-     * @param context Application context
+     *
+     * @param context  Application context
      * @param callback {@link MediaSessionCompat.Callback} of the {@link #mediaSession}
      */
-    public MediaSessionManager(Context context, MediaSessionCompat.Callback callback) {
+    MediaSessionManager(Context context, MediaSessionCompat.Callback callback) {
         mediaSession = new MediaSessionCompat(context.getApplicationContext(), TAG);
         mediaSession.setCallback(callback);
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
-        // set supported actions. if action is not specified here it won't do anything
+        // set supported actions. If action is not specified here it won't do anything
         // when called through mediaSession.getController().getTransportControls()
         playbackState.setActions(PlaybackStateCompat.ACTION_PLAY |
                 PlaybackStateCompat.ACTION_PLAY_PAUSE |
@@ -61,45 +63,60 @@ public class MediaSessionManager {
      * {@link PlaybackStateCompat#STATE_SKIPPING_TO_PREVIOUS}
      * {@link PlaybackStateCompat#STATE_SKIPPING_TO_NEXT}
      * {@link PlaybackStateCompat#STATE_SKIPPING_TO_QUEUE_ITEM}
-     *
+     * <p>
      * for further info see {@link MediaSessionCompat#setPlaybackState(PlaybackStateCompat)}
      */
-    void setPlaybackState(int state, long playerCurrentPosition, String errorMessage) {
+    void setPlaybackState(int state, long playerCurrentPosition) {
         playbackState.setState(state, playerCurrentPosition, PLAYBACK_SPEED_NORMAL);
-        playbackState.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, errorMessage);
+        mediaSession.setPlaybackState(playbackState.build());
+    }
+
+    void setPlaybackStateErrorMessage(int errorCode, String errorMessage) {
+        playbackState.setErrorMessage(errorCode, errorMessage);
         mediaSession.setPlaybackState(playbackState.build());
     }
 
     /**
-     * @return Current playback state. see {@link #setPlaybackState(int, long, String)}
+     * @return Current playback state. see {@link #setPlaybackState(int, long)}
      */
     public int getPlaybackState() {
         return mediaSession.getController().getPlaybackState().getState();
     }
 
-    public String getErrorMessage() {
-        if (mediaSession.getController().getPlaybackState().getErrorMessage()==null) return "unknown error";
+    public String getPlaybackStateErrorMessage() {
+        if (mediaSession.getController().getPlaybackState().getErrorMessage() == null)
+            return "error message missing";
         else return mediaSession.getController().getPlaybackState().getErrorMessage().toString();
     }
+
     /**
      * Set metadata of notification, wear etc
-     * @param title The title of the track
-     * @param id The YouTube id of this track
-     * @param artist Author or YouTube channel that uploaded the video
-     * @param art Bitmap of the album/video art, keep this image at a maximum of 4000x4000
-     * @param artUri Uri of the album/video art, useful to get higher resolution image
-     * @param duration The duration of the track, in milliseconds
+     *
+     * @param youTubeSong the song from which retrieve metadata
      */
-    void setMetadata(String title, String id, String artist, Bitmap art, String artUri, long duration) {
-        MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
-                .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, art)
-                .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, artUri)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
-        mediaSession.setMetadata(metadata.build());
+    void setMetadata(YouTubeSong youTubeSong) {
+        MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder();
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId());
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, youTubeSong.getId());
 
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_TITLE, youTubeSong.getTitle());
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, youTubeSong.getTitle());
+
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, youTubeSong.getAuthor());
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getAuthor());
+        metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, youTubeSong.getTitle());
+
+        if (youTubeSong.getImageUri() != null){
+            metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImageUri().toString());
+            metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, youTubeSong.getImageUri().toString());
+
+        }
+
+        metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, youTubeSong.getImageBitmap());
+        metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, youTubeSong.getImageBitmap());
+
+        metadata.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, youTubeSong.getDuration());
+        mediaSession.setMetadata(metadata.build());
     }
 
     /**
@@ -135,7 +152,7 @@ public class MediaSessionManager {
     /**
      * @see MediaSessionCompat#setMediaButtonReceiver(PendingIntent)
      */
-    void setMediaButtonReceiver(PendingIntent mediaButtonReceiverIntent){
+    void setMediaButtonReceiver(PendingIntent mediaButtonReceiverIntent) {
         mediaSession.setMediaButtonReceiver(mediaButtonReceiverIntent);
     }
 

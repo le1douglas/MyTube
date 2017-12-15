@@ -4,8 +4,8 @@ import android.support.annotation.NonNull;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
-import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.ui.base.BaseContract;
 
 public interface MusicPlayerContract extends BaseContract {
 

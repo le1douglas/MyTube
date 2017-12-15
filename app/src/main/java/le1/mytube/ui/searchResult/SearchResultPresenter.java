@@ -12,10 +12,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import le1.mytube.base.BaseContract;
 import le1.mytube.listeners.OnExecuteTaskCallback;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.ui.base.BaseContract;
 
 public class SearchResultPresenter extends AndroidViewModel implements SearchResultContract.ViewModel, OnExecuteTaskCallback {
     private Repo repo;

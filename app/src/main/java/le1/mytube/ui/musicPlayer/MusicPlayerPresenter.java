@@ -3,16 +3,15 @@ package le1.mytube.ui.musicPlayer;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.support.annotation.NonNull;
-import android.support.v4.media.MediaMetadataCompat;
 import android.util.Log;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 import le1.mytube.application.MyTubeApplication;
-import le1.mytube.base.BaseContract;
 import le1.mytube.listeners.PlaybackStateListener;
 import le1.mytube.mvpModel.MusicControl;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.ui.base.BaseContract;
 
 public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlayerContract.ViewModel, PlaybackStateListener {
     private static final String TAG = "LE1_MusicPlayerPres";
@@ -33,8 +32,8 @@ public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlaye
 
     @Override
     public boolean startSongIfItsDifferent(YouTubeSong youTubeSong) {
-        if (musicControl.getMetadata() == null ||
-                !(musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
+        if (musicControl.getCurrentSong() == null ||
+                !(musicControl.getCurrentSong().getId()
                         .equals(youTubeSong.getId()))) {
             musicControl.prepareAndPlay(youTubeSong);
             return true;
@@ -50,28 +49,28 @@ public class MusicPlayerPresenter extends AndroidViewModel implements MusicPlaye
     }
 
     @Override
-    public void onMetadataLoaded(MediaMetadataCompat metadata) {
-        Log.d(TAG, "onMetadataLoaded: " + metadata);
+    public void onMetadataLoaded(YouTubeSong youTubeSong) {
+        Log.d(TAG, "onMetadataLoaded: " + youTubeSong);
     }
 
     @Override
     public void onLoading() {
-        Log.d(TAG, "onLoading: ");
+
     }
 
     @Override
     public void onPlaying() {
-        Log.d(TAG, "onPlaying: ");
+
     }
 
     @Override
     public void onPaused() {
-        Log.d(TAG, "onPaused: ");
+
     }
 
     @Override
     public void onStopped() {
-        Log.d(TAG, "onStopped: ");
+
     }
 
     @Override

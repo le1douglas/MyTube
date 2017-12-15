@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -106,12 +105,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         retryButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                YouTubeSong youTubeSong = new YouTubeSong.Builder(
-                        musicControl.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID),
-                        null)
-                        .build();
-
-                musicControl.prepareAndPlay(youTubeSong);
+                musicControl.prepareAndPlay(musicControl.getCurrentSong());
             }
         });
 
@@ -138,17 +132,18 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
      *                      {@link PlaybackStateCompat#STATE_PAUSED}
      *                      {@link PlaybackStateCompat#STATE_STOPPED}
      *                      {@link PlaybackStateCompat#STATE_ERROR}
-     * @param metadata      the metadata used to build the ui
+     * @param youTubeSong   the current {@link YouTubeSong} that encapsulates all the
+     *                      metadata used to build the ui
      */
-    public void updateUi(int playbackState, MediaMetadataCompat metadata) {
+    public void updateUi(int playbackState, YouTubeSong youTubeSong) {
         isUiVisible = true;
 
-        if (metadata != null) {
-            titleView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
-            seekbar.setMax((int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
+        if (youTubeSong != null) {
+            titleView.setText(youTubeSong.getTitle());
+            seekbar.setMax(youTubeSong.getDuration());
             seekbar.setProgress(musicControl.getCurrentPosition());
             currentTimeView.setText(formatMilliseconds(musicControl.getCurrentPosition()));
-            totalTimeView.setText(formatMilliseconds((int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)));
+            totalTimeView.setText(formatMilliseconds(youTubeSong.getDuration()));
 
         }
         switch (playbackState) {
@@ -163,7 +158,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
                 autoHideHandler.removeCallbacks(autoHideRunnable);
                 if (titleView.getText().toString().equals("")) titleView.setText("Loading");
-                seekbar.setActivated(true);
                 break;
             case PlaybackStateCompat.STATE_PLAYING:
                 playPauseButton.setVisibility(VISIBLE);
@@ -179,7 +173,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 autoHideHandler.removeCallbacks(autoHideRunnable);
                 autoHideHandler.postDelayed(autoHideRunnable, autoHideMs);
 
-                seekbar.setActivated(true);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_pause));
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
@@ -192,7 +185,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
                 retryButton.setVisibility(GONE);
 
                 autoHideHandler.removeCallbacks(autoHideRunnable);
-                seekbar.setActivated(true);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_play));
 
                 break;
@@ -207,7 +199,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
                 autoHideHandler.removeCallbacks(autoHideRunnable);
                 playPauseButton.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.exo_controls_play));
-                seekbar.setActivated(false);
                 break;
             case PlaybackStateCompat.STATE_ERROR:
                 playPauseButton.setVisibility(GONE);
@@ -220,7 +211,6 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
                 autoHideHandler.removeCallbacks(autoHideRunnable);
                 titleView.setText("Error");
-                seekbar.setActivated(false);
                 break;
             default:
                 break;
@@ -230,7 +220,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
     /**
      * Hides all the ui controls for a more immersive experience.
-     * Ui can be made visible again with {@link #updateUi(int, MediaMetadataCompat)}
+     * Ui can be made visible again with {@link #updateUi(int, YouTubeSong)}
      */
     public void hideUi() {
         isUiVisible = false;
@@ -256,7 +246,7 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
         isUiVisible = sharedPref.getBoolean(SHARED_PREF_IS_UI_VISIBLE_KEY, true);
         if (musicControl.isConnected()) {
             if (isUiVisible)
-                updateUi(musicControl.getPlaybackState(), musicControl.getMetadata());
+                updateUi(musicControl.getPlaybackState(), musicControl.getCurrentSong());
             else hideUi();
         }
     }
@@ -271,14 +261,14 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
     /**
      * Called every time the user touches the view and no other sub-view catches the
-     * {@link MotionEvent} (for example, if a button is touched, this method is not called)
+     * {@link MotionEvent} (for example, if a button is touched, this method is not called).
      * Toggles the visibility of the ui
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (musicControl.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
             if (isUiVisible) hideUi();
-            else updateUi(musicControl.getPlaybackState(), musicControl.getMetadata());
+            else updateUi(musicControl.getPlaybackState(), musicControl.getCurrentSong());
         }
         return super.onTouchEvent(event);
     }
@@ -322,40 +312,40 @@ public class PlayerOverlayView extends RelativeLayout implements PlaybackStateLi
 
 
     /**
-     * @see PlaybackStateListener#onMetadataLoaded(MediaMetadataCompat)
+     * @see PlaybackStateListener#onMetadataLoaded(YouTubeSong)
      */
     @Override
-    public void onMetadataLoaded(MediaMetadataCompat metadata) {
-        updateUi(musicControl.getPlaybackState(), metadata);
+    public void onMetadataLoaded(YouTubeSong youTubeSong) {
+        updateUi(musicControl.getPlaybackState(), youTubeSong);
     }
 
     /**
      * For every playback action,
-     * calls {@link #updateUi(int, MediaMetadataCompat)} with the appropriate {@link PlaybackStateCompat} state.
+     * calls {@link #updateUi(int, YouTubeSong)} with the appropriate {@link PlaybackStateCompat} state.
      */
     @Override
     public void onLoading() {
-        updateUi(PlaybackStateCompat.STATE_BUFFERING, musicControl.getMetadata());
+        updateUi(PlaybackStateCompat.STATE_BUFFERING, musicControl.getCurrentSong());
     }
 
     @Override
     public void onPaused() {
-        updateUi(PlaybackStateCompat.STATE_PAUSED, musicControl.getMetadata());
+        updateUi(PlaybackStateCompat.STATE_PAUSED, musicControl.getCurrentSong());
     }
 
     @Override
     public void onPlaying() {
-        updateUi(PlaybackStateCompat.STATE_PLAYING, musicControl.getMetadata());
+        updateUi(PlaybackStateCompat.STATE_PLAYING, musicControl.getCurrentSong());
     }
 
     @Override
     public void onStopped() {
-        updateUi(PlaybackStateCompat.STATE_STOPPED, musicControl.getMetadata());
+        updateUi(PlaybackStateCompat.STATE_STOPPED, musicControl.getCurrentSong());
     }
 
     @Override
     public void onError(String error) {
-        updateUi(PlaybackStateCompat.STATE_ERROR, musicControl.getMetadata());
+        updateUi(PlaybackStateCompat.STATE_ERROR, musicControl.getCurrentSong());
     }
 
 }

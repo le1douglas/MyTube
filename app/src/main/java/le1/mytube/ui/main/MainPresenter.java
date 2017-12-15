@@ -11,13 +11,13 @@ import com.samsung.android.sdk.look.Slook;
 import java.util.ArrayList;
 import java.util.List;
 
-import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
 import le1.mytube.mvpModel.sharedPref.SharedPrefRepo;
 import le1.mytube.mvpModel.sharedPref.SharedPrefRepoImpl;
+import le1.mytube.ui.base.BaseContract;
 
 public class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
     private Repo repository;

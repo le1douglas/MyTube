@@ -2,8 +2,8 @@ package le1.mytube.ui.searchResult;
 
 import java.util.List;
 
-import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
+import le1.mytube.ui.base.BaseContract;
 
 interface SearchResultContract extends BaseContract {
 

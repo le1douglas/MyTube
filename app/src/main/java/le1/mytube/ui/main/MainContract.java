@@ -4,8 +4,8 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
-import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.ui.base.BaseContract;
 
 interface MainContract extends BaseContract {
 

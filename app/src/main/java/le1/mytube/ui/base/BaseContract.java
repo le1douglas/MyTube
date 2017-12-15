@@ -1,4 +1,4 @@
-package le1.mytube.base;
+package le1.mytube.ui.base;
 
 public interface BaseContract {
     interface View {

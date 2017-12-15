@@ -30,6 +30,7 @@ import le1.mytube.application.AppLifecycleObserver;
 import le1.mytube.application.MyTubeApplication;
 import le1.mytube.listeners.AudioFocusCallback;
 import le1.mytube.mvpModel.MusicControl;
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.notifications.MusicNotification;
 
 /**
@@ -41,6 +42,8 @@ public class MusicService extends MediaBrowserServiceCompat {
 
     private static final String TAG = "LE1_MusicService";
 
+    public static final String YOUTUBE_SONG_KEY = "youtubesong_key";
+
     private MediaSessionManager mediaSession;
     private MediaButtonManager mediaButtonReceiver;
     private AudioFocusManager audioFocus;
@@ -48,6 +51,14 @@ public class MusicService extends MediaBrowserServiceCompat {
 
 
     private MusicControl musicControl;
+
+
+    private static YouTubeSong currentOrLastSong;
+
+    public static YouTubeSong getCurrentOrLastSong() {
+        return currentOrLastSong;
+    }
+
 
     /**
      * Does all the setup and sets the PlaybackState to {@link PlaybackStateCompat#STATE_NONE}
@@ -57,12 +68,12 @@ public class MusicService extends MediaBrowserServiceCompat {
         super.onCreate();
         mediaSession = new MediaSessionManager(this, mediaSessionCallback);
         setSessionToken(mediaSession.getToken());
-        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_NONE, -1, null);
+        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_NONE, -1);
         mediaButtonReceiver = new MediaButtonManager(this, mediaSession);
         audioFocus = new AudioFocusManager(this, audioFocusCallback);
         player = PlayerManager.getInstance(this);
         player.addEventListener(playerListener);
-        musicControl =  ((MyTubeApplication) getApplication()).getMusicControl();
+        musicControl = ((MyTubeApplication) getApplication()).getMusicControl();
     }
 
     /**
@@ -89,7 +100,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     /**
      * Callback that actually controls the playback.
      * Every playback command ends here in a way or another.
-     * Every {@link MediaSessionManager#setPlaybackState(int, long, String)} is delegated to {@link #playerListener} as it's when the playback <i>actually</i>
+     * Every {@link MediaSessionManager#setPlaybackState(int, long)} is delegated to {@link #playerListener} as it's when the playback <i>actually</i>
      * starts and not when it <i>should</i> happen
      */
     private MediaSessionCompat.Callback mediaSessionCallback = new MediaSessionCompat.Callback() {
@@ -104,12 +115,16 @@ public class MusicService extends MediaBrowserServiceCompat {
 
             //we want a fresh start if music it's already playing
             if (mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
-                musicControl.stop();
+                player.pause();
             }
-            mediaSession.setMetadata(null, youTubeId, null, null, null, 0);
+
+            extras.setClassLoader(YouTubeSong.class.getClassLoader());
+            currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
+
 
             //we set the playback state to STATE_BUFFERING before extracting the youtube song
-            mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1, null);
+            mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1);
+            mediaSession.setMetadata(currentOrLastSong);
             MusicNotification.updateNotification(MusicService.this, mediaSession);
 
 
@@ -121,14 +136,19 @@ public class MusicService extends MediaBrowserServiceCompat {
                             Toast.makeText(MusicService.this, "streaming is not supported yet", Toast.LENGTH_SHORT).show();
                             return;
                         }
-                        Log.d(TAG, "onExtractionComplete: " + videoMeta.getVideoLength()* 1000);
-                        mediaSession.setMetadata(videoMeta.getTitle(), videoMeta.getVideoId(), videoMeta.getChannelId(), null, videoMeta.getMaxResImageUrl(), videoMeta.getVideoLength() * 1000);
+                        Log.d(TAG, "onExtractionComplete: ");
+                        currentOrLastSong.setDuration((int) (videoMeta.getVideoLength() * 1000));
+                        currentOrLastSong.setAuthor(videoMeta.getAuthor());
+                        currentOrLastSong.setImageUri(Uri.parse(videoMeta.getMaxResImageUrl()));
+                        mediaSession.setMetadata(currentOrLastSong);
                         //actually prepare the player
                         player.prepare(Uri.parse(itags.get(140).getUrl()), Uri.parse(itags.get(160).getUrl()));
                         //after preparing start playing
+                        Log.d(TAG, "just before play");
                         musicControl.play();
                     } else {
-                        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1, "itags are null");
+                        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1);
+                        mediaSession.setPlaybackStateErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR, "itags are null");
                         MusicNotification.updateNotification(MusicService.this, mediaSession);
                         Toast.makeText(MusicService.this, "itags are null", Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "onExtractionComplete: itags are null");
@@ -142,7 +162,6 @@ public class MusicService extends MediaBrowserServiceCompat {
 
         @Override
         public void onPause() {
-            Log.d(TAG, "onPause: ");
             super.onPause();
             player.pause();
         }
@@ -152,7 +171,6 @@ public class MusicService extends MediaBrowserServiceCompat {
          */
         @Override
         public void onPlay() {
-            Log.d(TAG, "onPlay: ");
             super.onPlay();
             //ask for audio focus. If given, continue on
             if (audioFocus.requestAudioFocus()) {
@@ -169,7 +187,6 @@ public class MusicService extends MediaBrowserServiceCompat {
          */
         @Override
         public void onStop() {
-            Log.d(TAG, "onStop: ");
             super.onStop();
             player.stop();
             audioFocus.abandonAudioFocus();
@@ -245,21 +262,27 @@ public class MusicService extends MediaBrowserServiceCompat {
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             switch (playbackState) {
                 case Player.STATE_IDLE:
-                    mediaSession.setPlaybackState(PlaybackStateCompat.STATE_STOPPED, -1, null);
+                    mediaSession.setPlaybackState(PlaybackStateCompat.STATE_STOPPED, -1);
+                    Log.d(TAG, "onPlayerStateChanged: IDLE");
                     break;
                 case Player.STATE_READY:
                     if (playWhenReady) {
                         //called when it's playing
-                        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_PLAYING, player.getCurrentPosition(), null);
+                        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_PLAYING, player.getCurrentPosition());
+                        Log.d(TAG, "onPlayerStateChanged: PLAYING");
+                        break;
                     } else {
                         //called when it's paused
-                        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_PAUSED, player.getCurrentPosition(), null);
+                        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_PAUSED, player.getCurrentPosition());
+                        Log.d(TAG, "onPlayerStateChanged: PAUSED");
+                        break;
                     }
-                    break;
                 case Player.STATE_BUFFERING:
-                    mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1, null);
+                    mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, player.getCurrentPosition());
+                    Log.d(TAG, "onPlayerStateChanged: BUFFERING");
                     break;
                 case Player.STATE_ENDED:
+                    Log.d(TAG, "onPlayerStateChanged: ENDED");
                     //when the song ends, stop playback
                     //TODO add queue
                     musicControl.stop();
@@ -276,7 +299,8 @@ public class MusicService extends MediaBrowserServiceCompat {
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
-            mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1, error.getMessage());
+            mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1);
+            mediaSession.setPlaybackStateErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, "error in player");
             MusicNotification.updateNotification(MusicService.this, mediaSession);
         }
 

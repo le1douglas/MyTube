@@ -7,11 +7,11 @@ import android.content.Intent;
 import java.util.ArrayList;
 
 import le1.mytube.application.MyTubeApplication;
-import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.Repo;
 import le1.mytube.mvpModel.database.DatabaseConstants;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.ui.base.BaseContract;
 import le1.mytube.ui.musicPlayer.MusicPlayerActivity;
 
 public class PlaylistPresenter extends AndroidViewModel implements PlaylistContract.ViewModel {

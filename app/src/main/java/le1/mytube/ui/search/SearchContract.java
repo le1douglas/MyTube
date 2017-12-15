@@ -2,7 +2,7 @@ package le1.mytube.ui.search;
 
 import java.util.List;
 
-import le1.mytube.base.BaseContract;
+import le1.mytube.ui.base.BaseContract;
 
 public interface SearchContract extends BaseContract {
 

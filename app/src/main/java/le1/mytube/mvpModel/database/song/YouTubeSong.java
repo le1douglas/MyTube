@@ -48,19 +48,22 @@ public class YouTubeSong implements Parcelable {
             return new YouTubeSong[size];
         }
     };
+
     @PrimaryKey
     private String id;
     @ColumnInfo
     private String title;
+
+    @ColumnInfo
+    private String author;
     @ColumnInfo
     private String path;
     @ColumnInfo
-    private Uri streamingUri;
-    @ColumnInfo
     private Uri imageUri;
+    //no need to store bitmap as we can retrieve it with just the uri
     @Ignore
     private Bitmap imageBitmap;
-    //we store only one resolution to disk
+    //we store only one resolution
     @Ignore
     private Format format;
     @ColumnInfo
@@ -70,23 +73,22 @@ public class YouTubeSong implements Parcelable {
     @ColumnInfo
     private int duration;
 
-
-    public YouTubeSong(String id, String title, String path, Uri streamingUri, Uri imageUri, int start, int end, int duration) {
+    public YouTubeSong(String id, String title, String author, String path, Uri imageUri, int start, int end, int duration) {
         this.title = title;
         this.id = id;
+        this.author = author;
         this.path = path;
-        this.streamingUri = streamingUri;
         this.imageUri = imageUri;
         this.start = start;
         this.end = end;
         this.duration = duration;
     }
 
-    private YouTubeSong(String id, String title, String path, Uri streamingUri, Uri imageUri, Bitmap imageBitmap, Format format, int start, int end, int duration) {
+    private YouTubeSong(String id, String title, String author, String path, Uri imageUri, Bitmap imageBitmap, Format format, int start, int end, int duration) {
         this.title = title;
         this.id = id;
+        this.author = author;
         this.path = path;
-        this.streamingUri = streamingUri;
         this.imageUri = imageUri;
         this.imageBitmap = imageBitmap;
         this.format = format;
@@ -95,14 +97,33 @@ public class YouTubeSong implements Parcelable {
         this.duration = duration;
     }
 
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        String imageUriString = null;
+        if (this.imageUri != null) {
+            imageUriString = this.imageUri.toString();
+        }
+
+        parcel.writeString(this.id);
+        parcel.writeString(this.title);
+        parcel.writeString(this.author);
+        parcel.writeString(this.path);
+        parcel.writeString(imageUriString);
+        parcel.writeInt(this.start);
+        parcel.writeInt(this.end);
+        parcel.writeInt(this.duration);
+    }
+
     protected YouTubeSong(Parcel parcel) {
         this.id = parcel.readString();
         this.title = parcel.readString();
+        this.author = parcel.readString();
         this.path = parcel.readString();
         if (parcel.readString() != null) this.imageUri = Uri.parse(parcel.readString());
         else this.imageUri = null;
         this.start = parcel.readInt();
         this.end = parcel.readInt();
+        this.duration = parcel.readInt();
     }
 
     @Override
@@ -110,17 +131,6 @@ public class YouTubeSong implements Parcelable {
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(this.id);
-        parcel.writeString(this.title);
-        if (this.path != null) parcel.writeString(this.path);
-        else parcel.writeString(null);
-        if (this.imageUri != null) parcel.writeString(this.imageUri.toString());
-        else parcel.writeString(null);
-        parcel.writeInt(start);
-        parcel.writeInt(end);
-    }
 
     public String getTitle() {
         return this.title;
@@ -130,6 +140,7 @@ public class YouTubeSong implements Parcelable {
         this.title = title;
     }
 
+
     public String getId() {
         return this.id;
     }
@@ -137,6 +148,16 @@ public class YouTubeSong implements Parcelable {
     public void setId(String id) {
         this.id = id;
     }
+
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
 
     public String getPath() {
         return this.path;
@@ -146,6 +167,7 @@ public class YouTubeSong implements Parcelable {
         this.path = path;
     }
 
+
     public Integer getStart() {
         return this.start;
     }
@@ -153,6 +175,7 @@ public class YouTubeSong implements Parcelable {
     public void setStart(Integer start) {
         this.start = start;
     }
+
 
     public Integer getEnd() {
         return this.end;
@@ -162,6 +185,7 @@ public class YouTubeSong implements Parcelable {
         this.end = end;
     }
 
+
     public Uri getImageUri() {
         return imageUri;
     }
@@ -169,6 +193,7 @@ public class YouTubeSong implements Parcelable {
     public void setImageUri(Uri imageUri) {
         this.imageUri = imageUri;
     }
+
 
     public int getDuration() {
         return duration;
@@ -178,24 +203,13 @@ public class YouTubeSong implements Parcelable {
         this.duration = duration;
     }
 
+
     public Format getFormat() {
         return format;
     }
 
     public void setFormat(Format format) {
         this.format = format;
-    }
-
-    @Override
-    public String toString() {
-        return "{" +
-                this.title + "," +
-                this.id + "," +
-                this.path + "," +
-                this.imageUri + "," +
-                this.start + "," +
-                this.end + "," +
-                this.duration + "}";
     }
 
     public void download(final Context context) {
@@ -283,24 +297,16 @@ public class YouTubeSong implements Parcelable {
         this.imageBitmap = imageBitmap;
     }
 
-    public Uri getStreamingUri() {
-        return streamingUri;
-    }
-
-    public void setStreamingUri(Uri streamingUri) {
-        this.streamingUri = streamingUri;
-    }
-
     public static class Builder {
-        private final String id;
-        private final String title;
+        private String id;
+        private String title;
+        private String author;
         private String path;
-        private int start;
-        private int end;
         private Uri imageUri;
         private Bitmap imageBitmap;
-        private Uri streamingUri;
         private Format format;
+        private int start;
+        private int end;
         private int duration;
 
         public Builder(String id, String title) {
@@ -308,18 +314,13 @@ public class YouTubeSong implements Parcelable {
             this.title = title;
         }
 
+        public Builder author(String author){
+            this.author = author;
+            return this;
+        }
+
         public Builder path(String path) {
             this.path = path;
-            return this;
-        }
-
-        public Builder startTime(int maybemilliseconds) {
-            this.start = maybemilliseconds;
-            return this;
-        }
-
-        public Builder endTime(int maybemilliseconds) {
-            this.end = maybemilliseconds;
             return this;
         }
 
@@ -328,15 +329,26 @@ public class YouTubeSong implements Parcelable {
             return this;
         }
 
-        public Builder streamingUri(Uri link) {
-            this.streamingUri = streamingUri;
-            return this;
-        }
-
         public Builder imageBitmap(Bitmap image) {
             this.imageBitmap = image;
             return this;
         }
+
+        public Builder format(Format format) {
+            this.format = format;
+            return this;
+        }
+
+        public Builder startTime(int milliseconds) {
+            this.start = milliseconds;
+            return this;
+        }
+
+        public Builder endTime(int milliseconds) {
+            this.end = milliseconds;
+            return this;
+        }
+
 
         public Builder duration(int duration) {
             this.duration = duration;
@@ -344,16 +356,13 @@ public class YouTubeSong implements Parcelable {
         }
 
 
-        public Builder format(Format format) {
-            this.format = format;
-            return this;
-        }
+
 
         public YouTubeSong build() {
             if (this.end < this.start)
                 throw new IllegalArgumentException("end (" + String.valueOf(this.end) + ") must be grater han start(" + String.valueOf(this.start) + ")");
             else
-                return new YouTubeSong(this.id, this.title, this.path, this.streamingUri, this.imageUri, this.imageBitmap, this.format, this.start, this.end, this.duration);
+                return new YouTubeSong(this.id, this.title, this.author, this.path, this.imageUri, this.imageBitmap, this.format, this.start, this.end, this.duration);
         }
     }
 }

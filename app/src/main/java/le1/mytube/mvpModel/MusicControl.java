@@ -3,6 +3,7 @@ package le1.mytube.mvpModel;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -80,7 +81,7 @@ public class MusicControl {
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             super.onMetadataChanged(metadata);
-            compositeListener.onMetadataLoaded(metadata);
+            compositeListener.onMetadataLoaded(getCurrentSong());
         }
     };
 
@@ -171,7 +172,9 @@ public class MusicControl {
      * @param youTubeSong The song to be played. Note that only the id is actually required
      */
     public void prepareAndPlay(YouTubeSong youTubeSong) {
-        mediaController.getTransportControls().prepareFromMediaId(youTubeSong.getId(), null);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(MusicService.YOUTUBE_SONG_KEY, youTubeSong);
+        mediaController.getTransportControls().prepareFromMediaId(youTubeSong.getId(), bundle);
     }
 
     /**
@@ -204,15 +207,15 @@ public class MusicControl {
      * @return the current playback position in milliseconds
      */
     public int getCurrentPosition() {
-        return PlayerManager.getInstance(context).getCurrentPosition();
+        return (int) mediaController.getPlaybackState().getPosition();
     }
 
     /**
-     * @return the current {@link MediaMetadataCompat} of the current playback.
-     * May change at any moment
+     * @return the current song as a {@link YouTubeSong} object,
+     * may change at any time with changes in metadata
      */
-    public MediaMetadataCompat getMetadata() {
-        return mediaController.getMetadata();
+    public YouTubeSong getCurrentSong() {
+        return MusicService.getCurrentOrLastSong();
     }
 
 

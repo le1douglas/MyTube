@@ -106,7 +106,7 @@ public class MusicNotification {
                 service.startForeground(NOTIFICATION_ID,
                         getCancelButtonNotificationBuilder(context, mediaSession)
                         .setLargeIcon(image)
-                        .setContentTitle(mediaSession.getErrorMessage())
+                        .setContentTitle(mediaSession.getPlaybackStateErrorMessage())
                         .setContentText("error")
                         .setSubText("error")
                         .build());

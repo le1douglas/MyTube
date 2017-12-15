@@ -2,9 +2,9 @@ package le1.mytube.ui.playlist;
 
 import java.util.List;
 
-import le1.mytube.base.BaseContract;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 import le1.mytube.mvpModel.playlists.Playlist;
+import le1.mytube.ui.base.BaseContract;
 
 /**
  * Created by leone on 09/11/17.

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
@@ -14,7 +13,7 @@ import le1.mytube.application.MyTubeApplication;
 import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 
-public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerContract.View{
+public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerContract.View {
     private static final String TAG = ("LE1_" + MusicPlayerActivity.class.getSimpleName());
     private SimpleExoPlayerView playerView;
     private MusicPlayerPresenter presenter;
@@ -31,8 +30,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         YouTubeSong youTubeSong = getIntent().getParcelableExtra(MyTubeApplication.KEY_SONG);
         boolean shouldStart = getIntent().getBooleanExtra(MyTubeApplication.KEY_SHOULD_PLAY, false);
         if (shouldStart) {
-            if (youTubeSong==null)
-                Toast.makeText(this, "youTubeSongIsNull", Toast.LENGTH_SHORT).show();
             presenter.startSongIfItsDifferent(youTubeSong);
         }
 

@@ -1,9 +1,9 @@
 package le1.mytube.listeners;
 
-import android.support.v4.media.MediaMetadataCompat;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import le1.mytube.mvpModel.database.song.YouTubeSong;
 
 /**
  * A collection of every {@link PlaybackStateListener}.
@@ -27,9 +27,9 @@ public class PlaybackStateCompositeListener implements PlaybackStateListener {
     }
 
     @Override
-    public void onMetadataLoaded(MediaMetadataCompat metadata) {
+    public void onMetadataLoaded(YouTubeSong youTubeSong) {
         for (PlaybackStateListener l: playbackStateListeners){
-            l.onMetadataLoaded(metadata);
+            l.onMetadataLoaded(youTubeSong);
         }
     }
 
