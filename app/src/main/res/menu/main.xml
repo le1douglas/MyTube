@@ -2,26 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/handleAudioFocus"
-        android:title=""
-        app:actionLayout="@layout/switch_menu"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search_white_24dp"
         android:title="Search"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/printDB"
-        android:title="Print Db"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/clearDB"
-        android:title="Clear Db"
-        app:showAsAction="never" />
 
 
 </menu>

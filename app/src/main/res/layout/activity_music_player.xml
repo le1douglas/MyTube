@@ -13,7 +13,7 @@
         android:background="@android:color/black"
         app:use_controller="false">
 
-        <le1.mytube.ui.musicPlayer.PlayerOverlayView
+        <le1.mytube.presentation.customViews.PlayerOverlayView
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
