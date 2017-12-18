@@ -17,8 +17,8 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import le1.mytube.R;
-import le1.mytube.domain.services.musicService.MediaSessionManager;
 import le1.mytube.domain.services.musicService.MusicService;
+import le1.mytube.domain.services.musicService.managers.MediaSessionManager;
 import le1.mytube.presentation.ui.musicPlayer.MusicPlayerActivity;
 
 

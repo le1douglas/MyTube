@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -31,6 +32,10 @@ import le1.mytube.domain.application.AppLifecycleObserver;
 import le1.mytube.domain.application.MyTubeApplication;
 import le1.mytube.domain.listeners.AudioFocusCallback;
 import le1.mytube.domain.repos.MusicControl;
+import le1.mytube.domain.services.musicService.managers.AudioFocusManager;
+import le1.mytube.domain.services.musicService.managers.MediaButtonManager;
+import le1.mytube.domain.services.musicService.managers.MediaSessionManager;
+import le1.mytube.domain.services.musicService.managers.PlayerManager;
 import le1.mytube.presentation.notifications.MusicNotification;
 
 /**
@@ -49,7 +54,6 @@ public class MusicService extends MediaBrowserServiceCompat {
     private AudioFocusManager audioFocus;
     private PlayerManager player;
 
-
     private MusicControl musicControl;
 
 
@@ -66,14 +70,17 @@ public class MusicService extends MediaBrowserServiceCompat {
     @Override
     public void onCreate() {
         super.onCreate();
-        mediaSession = new MediaSessionManager(this, mediaSessionCallback);
-        setSessionToken(mediaSession.getToken());
-        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_NONE, -1);
-        mediaButtonReceiver = new MediaButtonManager(this, mediaSession);
-        audioFocus = new AudioFocusManager(this, audioFocusCallback);
-        player = PlayerManager.getInstance(this);
-        player.addEventListener(playerListener);
         musicControl = ((MyTubeApplication) getApplication()).getMusicControl();
+
+        mediaSession = new MediaSessionManager(this, mediaSessionCallback);
+        audioFocus = mediaSession.getAudioFocusManager(audioFocusCallback);
+        mediaButtonReceiver = mediaSession.getMediaButtonManager();
+        player = mediaSession.getPlayerManager();
+        player.addEventListener(playerListener);
+
+
+        mediaSession.setPlaybackState(PlaybackStateCompat.STATE_NONE, -1);
+        setSessionToken(mediaSession.getToken());
     }
 
     /**
@@ -121,7 +128,6 @@ public class MusicService extends MediaBrowserServiceCompat {
             extras.setClassLoader(YouTubeSong.class.getClassLoader());
             currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
 
-
             //we set the playback state to STATE_BUFFERING before extracting the youtube song
             mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1);
             mediaSession.setMetadata(currentOrLastSong);
@@ -146,6 +152,8 @@ public class MusicService extends MediaBrowserServiceCompat {
                         //after preparing start playing
                         Log.d(TAG, "just before play");
                         musicControl.play();
+                        musicControl.addToQueue(currentOrLastSong);
+                        musicControl.addToQueue(new YouTubeSong.Builder("eiDiKwbGfIY", "temp title").build());
                     } else {
                         mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1);
                         mediaSession.setPlaybackStateErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR, "itags are null");
@@ -222,7 +230,6 @@ public class MusicService extends MediaBrowserServiceCompat {
         public void onFastForward() {
             super.onFastForward();
             musicControl.seekTo(player.getCurrentPosition() + 10_000);
-
         }
 
         @Override
@@ -234,7 +241,23 @@ public class MusicService extends MediaBrowserServiceCompat {
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
-            Toast.makeText(MusicService.this, "Work in progress", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MusicService.this,
+                    mediaSession.queueGetYoutubeTest(0).getTitle() + "|" +
+                            mediaSession.queueGetYoutubeTest(1).getTitle()
+                    , Toast.LENGTH_SHORT).show();
+            musicControl.stop();
+        }
+
+        @Override
+        public void onAddQueueItem(MediaDescriptionCompat description) {
+            super.onAddQueueItem(description);
+            if (mediaSession.isQueueNull()){
+                Log.d(TAG, "onAddQueueItem: null");
+                mediaSession.queueAddTest(description, 0);
+            } else {
+                Log.d(TAG, "onAddQueueItem: " + (mediaSession.queueGetItemTest(0).getQueueId() + 1));
+                mediaSession.queueAddTest(description, mediaSession.queueGetItemTest(0).getQueueId() + 1);
+            }
         }
     };
 
@@ -282,10 +305,7 @@ public class MusicService extends MediaBrowserServiceCompat {
                     Log.d(TAG, "onPlayerStateChanged: BUFFERING");
                     break;
                 case Player.STATE_ENDED:
-                    Log.d(TAG, "onPlayerStateChanged: ENDED");
-                    //when the song ends, stop playback
-                    //TODO add queue
-                    musicControl.stop();
+                    musicControl.skipToNext();
                     break;
             }
 
@@ -386,6 +406,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         Toast.makeText(this, "onDestroy", Toast.LENGTH_SHORT).show();
         musicControl.stop();
         mediaSession.destroy();
+        player.removeEventListener(playerListener);
         player.destroy();
     }
 

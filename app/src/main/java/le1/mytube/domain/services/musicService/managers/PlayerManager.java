@@ -1,8 +1,8 @@
-package le1.mytube.domain.services.musicService;
+package le1.mytube.domain.services.musicService.managers;
+
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -22,61 +22,60 @@ import com.google.android.exoplayer2.util.Util;
 import le1.mytube.R;
 import le1.mytube.domain.listeners.AudioFocusCallback;
 
-
 /**
- * Wrapper of {@link SimpleExoPlayer} that exposes the least amount of methods possible
+ * Wrapper of {@link SimpleExoPlayer} that exposes the least amount of methods possible.
+ * Enum because it is a singleton
  */
-public class PlayerManager {
-    private static final String TAG = "LE1_PlayerManager";
-    private final SimpleExoPlayer player;
-    private Context context;
+public enum PlayerManager {
+    INSTANCE;
+    private SimpleExoPlayer player;
+    DataSource.Factory dataSourceFactory;
+    DefaultExtractorsFactory extractorsFactory;
 
-    private static PlayerManager INSTANCE;
-
-    public static PlayerManager getInstance(Context c){
-        if (INSTANCE==null) INSTANCE= new PlayerManager(c);
-        return INSTANCE;
-    }
-
-    /**
-     * Build {@link #player} instance
-     * @param context Application context
-     */
-    private PlayerManager(final Context context){
+    public void buildPlayer(Context context){
         player = ExoPlayerFactory.newSimpleInstance(context.getApplicationContext(),
                 new DefaultTrackSelector(
                         new AdaptiveTrackSelection.Factory(
                                 new DefaultBandwidthMeter())
                 )
         );
-
-        this.context = context;
+        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
+        extractorsFactory = new DefaultExtractorsFactory();
+        dataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
     }
 
     /**
      * Register a listener for player events
+     *
      * @param listener The {@link Player.EventListener} to register
      */
-    void addEventListener(Player.EventListener listener){
+    public void addEventListener(Player.EventListener listener) {
         player.addListener(listener);
+    }
+
+    /**
+     * Unregister a listener for player events
+     *
+     * @param listener The {@link Player.EventListener} to unregister
+     */
+    public void removeEventListener(Player.EventListener listener) {
+        player.removeListener(listener);
     }
 
     /**
      * @return {@link #player}'s current position in milliseconds
      */
-    public int getCurrentPosition(){
+    public int getCurrentPosition() {
         return (int) player.getCurrentPosition();
     }
 
     /**
      * Start preparing playback
+     *
      * @param audioUri Audio only Uri of track
      * @param videoUri Video only Uri of track
      */
-    void prepare(Uri audioUri, Uri videoUri){
-        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
-        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
+    public void prepare(Uri audioUri, Uri videoUri) {
         MediaSource audioSource = new ExtractorMediaSource(audioUri, dataSourceFactory, extractorsFactory, null, null);
         MediaSource videoSource = new ExtractorMediaSource(videoUri, dataSourceFactory, extractorsFactory, null, null);
         MergingMediaSource combinedSources = new MergingMediaSource(audioSource, videoSource);
@@ -85,57 +84,63 @@ public class PlayerManager {
 
     /**
      * Start playback
+     *
      * @see Player#setPlayWhenReady(boolean)
      */
-    void play(){
-        Log.d(TAG, "play: called");
-        player.setVolume(0.9f);
+    public void play() {
+        player.setVolume(1);
         player.setPlayWhenReady(true);
     }
 
     /**
      * Pause playback
+     *
      * @see Player#setPlayWhenReady(boolean)
      */
-    void pause(){
+    public void pause() {
         player.setPlayWhenReady(false);
     }
 
     /**
      * Stop playback
+     *
      * @see Player#stop()
      */
-    void stop(){
+    public void stop() {
         player.stop();
     }
 
     /**
      * Lower playback volume, usually used with {@link AudioFocusCallback#onAudioFocusLossTransientCanDuck()}
      */
-    void duck(){
+    public void duck() {
         player.setVolume(0.2f);
     }
 
     /**
      * Seek to a particular point in time
+     *
      * @param position in milliseconds
      */
-    void seekTo(int position) {
+    public void seekTo(int position) {
         player.seekTo(position);
     }
 
     /**
      * @see Player#release()
      */
-    void destroy(){
+    public void destroy() {
         player.release();
     }
 
     /**
      * Bind this player to a view
+     *
      * @param playerView The view to bind to.
      */
     public void setPlayerView(SimpleExoPlayerView playerView) {
         playerView.setPlayer(player);
     }
+
 }
+

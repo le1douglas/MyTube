@@ -1,14 +1,18 @@
-package le1.mytube.domain.services.musicService;
+package le1.mytube.domain.services.musicService.managers;
 
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import le1.mytube.data.database.youTubeSong.YouTubeSong;
+import le1.mytube.domain.listeners.AudioFocusCallback;
 
 /**
  * Manager of {@link MediaSessionCompat}.
@@ -21,6 +25,12 @@ public class MediaSessionManager {
     private final MediaSessionCompat mediaSession;
     private final PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
 
+    private List<MediaSessionCompat.QueueItem> queueList = new ArrayList<>();
+
+
+    private MediaButtonManager mediaButtonManager;
+    private PlayerManager playerManager;
+    private AudioFocusManager audioFocusManager;
 
     /**
      * Build {@link #mediaSession} instance
@@ -28,11 +38,12 @@ public class MediaSessionManager {
      * @param context  Application context
      * @param callback {@link MediaSessionCompat.Callback} of the {@link #mediaSession}
      */
-    MediaSessionManager(Context context, MediaSessionCompat.Callback callback) {
+    public MediaSessionManager(Context context, MediaSessionCompat.Callback callback) {
         mediaSession = new MediaSessionCompat(context.getApplicationContext(), TAG);
         mediaSession.setCallback(callback);
+        mediaSession.setQueueTitle("Queue Title");
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
-                | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+                | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
 
         // set supported actions. If action is not specified here it won't do anything
         // when called through mediaSession.getController().getTransportControls()
@@ -45,9 +56,31 @@ public class MediaSessionManager {
                 PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
                 PlaybackStateCompat.ACTION_REWIND |
                 PlaybackStateCompat.ACTION_FAST_FORWARD |
-                PlaybackStateCompat.ACTION_STOP);
+                PlaybackStateCompat.ACTION_STOP
+        );
+
+
+        mediaButtonManager = new MediaButtonManager(context, mediaSession);
+        playerManager = PlayerManager.INSTANCE;
+        playerManager.buildPlayer(context);
+        audioFocusManager = new AudioFocusManager(context);
     }
 
+    /**
+     * @see MediaButtonReceiver#handleIntent(MediaSessionCompat, Intent)
+     */
+    public MediaButtonManager getMediaButtonManager() {
+        return mediaButtonManager;
+    }
+
+    public PlayerManager getPlayerManager(){
+        return playerManager;
+    }
+
+    public AudioFocusManager getAudioFocusManager(AudioFocusCallback audioFocusCallback){
+        audioFocusManager.setCallback(audioFocusCallback);
+        return audioFocusManager;
+    }
 
     /**
      * The state must be one of the following:
@@ -66,12 +99,12 @@ public class MediaSessionManager {
      * <p>
      * for further info see {@link MediaSessionCompat#setPlaybackState(PlaybackStateCompat)}
      */
-    void setPlaybackState(int state, long playerCurrentPosition) {
+    public void setPlaybackState(int state, long playerCurrentPosition) {
         playbackState.setState(state, playerCurrentPosition, PLAYBACK_SPEED_NORMAL);
         mediaSession.setPlaybackState(playbackState.build());
     }
 
-    void setPlaybackStateErrorMessage(int errorCode, String errorMessage) {
+    public void setPlaybackStateErrorMessage(int errorCode, String errorMessage) {
         playbackState.setErrorMessage(errorCode, errorMessage);
         mediaSession.setPlaybackState(playbackState.build());
     }
@@ -89,12 +122,13 @@ public class MediaSessionManager {
         else return mediaSession.getController().getPlaybackState().getErrorMessage().toString();
     }
 
+
     /**
      * Set metadata of notification, wear etc
      *
      * @param youTubeSong the song from which retrieve metadata
      */
-    void setMetadata(YouTubeSong youTubeSong) {
+    public void setMetadata(YouTubeSong youTubeSong) {
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder();
         metadata.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, youTubeSong.getId());
         metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, youTubeSong.getId());
@@ -106,7 +140,7 @@ public class MediaSessionManager {
         metadata.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, youTubeSong.getAuthor());
         metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, youTubeSong.getTitle());
 
-        if (youTubeSong.getImageUri() != null){
+        if (youTubeSong.getImageUri() != null) {
             metadata.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, youTubeSong.getImageUri().toString());
             metadata.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, youTubeSong.getImageUri().toString());
 
@@ -126,6 +160,7 @@ public class MediaSessionManager {
         return mediaSession.getController().getMetadata();
     }
 
+
     /**
      * @return {@link #mediaSession}'s token
      */
@@ -133,11 +168,12 @@ public class MediaSessionManager {
         return mediaSession.getSessionToken();
     }
 
+
     /**
      * @see MediaSessionCompat#setActive(boolean)
      * should be called right after gaining audio focus
      */
-    void setActive() {
+    public void setActive() {
         mediaSession.setActive(true);
     }
 
@@ -145,29 +181,40 @@ public class MediaSessionManager {
      * @see MediaSessionCompat#setActive(boolean)
      * should be called right after losing audio focus
      */
-    void setInactive() {
+    public void setInactive() {
         mediaSession.setActive(false);
     }
 
-    /**
-     * @see MediaSessionCompat#setMediaButtonReceiver(PendingIntent)
-     */
-    void setMediaButtonReceiver(PendingIntent mediaButtonReceiverIntent) {
-        mediaSession.setMediaButtonReceiver(mediaButtonReceiverIntent);
+
+    public void queueAddTest(MediaDescriptionCompat mediaDescription, long id) {
+        queueList.add(new MediaSessionCompat.QueueItem(mediaDescription, id));
+        mediaSession.setQueue(queueList);
     }
 
-    /**
-     * @see MediaButtonReceiver#handleIntent(MediaSessionCompat, Intent)
-     */
-    void handleMediaButtonReceiverIntent(Intent intent) {
-        MediaButtonReceiver.handleIntent(mediaSession, intent);
+    public MediaSessionCompat.QueueItem queueGetItemTest(int index) {
+        return mediaSession.getController().getQueue().get(index);
+
     }
+
+    public YouTubeSong queueGetYoutubeTest(int index) {
+        MediaDescriptionCompat description = mediaSession.getController().getQueue().get(index).getDescription();
+
+        return new YouTubeSong.Builder(description.getMediaId(),
+            description.getTitle().toString())
+                .imageBitmap(description.getIconBitmap())
+                .imageUri(description.getIconUri())
+                .build();
+    }
+
 
     /**
      * @see MediaSessionCompat#release()
      */
-    void destroy() {
+    public void destroy() {
         mediaSession.release();
     }
 
+    public boolean isQueueNull() {
+        return mediaSession.getController().getQueue() == null;
+    }
 }

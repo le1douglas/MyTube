@@ -1,4 +1,4 @@
-package le1.mytube.domain.services.musicService;
+package le1.mytube.domain.services.musicService.managers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,10 +12,10 @@ import le1.mytube.domain.listeners.AudioFocusCallback;
 /**
  * Controls both audio focus and {@link AudioManager#ACTION_AUDIO_BECOMING_NOISY}
  */
-class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener {
+public class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener {
 
     private final AudioManager audioManager;
-    private final AudioFocusCallback callback;
+    private AudioFocusCallback callback;
     private Context context;
 
     /**
@@ -28,10 +28,13 @@ class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener {
         }
     };
 
-    AudioFocusManager(Context context, AudioFocusCallback callback) {
+    AudioFocusManager(Context context) {
         this.context = context.getApplicationContext();
         audioManager = (AudioManager) this.context
                 .getSystemService(Context.AUDIO_SERVICE);
+    }
+
+    void setCallback(AudioFocusCallback callback) {
         this.callback = callback;
     }
 
@@ -39,7 +42,7 @@ class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener {
      * Send a request to obtain audio focus and register {@link #noisyReceiver}
      * @return true if audio focus is given, false otherwise
      */
-    boolean requestAudioFocus() {
+    public boolean requestAudioFocus() {
         IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         context.registerReceiver(noisyReceiver, intentFilter);
 
@@ -52,7 +55,7 @@ class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener {
     /**
      * abandon audio focus and unregister {@link #noisyReceiver}
      */
-    void abandonAudioFocus() {
+    public void abandonAudioFocus() {
         audioManager.abandonAudioFocus(this);
         try {
             context.unregisterReceiver(noisyReceiver);

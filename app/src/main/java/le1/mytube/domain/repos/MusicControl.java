@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -18,7 +19,7 @@ import le1.mytube.domain.application.MyTubeApplication;
 import le1.mytube.domain.listeners.PlaybackStateCompositeListener;
 import le1.mytube.domain.listeners.PlaybackStateListener;
 import le1.mytube.domain.services.musicService.MusicService;
-import le1.mytube.domain.services.musicService.PlayerManager;
+import le1.mytube.domain.services.musicService.managers.PlayerManager;
 
 
 /**
@@ -122,7 +123,7 @@ public class MusicControl {
      * @param playerView the view in which to display media
      */
     public void setPlayerView(SimpleExoPlayerView playerView) {
-        PlayerManager.getInstance(context).setPlayerView(playerView);
+        PlayerManager.INSTANCE.setPlayerView(playerView);
     }
 
     /**
@@ -253,5 +254,19 @@ public class MusicControl {
             mediaController.getTransportControls().pause();
         else
             mediaController.getTransportControls().play();
+    }
+
+    public void skipToNext() {
+        mediaController.getTransportControls().skipToNext();
+    }
+
+
+    public void addToQueue(YouTubeSong youTubeSong){
+        mediaController.addQueueItem(new MediaDescriptionCompat.Builder()
+                .setTitle(youTubeSong.getTitle())
+                .setMediaId(youTubeSong.getId())
+                .setIconBitmap(youTubeSong.getImageBitmap())
+                .setIconUri(youTubeSong.getImageUri())
+                .build());
     }
 }
