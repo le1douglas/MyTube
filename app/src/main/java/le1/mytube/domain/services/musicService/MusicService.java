@@ -127,25 +127,28 @@ public class MusicService extends MediaBrowserServiceCompat {
             if (mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
                 player.pause();
             }
-            extras.setClassLoader(YouTubeSong.class.getClassLoader());
-            queue.getList();
+            int positionInQueue;
             if (currentOrLastSong == null) {
+                //this is the first song loaded
+                positionInQueue = 0;
                 Toast.makeText(MusicService.this, "0", Toast.LENGTH_SHORT).show();
-                currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
-                musicControl.addToQueue(currentOrLastSong, 0);
-                queue.setCurrentPosition(0);
-            } else if (queue.getIndexOfSong(currentOrLastSong) == -1) {
-                Toast.makeText(MusicService.this, "error", Toast.LENGTH_SHORT).show();
-                currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
-            } else {
-                int pos = queue.getIndexOfSong(currentOrLastSong) + 1;
-                Toast.makeText(MusicService.this, "" + pos, Toast.LENGTH_SHORT).show();
-                currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
-                musicControl.addToQueue(currentOrLastSong, pos);
-                queue.setCurrentPosition(pos);
 
+            } else if (queue.getIndexOfSong(currentOrLastSong) != -1) {
+                //we are able to retrieve the position of the last song
+                positionInQueue = queue.getIndexOfSong(currentOrLastSong) + 1;
+                Toast.makeText(MusicService.this, "" + positionInQueue, Toast.LENGTH_SHORT).show();
+            } else {
+                mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1);
+                mediaSession.setPlaybackStateErrorMessage(PlaybackStateCompat.ERROR_CODE_END_OF_QUEUE, "error retrieving queue");
+                MusicNotification.updateNotification(MusicService.this, mediaSession);
+                Toast.makeText(MusicService.this, "error with queue", Toast.LENGTH_SHORT).show();
+                return;
             }
 
+            extras.setClassLoader(YouTubeSong.class.getClassLoader());
+            currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
+            musicControl.addToQueue(currentOrLastSong, positionInQueue);
+            queue.setCurrentPosition(positionInQueue);
 
             //we set the playback state to STATE_BUFFERING before extracting the youtube song
             mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1);
@@ -162,6 +165,7 @@ public class MusicService extends MediaBrowserServiceCompat {
                             return;
                         }
                         Log.d(TAG, "onExtractionComplete: ");
+
                         currentOrLastSong.setDuration((int) (videoMeta.getVideoLength() * 1000));
                         currentOrLastSong.setAuthor(videoMeta.getAuthor());
                         currentOrLastSong.setImageUri(Uri.parse(videoMeta.getMaxResImageUrl()));
@@ -225,7 +229,6 @@ public class MusicService extends MediaBrowserServiceCompat {
 
         /**
          * Seeks to a different position in the same media
-         *
          * @param pos The position in milliseconds
          */
         @Override
@@ -258,9 +261,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
-            for (YouTubeSong yts : queue.getList()) {
-                Log.d(TAG, "onSkipToNext: " + yts.getId() + "," + yts.getTitle());
-            }
+            //musicControl.prepareAndPlay(queue.getSongAtPosition(queue.getCurrentPosition()+1));
         }
 
         @Override
