@@ -17,21 +17,18 @@ import java.util.ArrayList;
 
 import le1.mytube.R;
 import le1.mytube.data.database.youTubeSong.YouTubeSong;
-import le1.mytube.presentation.ui.searchResult.SearchResultPresenter;
+import le1.mytube.domain.application.MyTubeApplication;
 
 
 public class VideoResultAdapter extends ArrayAdapter<String> {
 
     private ArrayList<YouTubeSong> youTubeSongs;
     private Context context;
-    private SearchResultPresenter presenter;
 
-    public VideoResultAdapter(Context c, SearchResultPresenter presenter, ArrayList<YouTubeSong> youTubeSongs) {
+    public VideoResultAdapter(Context c, ArrayList<YouTubeSong> youTubeSongs) {
         super(c, R.layout.row_video);
         this.youTubeSongs=youTubeSongs;
         context = c;
-
-        this.presenter = presenter;
     }
 
     @Override
@@ -52,7 +49,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
         TextView titleView = convertView.findViewById(R.id.title);
         TextView idView = convertView.findViewById(R.id.id);
         ImageButton download = convertView.findViewById(R.id.download);
-        ImageButton addToQueue = convertView.findViewById(R.id.queue_add);
+        final ImageButton addToQueue = convertView.findViewById(R.id.queue_add);
         ImageView thumb = convertView.findViewById(R.id.thumb);
 
 
@@ -63,7 +60,7 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View v) {
                 Toast.makeText(context, "Downloading song", Toast.LENGTH_SHORT).show();
-                presenter.downloadSong(youTubeSong);
+                youTubeSong.download(context);
 
             }
         });
@@ -71,7 +68,8 @@ public class VideoResultAdapter extends ArrayAdapter<String> {
         addToQueue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                presenter.addSongToQueue(youTubeSong);
+                Toast.makeText(context, "added to queue", Toast.LENGTH_SHORT).show();
+                ((MyTubeApplication) context.getApplicationContext()).getMusicControl().addToQueue(youTubeSong);
             }
         });
 

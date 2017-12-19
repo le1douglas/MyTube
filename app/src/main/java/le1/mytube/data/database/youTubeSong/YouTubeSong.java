@@ -99,16 +99,10 @@ public class YouTubeSong implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        String imageUriString = null;
-        if (this.imageUri != null) {
-            imageUriString = this.imageUri.toString();
-        }
-
         parcel.writeString(this.id);
         parcel.writeString(this.title);
         parcel.writeString(this.author);
         parcel.writeString(this.path);
-        parcel.writeString(imageUriString);
         parcel.writeInt(this.start);
         parcel.writeInt(this.end);
         parcel.writeInt(this.duration);
@@ -119,8 +113,6 @@ public class YouTubeSong implements Parcelable {
         this.title = parcel.readString();
         this.author = parcel.readString();
         this.path = parcel.readString();
-        if (parcel.readString() != null) this.imageUri = Uri.parse(parcel.readString());
-        else this.imageUri = null;
         this.start = parcel.readInt();
         this.end = parcel.readInt();
         this.duration = parcel.readInt();

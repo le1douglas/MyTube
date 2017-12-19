@@ -60,7 +60,7 @@ public class AudioFocusManager implements AudioManager.OnAudioFocusChangeListene
         try {
             context.unregisterReceiver(noisyReceiver);
         } catch (Exception ignored) {
-            //there is no way to know if receiver is registered
+            //there is no other way to know if receiver is registered
         }
     }
 

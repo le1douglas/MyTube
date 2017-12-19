@@ -6,13 +6,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import le1.mytube.data.database.youTubeSong.YouTubeSong;
 import le1.mytube.domain.application.MyTubeApplication;
@@ -20,6 +23,7 @@ import le1.mytube.domain.listeners.PlaybackStateCompositeListener;
 import le1.mytube.domain.listeners.PlaybackStateListener;
 import le1.mytube.domain.services.musicService.MusicService;
 import le1.mytube.domain.services.musicService.managers.PlayerManager;
+import le1.mytube.domain.services.musicService.managers.QueueManager;
 
 
 /**
@@ -112,11 +116,12 @@ public class MusicControl {
      * @param context Application context
      */
     public MusicControl(Context context) {
+        this.context = context;
         musicServiceIntent = new Intent(context.getApplicationContext(), MusicService.class);
         compositeListener = new PlaybackStateCompositeListener();
         mediaBrowserCompat = new MediaBrowserCompat(context,
                 new ComponentName(context.getApplicationContext(), MusicService.class), connectionCallback, null);
-        this.context = context;
+
     }
 
     /**
@@ -260,13 +265,20 @@ public class MusicControl {
         mediaController.getTransportControls().skipToNext();
     }
 
+    public void addToQueue(YouTubeSong youTubeSong) {
+        mediaController.addQueueItem(QueueManager.fromYouTubeSongToDescription(youTubeSong));
+    }
 
-    public void addToQueue(YouTubeSong youTubeSong){
-        mediaController.addQueueItem(new MediaDescriptionCompat.Builder()
-                .setTitle(youTubeSong.getTitle())
-                .setMediaId(youTubeSong.getId())
-                .setIconBitmap(youTubeSong.getImageBitmap())
-                .setIconUri(youTubeSong.getImageUri())
-                .build());
+    public void addToQueue(YouTubeSong youTubeSong, int position) {
+        mediaController.addQueueItem(QueueManager.fromYouTubeSongToDescription(youTubeSong), position);
+    }
+
+    public List<YouTubeSong> getQueue() {
+        List<YouTubeSong> list = new ArrayList<>();
+        if (mediaController.getQueue()==null) return list;
+        for (MediaSessionCompat.QueueItem i : mediaController.getQueue()){
+            list.add(QueueManager.fromDescriptionToYoutubeSong(i.getDescription()));
+        }
+        return list;
     }
 }

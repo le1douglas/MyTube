@@ -54,7 +54,7 @@ public class SearchResultActivity extends AppCompatActivity implements SearchRes
 
         videoResultListView = findViewById(R.id.videoResult);
         youTubeSongArray = new ArrayList<>();
-        videoResultAdapter = new VideoResultAdapter(this, presenter, youTubeSongArray);
+        videoResultAdapter = new VideoResultAdapter(this, youTubeSongArray);
         videoResultAdapter.setNotifyOnChange(true);
         videoResultListView.setAdapter(videoResultAdapter);
         videoResultListView.setOnItemClickListener(this);

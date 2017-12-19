@@ -36,6 +36,7 @@ import le1.mytube.domain.services.musicService.managers.AudioFocusManager;
 import le1.mytube.domain.services.musicService.managers.MediaButtonManager;
 import le1.mytube.domain.services.musicService.managers.MediaSessionManager;
 import le1.mytube.domain.services.musicService.managers.PlayerManager;
+import le1.mytube.domain.services.musicService.managers.QueueManager;
 import le1.mytube.presentation.notifications.MusicNotification;
 
 /**
@@ -53,6 +54,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     private MediaButtonManager mediaButtonReceiver;
     private AudioFocusManager audioFocus;
     private PlayerManager player;
+    private QueueManager queue;
 
     private MusicControl musicControl;
 
@@ -75,6 +77,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         mediaSession = new MediaSessionManager(this, mediaSessionCallback);
         audioFocus = mediaSession.getAudioFocusManager(audioFocusCallback);
         mediaButtonReceiver = mediaSession.getMediaButtonManager();
+        queue = mediaSession.getQueueManager();
         player = mediaSession.getPlayerManager();
         player.addEventListener(playerListener);
 
@@ -124,9 +127,25 @@ public class MusicService extends MediaBrowserServiceCompat {
             if (mediaSession.getPlaybackState() == PlaybackStateCompat.STATE_PLAYING) {
                 player.pause();
             }
-
             extras.setClassLoader(YouTubeSong.class.getClassLoader());
-            currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
+            queue.getList();
+            if (currentOrLastSong == null) {
+                Toast.makeText(MusicService.this, "0", Toast.LENGTH_SHORT).show();
+                currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
+                musicControl.addToQueue(currentOrLastSong, 0);
+                queue.setCurrentPosition(0);
+            } else if (queue.getIndexOfSong(currentOrLastSong) == -1) {
+                Toast.makeText(MusicService.this, "error", Toast.LENGTH_SHORT).show();
+                currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
+            } else {
+                int pos = queue.getIndexOfSong(currentOrLastSong) + 1;
+                Toast.makeText(MusicService.this, "" + pos, Toast.LENGTH_SHORT).show();
+                currentOrLastSong = extras.getParcelable(YOUTUBE_SONG_KEY);
+                musicControl.addToQueue(currentOrLastSong, pos);
+                queue.setCurrentPosition(pos);
+
+            }
+
 
             //we set the playback state to STATE_BUFFERING before extracting the youtube song
             mediaSession.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING, -1);
@@ -150,20 +169,17 @@ public class MusicService extends MediaBrowserServiceCompat {
                         //actually prepare the player
                         player.prepare(Uri.parse(itags.get(140).getUrl()), Uri.parse(itags.get(160).getUrl()));
                         //after preparing start playing
-                        Log.d(TAG, "just before play");
                         musicControl.play();
-                        musicControl.addToQueue(currentOrLastSong);
-                        musicControl.addToQueue(new YouTubeSong.Builder("eiDiKwbGfIY", "temp title").build());
                     } else {
                         mediaSession.setPlaybackState(PlaybackStateCompat.STATE_ERROR, -1);
                         mediaSession.setPlaybackStateErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR, "itags are null");
                         MusicNotification.updateNotification(MusicService.this, mediaSession);
                         Toast.makeText(MusicService.this, "itags are null", Toast.LENGTH_SHORT).show();
-                        Log.e(TAG, "onExtractionComplete: itags are null");
                     }
+
                 }
             }
-                    //actually extract the YouTube song. Method called at object creation
+                    //actually extract the YouTube song. Called at object creation
                     .extract("https://www.youtube.com/watch?v=" + youTubeId, true, true);
         }
 
@@ -209,6 +225,7 @@ public class MusicService extends MediaBrowserServiceCompat {
 
         /**
          * Seeks to a different position in the same media
+         *
          * @param pos The position in milliseconds
          */
         @Override
@@ -241,23 +258,21 @@ public class MusicService extends MediaBrowserServiceCompat {
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
-            Toast.makeText(MusicService.this,
-                    mediaSession.queueGetYoutubeTest(0).getTitle() + "|" +
-                            mediaSession.queueGetYoutubeTest(1).getTitle()
-                    , Toast.LENGTH_SHORT).show();
-            musicControl.stop();
+            for (YouTubeSong yts : queue.getList()) {
+                Log.d(TAG, "onSkipToNext: " + yts.getId() + "," + yts.getTitle());
+            }
         }
 
         @Override
         public void onAddQueueItem(MediaDescriptionCompat description) {
             super.onAddQueueItem(description);
-            if (mediaSession.isQueueNull()){
-                Log.d(TAG, "onAddQueueItem: null");
-                mediaSession.queueAddTest(description, 0);
-            } else {
-                Log.d(TAG, "onAddQueueItem: " + (mediaSession.queueGetItemTest(0).getQueueId() + 1));
-                mediaSession.queueAddTest(description, mediaSession.queueGetItemTest(0).getQueueId() + 1);
-            }
+            queue.addToEnd(description);
+        }
+
+        @Override
+        public void onAddQueueItem(MediaDescriptionCompat description, int index) {
+            super.onAddQueueItem(description, index);
+            queue.addToPosition(description, index);
         }
     };
 

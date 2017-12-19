@@ -35,5 +35,7 @@ interface MainContract extends BaseContract {
         void showDeleteDialog(Playlist playlist, int position);
 
         void initializeEdge(Context context);
+
+        String getQueueLog();
     }
 }

@@ -7,6 +7,10 @@
         android:title="Search"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_log"
+        android:title="Log"
+        app:showAsAction="never" />
 
 
 </menu>

@@ -94,6 +94,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             case R.id.action_search:
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
+            case R.id.action_log:
+                new AlertDialog.Builder(this).setTitle("Queue")
+                        .setMessage(presenter.getQueueLog()).show();
             default:
                 return super.onOptionsItemSelected(item);
         }

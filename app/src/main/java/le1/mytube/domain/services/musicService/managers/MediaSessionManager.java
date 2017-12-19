@@ -2,14 +2,10 @@ package le1.mytube.domain.services.musicService.managers;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import le1.mytube.data.database.youTubeSong.YouTubeSong;
 import le1.mytube.domain.listeners.AudioFocusCallback;
@@ -25,12 +21,10 @@ public class MediaSessionManager {
     private final MediaSessionCompat mediaSession;
     private final PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
 
-    private List<MediaSessionCompat.QueueItem> queueList = new ArrayList<>();
-
-
     private MediaButtonManager mediaButtonManager;
     private PlayerManager playerManager;
     private AudioFocusManager audioFocusManager;
+    private  QueueManager queueManager;
 
     /**
      * Build {@link #mediaSession} instance
@@ -64,6 +58,7 @@ public class MediaSessionManager {
         playerManager = PlayerManager.INSTANCE;
         playerManager.buildPlayer(context);
         audioFocusManager = new AudioFocusManager(context);
+        queueManager = new QueueManager(mediaSession);
     }
 
     /**
@@ -80,6 +75,10 @@ public class MediaSessionManager {
     public AudioFocusManager getAudioFocusManager(AudioFocusCallback audioFocusCallback){
         audioFocusManager.setCallback(audioFocusCallback);
         return audioFocusManager;
+    }
+
+    public QueueManager getQueueManager(){
+        return queueManager;
     }
 
     /**
@@ -185,36 +184,10 @@ public class MediaSessionManager {
         mediaSession.setActive(false);
     }
 
-
-    public void queueAddTest(MediaDescriptionCompat mediaDescription, long id) {
-        queueList.add(new MediaSessionCompat.QueueItem(mediaDescription, id));
-        mediaSession.setQueue(queueList);
-    }
-
-    public MediaSessionCompat.QueueItem queueGetItemTest(int index) {
-        return mediaSession.getController().getQueue().get(index);
-
-    }
-
-    public YouTubeSong queueGetYoutubeTest(int index) {
-        MediaDescriptionCompat description = mediaSession.getController().getQueue().get(index).getDescription();
-
-        return new YouTubeSong.Builder(description.getMediaId(),
-            description.getTitle().toString())
-                .imageBitmap(description.getIconBitmap())
-                .imageUri(description.getIconUri())
-                .build();
-    }
-
-
     /**
      * @see MediaSessionCompat#release()
      */
     public void destroy() {
         mediaSession.release();
-    }
-
-    public boolean isQueueNull() {
-        return mediaSession.getController().getQueue() == null;
     }
 }

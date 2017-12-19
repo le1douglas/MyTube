@@ -11,7 +11,10 @@ import java.util.ArrayList;
 
 import le1.mytube.data.database.DatabaseConstants;
 import le1.mytube.data.database.playlist.Playlist;
+import le1.mytube.data.database.youTubeSong.YouTubeSong;
+import le1.mytube.domain.application.MyTubeApplication;
 import le1.mytube.domain.repos.Repo;
+import le1.mytube.domain.services.musicService.managers.QueueManager;
 import le1.mytube.presentation.ui.base.BaseContract;
 
 public class MainPresenter extends AndroidViewModel implements MainContract.ViewModel {
@@ -94,5 +97,16 @@ public class MainPresenter extends AndroidViewModel implements MainContract.View
             else if (e.getType() == SsdkUnsupportedException.DEVICE_NOT_SUPPORTED)
                 contractView.onEdgeNotSupported(true);
         }
+    }
+
+    @Override
+    public String getQueueLog() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(QueueManager.getCurrentPosition()).append("\n");
+        for (YouTubeSong yts :
+                ((MyTubeApplication) getApplication()).getMusicControl().getQueue()) {
+            sb.append(yts.getTitle()).append("\n");
+        }
+        return sb.toString();
     }
 }
